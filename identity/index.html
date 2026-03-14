@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Michigan Identity Registry</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI, Arial, sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#0b1f3a,#0f4c81,#1e7bbf);
+background-size:400% 400%;
+animation:bgMove 18s ease infinite;
+color:white;
+}
+
+@keyframes bgMove{
+0%{background-position:0% 50%}
+50%{background-position:100% 50%}
+100%{background-position:0% 50%}
+}
+
+header{
+padding:20px 40px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(10px);
+border-bottom:1px solid rgba(255,255,255,0.15);
+}
+
+.logo{
+font-size:22px;
+font-weight:700;
+}
+
+nav a{
+margin-left:25px;
+text-decoration:none;
+color:white;
+font-weight:500;
+}
+
+.hero{
+text-align:center;
+padding:90px 20px 50px;
+}
+
+.hero h1{
+font-size:44px;
+margin-bottom:12px;
+}
+
+.hero p{
+opacity:.85;
+max-width:650px;
+margin:auto;
+}
+
+.container{
+max-width:1000px;
+margin:auto;
+padding:30px 20px;
+}
+
+/* MAIN CHOICES */
+
+.choice-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+gap:30px;
+margin-top:30px;
+}
+
+.choice{
+background:rgba(255,255,255,0.12);
+backdrop-filter:blur(14px);
+border-radius:16px;
+padding:40px;
+border:1px solid rgba(255,255,255,0.25);
+text-align:center;
+cursor:pointer;
+transition:.35s;
+}
+
+.choice:hover{
+transform:translateY(-8px);
+background:rgba(255,255,255,0.2);
+}
+
+.choice h2{
+margin-bottom:12px;
+}
+
+.choice p{
+opacity:.85;
+margin-bottom:20px;
+}
+
+.choice button{
+padding:12px 26px;
+border:none;
+border-radius:8px;
+background:white;
+color:#0b1f3a;
+font-weight:600;
+cursor:pointer;
+}
+
+/* SUB OPTIONS */
+
+.sub-options{
+margin-top:40px;
+display:none;
+grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+gap:20px;
+}
+
+.sub-card{
+background:rgba(255,255,255,0.08);
+border-radius:14px;
+padding:25px;
+border:1px solid rgba(255,255,255,0.15);
+text-align:center;
+cursor:pointer;
+transition:.3s;
+}
+
+.sub-card:hover{
+background:rgba(255,255,255,0.16);
+transform:translateY(-4px);
+}
+
+footer{
+text-align:center;
+padding:30px;
+margin-top:60px;
+opacity:.7;
+font-size:14px;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="logo">Michigan SOS</div>
+
+<nav>
+<a href="#">Home</a>
+<a href="#">Citizenship</a>
+<a href="#">Records</a>
+<a href="#">Services</a>
+<a href="#">Contact</a>
+</nav>
+</header>
+
+<section class="hero">
+
+<h1>Michigan Identity Registry</h1>
+
+<p>
+The Michigan Identity Registry maintains the official identity records
+for individuals recognized within the State of Michigan.  
+Select the service you wish to begin.
+</p>
+
+</section>
+
+<div class="container">
+
+<div class="choice-grid">
+
+<div class="choice" onclick="showRegisterOptions()">
+
+<h2>Register Identity</h2>
+
+<p>
+Create an official identity record for an individual within the
+Michigan Identity Registry.
+</p>
+
+<button>Continue</button>
+
+</div>
+
+<div class="choice">
+
+<h2>Apply for Citizenship</h2>
+
+<p>
+Submit an application to become a recognized citizen
+of the State of Michigan.
+</p>
+
+<button>Begin Application</button>
+
+</div>
+
+</div>
+
+<div class="sub-options" id="registerOptions">
+
+<div class="sub-card">
+<h3>Register Yourself</h3>
+<p>Create your own identity record.</p>
+</div>
+
+<div class="sub-card">
+<h3>Register Another Individual</h3>
+<p>Submit an identity registration on behalf of another person if permitted by law.</p>
+</div>
+
+</div>
+
+</div>
+
+<footer>
+Michigan Identity Registry — Official digital identity services.
+</footer>
+
+<script>
+
+function showRegisterOptions(){
+document.getElementById("registerOptions").style.display="grid";
+}
+
+</script>
+
+</body>
+</html>
