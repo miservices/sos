@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Michigan Secretary of State</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI, Arial, sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#0b1f3a,#0f4c81,#1e7bbf);
+background-size:400% 400%;
+animation:bgMove 18s ease infinite;
+color:white;
+}
+
+@keyframes bgMove{
+0%{background-position:0% 50%}
+50%{background-position:100% 50%}
+100%{background-position:0% 50%}
+}
+
+header{
+padding:20px 40px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(10px);
+border-bottom:1px solid rgba(255,255,255,0.15);
+}
+
+.logo{
+font-size:22px;
+font-weight:700;
+}
+
+nav a{
+margin-left:25px;
+text-decoration:none;
+color:white;
+font-weight:500;
+}
+
+.hero{
+text-align:center;
+padding:100px 20px 50px;
+}
+
+.hero h1{
+font-size:48px;
+margin-bottom:10px;
+}
+
+.hero p{
+opacity:.8;
+}
+
+/* MAIN CONTAINER */
+
+.container{
+max-width:1000px;
+margin:auto;
+padding:20px;
+}
+
+/* FEATURED CITIZENSHIP */
+
+.primary-service{
+margin-top:20px;
+background:rgba(255,255,255,0.2);
+border-radius:16px;
+padding:40px;
+text-align:center;
+border:1px solid rgba(255,255,255,0.35);
+backdrop-filter:blur(14px);
+cursor:pointer;
+transition:.3s;
+}
+
+.primary-service:hover{
+transform:translateY(-6px);
+background:rgba(255,255,255,0.28);
+}
+
+.primary-service h2{
+font-size:28px;
+margin-bottom:10px;
+}
+
+.primary-service p{
+opacity:.85;
+margin-bottom:20px;
+}
+
+.primary-service button{
+padding:14px 30px;
+font-size:16px;
+border:none;
+border-radius:8px;
+background:white;
+color:#0b1f3a;
+font-weight:600;
+cursor:pointer;
+transition:.2s;
+}
+
+.primary-service button:hover{
+transform:scale(1.05);
+}
+
+/* OTHER SERVICES */
+
+.services{
+margin-top:40px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:25px;
+}
+
+.card{
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(14px);
+border-radius:14px;
+padding:30px;
+border:1px solid rgba(255,255,255,0.1);
+transition:.3s;
+cursor:pointer;
+}
+
+.card:hover{
+transform:translateY(-5px);
+background:rgba(255,255,255,0.15);
+}
+
+.card h3{
+margin-bottom:10px;
+}
+
+footer{
+text-align:center;
+padding:30px;
+margin-top:50px;
+opacity:.7;
+font-size:14px;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="logo">Michigan SOS</div>
+
+<nav>
+<a href="#">Home</a>
+<a href="#">Citizenship</a>
+<a href="#">Records</a>
+<a href="#">Services</a>
+<a href="#">Contact</a>
+</nav>
+</header>
+
+<section class="hero">
+<h1>Michigan Secretary of State</h1>
+<p>Identity registration, records access, and official online services.</p>
+</section>
+
+<div class="container">
+
+<div class="primary-service">
+
+<h2>Register or Apply for Michigan Citizenship</h2>
+
+<p>
+Create your official identity record within the Michigan Identity Registry
+or submit an application for state citizenship.
+</p>
+
+<button>Begin Registration</button>
+
+</div>
+
+<div class="services">
+
+<div class="card">
+<h3>Records Search</h3>
+<p>Search public identity records, registered entities, and official state documents.</p>
+</div>
+
+<div class="card">
+<h3>Other Online Services</h3>
+<p>Access additional digital services and government applications.</p>
+</div>
+
+</div>
+
+</div>
+
+<footer>
+This website is not affiliated with, endorsed by, or officially connected to any official government agency.
+</footer>
+
+</body>
+</html>
