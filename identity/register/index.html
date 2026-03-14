@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Register Identity | Michigan Identity Registry</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI, Arial, sans-serif;}
+body{background:linear-gradient(135deg,#0b1f3a,#0f4c81,#1e7bbf);background-size:400% 400%;animation:bgMove 18s ease infinite;color:white;}
+@keyframes bgMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+header{padding:20px 40px;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.15);}
+.logo{font-size:22px;font-weight:700;}
+nav a{margin-left:25px;text-decoration:none;color:white;font-weight:500;}
+.hero{text-align:center;padding:80px 20px 40px;}
+.hero h1{font-size:44px;margin-bottom:10px;}
+.hero p{opacity:.8;}
+.container{max-width:1000px;margin:auto;padding:20px;}
+.card{background:rgba(255,255,255,0.08);backdrop-filter:blur(14px);border-radius:14px;padding:30px;border:1px solid rgba(255,255,255,0.1);margin-bottom:25px;}
+.card h2{margin-bottom:15px;}
+.form-group{margin-bottom:18px;}
+label{display:block;margin-bottom:6px;font-weight:600;}
+.desc{font-size:13px;opacity:.8;margin-bottom:6px;}
+input, textarea, select{width:100%;padding:10px;border-radius:6px;border:none;outline:none;}
+button{padding:12px 24px;border:none;border-radius:8px;background:white;color:#0b1f3a;font-weight:600;cursor:pointer;}
+button:hover{transform:scale(1.05);}
+.notice{background:rgba(255,255,255,0.18);padding:15px;border-radius:10px;margin-bottom:25px;font-size:14px;}
+footer{text-align:center;padding:30px;margin-top:50px;opacity:.7;font-size:14px;}
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;z-index:999;}
+.modal-box{background:white;color:#0b1f3a;padding:20px;border-radius:12px;max-width:400px;width:90%;text-align:center;}
+.modal-box button{margin:0 5px; min-width:130px;}
+.confirmation table{width:100%;border-collapse:collapse;margin-top:10px;}
+.confirmation th, .confirmation td{border:1px solid #fff;padding:8px;text-align:left;}
+.confirmation th{background:rgba(255,255,255,0.2); width:35%;}
+</style>
+</head>
+<body>
+
+<header>
+<div class="logo">Michigan SOS</div>
+<nav>
+<a href="#">Home</a>
+<a href="#">Citizenship</a>
+<a href="#">Records</a>
+<a href="#">Services</a>
+<a href="#">Contact</a>
+</nav>
+</header>
+
+<section class="hero">
+<h1 id="heroTitle">Welcome.</h1>
+<p id="heroSub">Register identity with the Michigan Identity Registry</p>
+</section>
+
+<div class="container" id="formContainer">
+
+<div class="notice">
+<strong>What this form does for you</strong><br>
+This form registers an identity record within the Michigan Identity Registry.<br><br>
+<strong>How to apply for citizenship with this form</strong><br>
+Identity registration must be completed before a citizenship application may be submitted. After completing this registration, you will be provided with a simple one-click option to apply for citizenship.
+</div>
+
+<div class="card">
+<h2>Registration Type</h2>
+<div class="form-group">
+<label>Who are you registering?</label>
+<select id="registrationType" onchange="updateForm()">
+<option value="" disabled selected>Select an option</option>
+<option value="self">I am registering myself</option>
+<option value="other">I am registering someone else</option>
+</select>
+</div>
+</div>
+
+<div class="card" id="section1" style="display:none">
+<h2>Registrant Information</h2>
+<div class="form-group"><label>Full Name of Registrant</label><div class="desc">Enter the full name of the individual submitting this registration request.</div><input type="text" id="regName"></div>
+<div class="form-group"><label>SIN of Registrant</label><div class="desc">Enter the full state identification number of the individual submitting this registration request.</div><input type="text" id="regSIN"></div>
+<div class="form-group"><label>Relationship to the Person Being Registered</label><div class="desc">Enter the relationship or authority of the individual submitting this registration request.</div><input type="text" id="regRelationship"></div>
+</div>
+
+<div class="card" id="section2" style="display:none">
+<h2>Identity Information</h2>
+<div class="form-group"><label>First Name</label><div class="desc" id="descFirst">Enter the first name of the individual.</div><input type="text" id="firstName"></div>
+<div class="form-group"><label>Last Name</label><div class="desc" id="descLast">Enter the last name of the individual.</div><input type="text" id="lastName"></div>
+<div class="form-group"><label>Date of Birth</label><div class="desc" id="descDOB">Enter the individual's date of birth.</div><input type="date" id="dobInput"></div>
+<div class="form-group"><label>Roblox Username</label><div class="desc" id="descUser">Enter the Roblox account username.</div><input type="text" id="robloxUser"></div>
+<div class="form-group"><label>Roblox Identifier</label><div class="desc" id="descID">Provide the permanent Roblox user ID.</div><input type="text" id="robloxID"></div>
+<div class="form-group"><label>Previous Names or Aliases (optional)</label><div class="desc" id="descAlias">List any previous names or aliases.</div><input type="text" id="aliases"></div>
+<div class="form-group"><label>Additional Information (optional)</label><div class="desc" id="descExtra">Provide any additional information.</div><textarea rows="4" id="extraInfo"></textarea></div>
+</div>
+
+<div class="card" id="consentSection" style="display:none">
+<h2 id="consentTitle">Signature of Consent</h2>
+<div class="desc" id="consentDesc">Please type your full name affirming consent.</div>
+<input type="text" id="consentName">
+<br><br>
+<button onclick="submitRegistration()">Submit Registration</button>
+</div>
+
+</div>
+
+<footer>
+This website is not affiliated with, endorsed by, or officially connected to any official government agency.
+</footer>
+
+<!-- Modal -->
+<div id="modalOverlay" class="modal-overlay">
+<div class="modal-box">
+<h3 id="modalTitle">System Message</h3>
+<p id="modalMessage"></p>
+<div id="modalButtons" style="display:flex;justify-content:center;"></div>
+</div>
+</div>
+
+<script>
+function updateForm() {
+    const type = document.getElementById("registrationType").value;
+    const s1 = document.getElementById("section1");
+    const s2 = document.getElementById("section2");
+    const consent = document.getElementById("consentSection");
+
+    if(type==="self"){
+        s1.style.display="none"; s2.style.display="block"; consent.style.display="block";
+        document.getElementById("descFirst").innerText="Enter your first name.";
+        document.getElementById("descLast").innerText="Enter your last name.";
+        document.getElementById("descDOB").innerText="Enter your date of birth.";
+        document.getElementById("descUser").innerText="Enter your Roblox account username.";
+        document.getElementById("descID").innerText="Provide your Roblox user ID.";
+        document.getElementById("descAlias").innerText="List any previous names or aliases you have used.";
+        document.getElementById("descExtra").innerText="Provide any additional information.";
+        document.getElementById("consentTitle").innerText="Signature of Consent";
+        document.getElementById("consentDesc").innerText="Please type your full name below, affirming that you have given consent to register yourself.";
+    } else if(type==="other"){
+        s1.style.display="block"; s2.style.display="block"; consent.style.display="block";
+        document.getElementById("descFirst").innerText="Enter the first name of the individual being registered.";
+        document.getElementById("descLast").innerText="Enter the last name of the individual being registered.";
+        document.getElementById("descDOB").innerText="Enter the individual's date of birth.";
+        document.getElementById("descUser").innerText="Enter the Roblox account username.";
+        document.getElementById("descID").innerText="Provide the permanent Roblox user ID.";
+        document.getElementById("descAlias").innerText="List any previous names or aliases used.";
+        document.getElementById("descExtra").innerText="Provide any additional information.";
+        document.getElementById("consentTitle").innerText="Authority to Register";
+        document.getElementById("consentDesc").innerText="Please type your full name below, affirming that you have lawful authority to submit this registration.";
+    }
+
+    const dobInput = document.getElementById("dobInput");
+    const today = new Date(); today.setFullYear(today.getFullYear() - 18);
+    let yyyy = today.getFullYear(), mm = today.getMonth()+1, dd = today.getDate();
+    if(mm<10) mm='0'+mm; if(dd<10) dd='0'+dd;
+    dobInput.value = `${yyyy}-${mm}-${dd}`;
+}
+
+function openModal(title, message, buttonsHTML){
+    const modal = document.getElementById("modalOverlay");
+    document.getElementById("modalTitle").innerText = title;
+    document.getElementById("modalMessage").innerText = message;
+    document.getElementById("modalButtons").innerHTML = buttonsHTML;
+    modal.style.display="flex";
+}
+
+function closeModal(){document.getElementById("modalOverlay").style.display="none";}
+
+function generateApplicationNumber(){
+    const date = new Date();
+    const xs = (date.getMonth()+1).toString().padStart(2,'0')+date.getDate().toString().padStart(2,'0')+date.getFullYear();
+    const ys = Math.floor(Math.random()*90000+10000);
+    return xs+ys;
+}
+
+function submitRegistration(){
+    const type = document.getElementById("registrationType").value;
+    if(type===""){openModal("Missing Information","Please select who you are registering.",'<button onclick="closeModal()">OK</button>'); return;}
+
+    let requiredFields = [];
+    if(type==="self"){requiredFields = ["firstName","lastName","dobInput","robloxUser","robloxID","consentName"];}
+    else{requiredFields = ["regName","regSIN","regRelationship","firstName","lastName","dobInput","robloxID","consentName"];}
+
+    let missing = [];
+    requiredFields.forEach(id=>{
+        const el = document.getElementById(id);
+        if(!el.value || el.value.trim()===""){
+            const label = el.previousElementSibling.previousElementSibling ? el.previousElementSibling.previousElementSibling.innerText : id;
+            missing.push(label);
+        }
+    });
+
+    if(missing.length>0){
+        openModal("Incomplete Form","Please complete the following required fields before submitting:\n\n"+missing.join("\n"),'<button onclick="closeModal()">OK</button>');
+        return;
+    }
+
+    if(type==="self"){
+        openModal("Citizenship Application","Would you like to immediately apply for citizenship?",
+        '<button onclick="finalSubmit(true)">Apply for Citizenship</button><button onclick="finalSubmit(false)">Register Identity Only</button>');
+    } else { finalSubmit(false); }
+}
+
+function finalSubmit(applyCitizen){
+    closeModal();
+    const type = document.getElementById("registrationType").value;
+    const appNum = generateApplicationNumber();
+    const formContainer = document.getElementById("formContainer");
+    const heroTitle = document.getElementById("heroTitle");
+    const heroSub = document.getElementById("heroSub");
+
+    // Build confirmation table
+    let html=`<div class="confirmation"><h2>Confirmation</h2><p><strong>Application Number:</strong> ${appNum}</p><table>`;
+    let googleFormURL="https://docs.google.com/forms/d/e/1FAIpQLSfMlPPIlzqqbeqy_3XExN_ZPW7G2gPfa09kQ9H7jaZ6lakZ0A/formResponse?usp=pp_url";
+
+    if(type==="self"){
+        const first=document.getElementById("firstName").value;
+        const last=document.getElementById("lastName").value;
+        const dob=document.getElementById("dobInput").value;
+        const robloxUser=document.getElementById("robloxUser").value;
+        const robloxID=document.getElementById("robloxID").value;
+        const alias=document.getElementById("aliases").value;
+        const extra=document.getElementById("extraInfo").value;
+        html+=`<tr><th>First Name</th><td>${first}</td></tr>
+        <tr><th>Last Name</th><td>${last}</td></tr>
+        <tr><th>Date of Birth</th><td>${dob}</td></tr>
+        <tr><th>Roblox Username</th><td>${robloxUser}</td></tr>
+        <tr><th>Roblox ID</th><td>${robloxID}</td></tr>`;
+        if(alias) html+=`<tr><th>Previous Names / Aliases</th><td>${alias}</td></tr>`;
+        if(extra) html+=`<tr><th>Additional Info</th><td>${extra}</td></tr>`;
+        html+=`<tr><th>Citizenship Applied</th><td>${applyCitizen?"Yes":"No"}</td></tr>`;
+
+        // Prefill google form for self
+        googleFormURL += "&entry.731550568=self" +
+                         `&entry.262306399=${encodeURIComponent(first)}` +
+                         `&entry.293259883=${encodeURIComponent(last)}` +
+                         `&entry.1803220148=${encodeURIComponent(dob)}` +
+                         `&entry.1592859638=${encodeURIComponent(robloxUser)}` +
+                         `&entry.1786313011=${encodeURIComponent(robloxID)}` +
+                         (alias?`&entry.641267450=${encodeURIComponent(alias)}`:'') +
+                         (extra?`&entry.1693708297=${encodeURIComponent(extra)}`:'') +
+                         `&entry.1924068360=${applyCitizen?"Yes":"No"}`;
+    } else {
+        const regName=document.getElementById("regName").value;
+        const regSIN=document.getElementById("regSIN").value;
+        const relationship=document.getElementById("regRelationship").value;
+        const first=document.getElementById("firstName").value;
+        const last=document.getElementById("lastName").value;
+        const dob=document.getElementById("dobInput").value;
+        const robloxID=document.getElementById("robloxID").value;
+        html+=`<tr><th>Registrant Name</th><td>${regName}</td></tr>
+        <tr><th>Registrant SIN</th><td>${regSIN}</td></tr>
+        <tr><th>Relationship</th><td>${relationship}</td></tr>
+        <tr><th>Registered Person</th><td>${first} ${last}</td></tr>
+        <tr><th>Date of Birth</th><td>${dob}</td></tr>
+        <tr><th>Roblox ID</th><td>${robloxID}</td></tr>`;
+
+        googleFormURL += `&entry.731550568=other&entry.601502527=${encodeURIComponent(regName)}`+
+                         `&entry.1268714789=${encodeURIComponent(regSIN)}`+
+                         `&entry.1533299896=${encodeURIComponent(relationship)}`+
+                         `&entry.262306399=${encodeURIComponent(first)}`+
+                         `&entry.293259883=${encodeURIComponent(last)}`+
+                         `&entry.1803220148=${encodeURIComponent(dob)}`+
+                         `&entry.1786313011=${encodeURIComponent(robloxID)}`;
+    }
+
+    html+="</table></div>";
+    formContainer.innerHTML=html;
+    heroTitle.innerText="You're all set.";
+    heroSub.innerText="You've registered with the Michigan Identity Registry";
+
+    // Auto-submit Google Form in hidden iframe
+    const iframe = document.createElement("iframe");
+    iframe.style.display="none";
+    iframe.src = googleFormURL;
+    document.body.appendChild(iframe);
+}
+</script>
+</body>
+</html>
