@@ -57,12 +57,12 @@
   .page-hero {
     background: linear-gradient(135deg, var(--navy) 0%, #00234d 60%, #001a3a 100%);
     color: var(--white);
-    padding: 56px 24px 48px;
+    padding: 56px 0 48px;
     position: relative;
     overflow: hidden;
   }
   .page-hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 400px; height: 400px; border-radius: 50%; background: rgba(197,136,42,0.1); pointer-events: none; }
-  .page-hero-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+  .page-hero-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
   .page-hero-label { font-size: 0.78rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--light-gold); font-weight: 700; margin-bottom: 10px; }
   .page-hero h1 { font-size: clamp(1.8rem, 3.5vw, 2.6rem); font-weight: 900; line-height: 1.15; margin-bottom: 14px; max-width: 600px; }
   .page-hero p { color: #a8bdd4; font-size: 1.02rem; max-width: 560px; line-height: 1.65; }
@@ -95,13 +95,6 @@
 
   .lead-text { font-size: 1.02rem !important; color: var(--dark) !important; font-weight: 500; }
 
-  /* OVERVIEW CARDS */
-  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
-  .overview-card { background: #f4f7fb; border-radius: 10px; padding: 20px; border: 1px solid #dde4ef; }
-  .overview-card .oc-icon { font-size: 1.6rem; margin-bottom: 10px; }
-  .overview-card h4 { font-size: 0.95rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
-  .overview-card p { font-size: 0.83rem; color: var(--gray); line-height: 1.55; margin: 0; }
-
   /* STEPS */
   .steps { display: flex; flex-direction: column; gap: 0; margin-top: 20px; }
   .step { display: flex; gap: 20px; position: relative; padding-bottom: 28px; }
@@ -120,7 +113,7 @@
   .req-item .req-text .req-title { font-weight: 700; font-size: 0.9rem; color: var(--navy); }
   .req-item .req-text .req-desc { font-size: 0.82rem; color: var(--gray); margin-top: 2px; line-height: 1.5; }
 
-  /* DENIAL TABLE */
+  /* DENIAL LIST */
   .denial-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
   .denial-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: #fff8f8; border-radius: 8px; border: 1px solid #f0d0d0; }
   .denial-item .di-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
@@ -176,7 +169,7 @@
   .footer-col a:hover { color: var(--light-gold); }
   .footer-bottom { border-top: 1px solid #2a3240; padding-top: 20px; display: flex; justify-content: space-between; font-size: 0.78rem; color: #4a5a6a; flex-wrap: wrap; gap: 8px; }
 
-  @media (max-width: 900px) { .page-layout { grid-template-columns: 1fr; } .overview-grid { grid-template-columns: 1fr; } .footer-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 900px) { .page-layout { grid-template-columns: 1fr; } .footer-grid { grid-template-columns: 1fr 1fr; } }
   @media (max-width: 600px) { nav { display: none; } .footer-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -258,21 +251,12 @@
   </div>
 </header>
 
-<!-- BREADCRUMB -->
-<div class="breadcrumb">
-  <div class="inner">
-    <a href="/sos/">Home</a>
-    <span class="sep">›</span>
-    <span>Citizenship</span>
-  </div>
-</div>
-
 <!-- PAGE HERO -->
 <section class="page-hero">
   <div class="page-hero-inner">
-    <div class="page-hero-label">Bureau of Citizenship & Civil Records</div>
+    <div class="page-hero-label">Bureau of Citizenship &amp; Civil Records</div>
     <h1>Michigan State Citizenship</h1>
-    <p>Learn about Michigan citizenship — what it means, who qualifies, how to apply, and how your identity is recorded in the Michigan Identity Registry.</p>
+    <p>Learn about Michigan citizenship — what it means, who qualifies, how to apply, and how your application is processed under the Revised Citizenship Act of 2026.</p>
   </div>
 </section>
 
@@ -283,14 +267,14 @@
     <!-- OVERVIEW -->
     <div class="section-block">
       <h2>What is Michigan Citizenship?</h2>
-      <p>Michigan citizenship is a formal legal status granted to residents who register with the Michigan Identity Registry and are recognized by the state as a citizen under the Citizenship and National Status Act.</p>
-      <p>A citizen is a person who has been lawfully recognized as a citizen of the state pursuant to established procedures, and whose identity and citizenship status have been recorded in the Michigan Identity Registry. Once granted, citizenship entitles you to all rights and privileges provided by state law.</p>
+      <p>Michigan citizenship is a formal legal status granted by the State of Michigan that recognizes an individual as a citizen with all associated rights, privileges, and obligations established by law. Citizenship is administered by the Bureau of Citizenship &amp; Civil Records within the Department of State.</p>
+      <p>Once granted, citizenship is officially recorded and entitles you to all rights and privileges provided under the Revised Citizenship Act of 2026 and other applicable state law.</p>
     </div>
 
     <!-- HOW TO APPLY -->
     <div class="section-block">
       <h2>How to Apply for Citizenship</h2>
-      <p>Citizenship is obtained by submitting a <strong>self-registration</strong> to the Michigan Identity Registry that includes a petition for citizenship. The Bureau of Citizenship & Civil Records reviews all applications within <strong>30 days</strong>.</p>
+      <p>Citizenship is obtained by submitting an <strong>application</strong> through the official online Citizenship Application Portal maintained by the Department of State. The Bureau of Citizenship &amp; Civil Records reviews all applications within <strong>10 days</strong> of receipt (extendable up to 15 days in certain circumstances).</p>
 
       <div class="steps">
         <div class="step">
@@ -299,8 +283,8 @@
             <div class="step-line"></div>
           </div>
           <div class="step-content">
-            <h4>Submit a Self-Registration</h4>
-            <p>Complete the online self-registration form through the Michigan Identity Registry. Provide accurate and complete identifying information — your name, date of birth, Social Security Number, and Roblox account details.</p>
+            <h4>Submit an Application via the Portal</h4>
+            <p>Access the Citizenship Application Portal on the Department of State website and complete your application. The portal is the sole official method of submission — no other method of application is accepted unless otherwise provided by law.</p>
           </div>
         </div>
         <div class="step">
@@ -309,8 +293,8 @@
             <div class="step-line"></div>
           </div>
           <div class="step-content">
-            <h4>Check the Citizenship Petition Box</h4>
-            <p>During registration, you must affirmatively check the box indicating your intent to seek recognition as a citizen of the state. This designates your registration as a Petition for Citizenship.</p>
+            <h4>Provide Required Information</h4>
+            <p>Your application must include your State Identification Number (SIN), Roblox account identifier and username, current legal first and last name, date of birth, and any prior legal names. A middle name may be optionally provided.</p>
           </div>
         </div>
         <div class="step">
@@ -319,8 +303,8 @@
             <div class="step-line"></div>
           </div>
           <div class="step-content">
-            <h4>Registrar Review</h4>
-            <p>The Registrar of the Michigan Identity Registry will review your petition within 30 days to determine whether you satisfy all requirements established under law and that no grounds for denial exist.</p>
+            <h4>Bureau Review</h4>
+            <p>The Bureau of Citizenship &amp; Civil Records reviews your application within 10 days of receipt, performing identity verification, eligibility review, and record creation. The Bureau may issue a conditional or administrative exception if clarification or correction is needed, giving you 2–4 days to respond.</p>
           </div>
         </div>
         <div class="step">
@@ -329,135 +313,140 @@
             <div class="step-line"></div>
           </div>
           <div class="step-content">
-            <h4>Citizenship Granted & Recorded</h4>
-            <p>If approved, citizenship is granted and your status is officially recorded in the Michigan Identity Registry. You are then recognized as a citizen of the State of Michigan for all purposes provided by law.</p>
+            <h4>Decision &amp; Notice</h4>
+            <p>The Bureau will issue a written decision — approval, denial, or conditional exception — through the portal. If approved, citizenship is granted and officially recorded. All notices clearly state the action taken, effective date, reasons, and any required next steps.</p>
           </div>
         </div>
       </div>
 
       <div class="callout callout-gold" style="margin-top: 24px;">
-        <p><strong>Ready to apply?</strong> The online citizenship application is available 24/7 through the Michigan Identity Registry portal.</p>
+        <p><strong>Ready to apply?</strong> The Citizenship Application Portal is available 24/7 and is directly accessible from this page.</p>
       </div>
     </div>
 
     <!-- REQUIREMENTS -->
     <div class="section-block">
-      <h2>Eligibility Requirements</h2>
-      <p>To qualify for citizenship under the Citizenship and National Status Act, all of the following must be satisfied:</p>
+      <h2>Required Application Information</h2>
+      <p>All citizenship applications submitted through the portal must include the following information:</p>
 
       <div class="req-list">
         <div class="req-item">
-          <div class="req-icon">✅</div>
+          <div class="req-icon">🪪</div>
           <div class="req-text">
-            <div class="req-title">Complete Self-Registration</div>
-            <div class="req-desc">Submit a self-registration to the Michigan Identity Registry with accurate and complete identifying information including your first and last name, date of birth, and Social Security Number.</div>
+            <div class="req-title">State Identification Number (SIN)</div>
+            <div class="req-desc">Your SIN assigned to you at birth pursuant to the Michigan Vital Identity and Records Act. This is required for identity verification.</div>
           </div>
         </div>
         <div class="req-item">
-          <div class="req-icon">✅</div>
+          <div class="req-icon">🎮</div>
           <div class="req-text">
-            <div class="req-title">Affirm Intent for Citizenship</div>
-            <div class="req-desc">Actively indicate your intent to seek recognition as a citizen by checking the designated checkbox on the registration form.</div>
+            <div class="req-title">Roblox Account Identifier &amp; Username</div>
+            <div class="req-desc">Your Roblox account identifier and associated username. Where available, the portal may retrieve this automatically via authorized Roblox account authentication. Otherwise, you must provide it manually.</div>
           </div>
         </div>
         <div class="req-item">
-          <div class="req-icon">✅</div>
+          <div class="req-icon">👤</div>
           <div class="req-text">
-            <div class="req-title">Roblox Account Link</div>
-            <div class="req-desc">Provide your Roblox platform identifier (account ID) so your roleplay identity — name and date of birth — can be linked in the Michigan Identity Registry.</div>
+            <div class="req-title">Current Legal Name</div>
+            <div class="req-desc">Your current legal first and last name. A middle name may optionally be provided.</div>
           </div>
         </div>
         <div class="req-item">
-          <div class="req-icon">✅</div>
+          <div class="req-icon">📅</div>
           <div class="req-text">
-            <div class="req-title">No Grounds for Denial</div>
-            <div class="req-desc">You must not be listed in the Restricted Persons Database, have a court order prohibiting citizenship, or have been convicted of treason against the State of Michigan.</div>
+            <div class="req-title">Date of Birth</div>
+            <div class="req-desc">Your legally recognized date of birth.</div>
+          </div>
+        </div>
+        <div class="req-item">
+          <div class="req-icon">📋</div>
+          <div class="req-text">
+            <div class="req-title">Prior Legal Names</div>
+            <div class="req-desc">Any prior legal names or name changes must be disclosed as part of your application.</div>
           </div>
         </div>
       </div>
 
       <div class="callout" style="margin-top: 20px;">
-        <p><strong>Dual Citizenship:</strong> Holding citizenship, nationality, or legal status in another jurisdiction does not affect your eligibility. Michigan law explicitly prohibits using dual citizenship as a negative factor in reviewing a petition.</p>
+        <p><strong>Automated Roblox Verification:</strong> Where technically available, the portal may retrieve your Roblox account identifier and username directly from your authenticated Roblox account. Successful automated retrieval satisfies the Roblox information requirement without manual entry.</p>
+      </div>
+    </div>
+
+    <!-- PROCESSING TIMELINE -->
+    <div class="section-block">
+      <h2>Processing Timeline</h2>
+      <p>Applications are subject to the following timeline under the Revised Citizenship Act of 2026:</p>
+
+      <div class="req-list">
+        <div class="req-item">
+          <div class="req-icon">📬</div>
+          <div class="req-text">
+            <div class="req-title">Day of Receipt</div>
+            <div class="req-desc">An application is deemed received on the first calendar day following submission through the portal.</div>
+          </div>
+        </div>
+        <div class="req-item">
+          <div class="req-icon">⏱️</div>
+          <div class="req-text">
+            <div class="req-title">10-Day Standard Review Period</div>
+            <div class="req-desc">The Bureau must take action — approve, deny, or issue a conditional/administrative exception — within 10 days of the application being deemed received.</div>
+          </div>
+        </div>
+        <div class="req-item">
+          <div class="req-icon">🔄</div>
+          <div class="req-text">
+            <div class="req-title">Conditional or Administrative Exception</div>
+            <div class="req-desc">If additional correction or clarification is needed, the Bureau may issue a conditional exception. You will then have 2–4 days to cure the identified deficiency. Failure to respond within this period may result in denial.</div>
+          </div>
+        </div>
+        <div class="req-item">
+          <div class="req-icon">📆</div>
+          <div class="req-text">
+            <div class="req-title">15-Day Maximum</div>
+            <div class="req-desc">The Bureau may extend the review period by up to 5 additional days where necessary. Total processing time — including any extension — shall not exceed 15 calendar days from the date of receipt.</div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- DENIAL & REVOCATION -->
     <div class="section-block">
-      <h2>Grounds for Denial or Revocation</h2>
-      <p>Citizenship will be denied or, if already granted, revoked under the following circumstances:</p>
+      <h2>Grounds for Denial</h2>
+      <p>An application for citizenship may only be denied on the basis of a reason expressly authorized under the Revised Citizenship Act of 2026 or other applicable law. All denials must identify a specific, articulable statutory or regulatory basis and will be communicated through the portal.</p>
 
       <div class="denial-list">
         <div class="denial-item">
           <div class="di-icon">🚫</div>
           <div class="di-text">
-            <div class="di-title">Restricted Persons Database</div>
-            <div class="di-desc">Placement in the Restricted Persons Database — a registry of individuals determined by a court to pose a significant threat to the state or convicted of treason.</div>
+            <div class="di-title">Threat Screening Database</div>
+            <div class="di-desc">The applicant is listed in the threat screening database at a designated threat level as defined under applicable law governing that database.</div>
           </div>
         </div>
         <div class="denial-item">
           <div class="di-icon">🚫</div>
           <div class="di-text">
             <div class="di-title">Conviction of Treason</div>
-            <div class="di-desc">A conviction of treason against the State of Michigan is an absolute bar to citizenship.</div>
+            <div class="di-desc">The applicant has been convicted of treason or an equivalent offense under applicable law.</div>
           </div>
         </div>
         <div class="denial-item">
           <div class="di-icon">🚫</div>
           <div class="di-text">
-            <div class="di-title">Court Order</div>
-            <div class="di-desc">An existing court order prohibiting the recognition of citizenship for the individual.</div>
+            <div class="di-title">False, Misleading, or Incomplete Information</div>
+            <div class="di-desc">The applicant has provided false, misleading, or incomplete information in any citizenship application, identity registration, or subsequent update submitted under this act.</div>
           </div>
         </div>
         <div class="denial-item">
           <div class="di-icon">🚫</div>
           <div class="di-text">
-            <div class="di-title">False or Incomplete Information</div>
-            <div class="di-desc">Providing false, misleading, or incomplete information during self-registration or any subsequent update to the Michigan Identity Registry.</div>
+            <div class="di-title">Court Order Restricting Eligibility</div>
+            <div class="di-desc">A valid court order exists that expressly limits, suspends, or prohibits the applicant's eligibility to obtain citizenship under this act. Note: such orders may only be issued where expressly authorized by law — orders issued without valid legal authority are void and of no effect.</div>
           </div>
         </div>
       </div>
 
-      <p style="margin-top: 18px; font-size: 0.88rem;">Upon revocation, the individual's status is updated in the Michigan Identity Registry and they immediately lose all rights and privileges associated with citizenship of Michigan.</p>
-    </div>
-
-    <!-- ABOUT THE REGISTRY -->
-    <div class="section-block">
-      <h2>The Michigan Identity Registry</h2>
-      <p>The Michigan Identity Registry (established under Public Act 12 — the Michigan Identity Registry Act) is the official state system that links your <strong>roleplay identity</strong> — your chosen name and date of birth — with your <strong>Roblox account</strong>.</p>
-      <p>Registration within the registry alone does not grant citizenship, residency, or any other legal status. Citizenship is a separate step that must be affirmatively requested through the petition process described above.</p>
-
-      <h3>Who Administers the Registry?</h3>
-      <p>The Secretary of State is responsible for the administration and maintenance of the Michigan Identity Registry. This is carried out through the <strong>Bureau of Citizenship & Civil Records</strong>, which serves as the official registrar. The Bureau is responsible for:</p>
-
-      <div class="req-list">
-        <div class="req-item">
-          <div class="req-icon">📋</div>
-          <div class="req-text">
-            <div class="req-title">Review Petitions</div>
-            <div class="req-desc">Review all self-registrations submitted as petitions for citizenship and determine whether applicants satisfy all requirements.</div>
-          </div>
-        </div>
-        <div class="req-item">
-          <div class="req-icon">✍️</div>
-          <div class="req-text">
-            <div class="req-title">Grant or Deny Citizenship</div>
-            <div class="req-desc">Issue decisions on citizenship applications in accordance with the Citizenship and National Status Act and other applicable law.</div>
-          </div>
-        </div>
-        <div class="req-item">
-          <div class="req-icon">🔒</div>
-          <div class="req-text">
-            <div class="req-title">Maintain Secure Records</div>
-            <div class="req-desc">Maintain accurate and secure records of all registered citizens in the Michigan Identity Registry.</div>
-          </div>
-        </div>
-        <div class="req-item">
-          <div class="req-icon">🤝</div>
-          <div class="req-text">
-            <div class="req-title">Coordinate with Other Agencies</div>
-            <div class="req-desc">Work with the Office of State Intelligence and the Department of Attorney General on matters related to citizenship eligibility and restricted persons.</div>
-          </div>
-        </div>
+      <div class="callout" style="margin-top: 18px;">
+        <p><strong>No Arbitrary Denials:</strong> No application may be denied arbitrarily, capriciously, or without reference to an identifiable provision of law. The Bureau must document the legal basis for each denial for administrative review and audit purposes.</p>
       </div>
     </div>
 
@@ -469,18 +458,17 @@
         <div class="req-item">
           <div class="req-icon">1️⃣</div>
           <div class="req-text">
-            <div class="req-title">PA 12 — Michigan Identity Registry Act</div>
-            <div class="req-desc">Establishes the Michigan Identity Registry as the official record system for identity registration within the State, and designates the Secretary of State as Maintaining Officer.</div>
+            <div class="req-title">Bill No. 21 — Revised Citizenship Act of 2026</div>
+            <div class="req-desc">Establishes state citizenship and provides for its administration within the Department of State, including application procedures via the Citizenship Application Portal, eligibility standards, processing timelines, grounds for denial, enforcement, and rulemaking authority. This act repealed the prior Citizenship and National Status Act in its entirety.</div>
           </div>
         </div>
         <div class="req-item">
           <div class="req-icon">2️⃣</div>
           <div class="req-text">
-            <div class="req-title">PA 13 — Citizenship and National Status Act</div>
-            <div class="req-desc">Establishes the registration, recognition, and qualifications of citizens; administers the Michigan Identity Registry; identifies restricted persons; and recognizes dual citizenship.</div>
+            <div class="req-title">Michigan Vital Identity and Records Act</div>
+            <div class="req-desc">Governs the assignment of State Identification Numbers (SINs) used as a required identifier in the citizenship application process.</div>
           </div>
         </div>
-    
       </div>
     </div>
 
@@ -491,15 +479,15 @@
 
     <div class="apply-cta">
       <h3>Ready to Apply?</h3>
-      <p>Apply for Michigan citizenship online through the Michigan Identity Registry portal.</p>
-      <a href="/sos/citizenship/apply/">Apply for Citizenship ></a>
+      <p>Apply for Michigan citizenship online through the official Citizenship Application Portal.</p>
+      <a href="/sos/citizenship/apply/">Apply for Citizenship &rsaquo;</a>
     </div>
 
     <div class="sidebar-card">
       <h3>Related Services</h3>
       <div class="quick-links-side">
         <a class="ql-side-link" href="/sos/sin/">
-          <span class="ql-icon">🔢</span> What is a SIN?
+          <span class="ql-icon">❓</span> What is a SIN?
         </a>
         <a class="ql-side-link" href="/sos/sin/manage/">
           <span class="ql-icon">🔐</span> Manage Your SIN
@@ -520,20 +508,24 @@
       <h3>Key Terms</h3>
       <div class="def-list">
         <div class="def-item">
-          <div class="def-term">Self-Registration</div>
-          <div class="def-desc">A voluntary registration submitted directly by an individual to the Michigan Identity Registry to establish an official identity record.</div>
+          <div class="def-term">Application</div>
+          <div class="def-desc">A submission for citizenship made through the Citizenship Application Portal, including all required information and communications associated with the submission.</div>
         </div>
         <div class="def-item">
-          <div class="def-term">Petition for Citizenship</div>
-          <div class="def-desc">A designation made during self-registration indicating that the individual seeks recognition as a citizen of the state.</div>
+          <div class="def-term">State Identification Number (SIN)</div>
+          <div class="def-desc">A unique numerical identifier assigned to an individual under the Michigan Vital Identity and Records Act, required for citizenship applications.</div>
         </div>
         <div class="def-item">
-          <div class="def-term">Platform Identifier</div>
-          <div class="def-desc">The permanent numerical identifier assigned to a player's Roblox account, used to link your roleplay identity in the Registry.</div>
+          <div class="def-term">Conditional / Administrative Exception</div>
+          <div class="def-desc">A temporary determination issued by the Bureau requiring correction, clarification, or additional information before a final approval or denial is issued.</div>
         </div>
         <div class="def-item">
-          <div class="def-term">Restricted Persons Database</div>
-          <div class="def-desc">A registry of individuals barred from citizenship by court order or conviction of treason.</div>
+          <div class="def-term">Threat Screening Database</div>
+          <div class="def-desc">An official state-maintained database used to identify individuals who may present a security, legal, or eligibility concern relevant to citizenship determinations.</div>
+        </div>
+        <div class="def-item">
+          <div class="def-term">Roblox Account Identifier</div>
+          <div class="def-desc">The unique numerical or alphanumeric identifier assigned to a user's Roblox account, used as a required element of citizenship applications.</div>
         </div>
       </div>
     </div>
@@ -543,11 +535,11 @@
       <div class="authority-badge">
         <div class="ab-icon">🏛️</div>
         <div class="ab-text">
-          <div class="ab-title">Bureau of Citizenship & Civil Records</div>
+          <div class="ab-title">Bureau of Citizenship &amp; Civil Records</div>
           <div class="ab-sub">Department of State · Office of the Secretary of State</div>
         </div>
       </div>
-      <p style="font-size: 0.82rem; color: var(--gray); margin-top: 14px; line-height: 1.55;">The Bureau serves as the official Registrar for all citizenship petitions and maintains the Michigan Identity Registry on behalf of the Secretary of State.</p>
+      <p style="font-size: 0.82rem; color: var(--gray); margin-top: 14px; line-height: 1.55;">The Bureau serves as the official administrator for all citizenship applications and is responsible for identity verification, record creation, eligibility review, and enforcement under the Revised Citizenship Act of 2026.</p>
     </div>
 
   </div>
@@ -562,10 +554,10 @@
         <p>The Office of the Secretary of State serves millions of Michigan residents each year through vehicle, driver, business, and elections services.</p>
       </div>
       <div class="footer-col">
-        <h4>Services & Info</h4>
+        <h4>Services &amp; Info</h4>
         <ul>
           <li><a href="/sos/about/">About the Department</a></li>
-          <li><a href="/sos/news/">News & Press Releases</a></li>
+          <li><a href="/sos/news/">News &amp; Press Releases</a></li>
           <li><a href="/sos/careers/">Careers</a></li>
           <li><a href="/sos/contact/">Contact Us</a></li>
           <li><a href="/sos/citizenship/">Citizenship</a></li>
