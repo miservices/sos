@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Citizenship — Michigan Secretary of State</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #003366;
+    --gold: #C5882A;
+    --light-gold: #F0C96B;
+    --cream: #FAF7F2;
+    --white: #ffffff;
+    --gray: #5a6270;
+    --light-gray: #eef0f3;
+    --dark: #1a1f2e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--dark); overflow-x: hidden; }
+
+  .top-bar { background: var(--navy); color: #aec7e8; font-size: 0.78rem; padding: 6px 0; letter-spacing: 0.03em; }
+  .top-bar .inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
+  .top-bar a { color: #aec7e8; text-decoration: none; }
+  .top-bar a:hover { color: var(--light-gold); }
+  .top-bar .links { display: flex; gap: 20px; }
+
+  header { background: var(--white); border-bottom: 4px solid var(--gold); box-shadow: 0 2px 16px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
+  .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 80px; }
+  .logo-area { display: flex; align-items: center; gap: 16px; text-decoration: none; }
+  .logo-text .state { font-weight: 900; font-size: 1.25rem; color: var(--navy); line-height: 1.1; }
+  .logo-text .dept { font-size: 0.78rem; color: var(--gray); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+  nav { display: flex; gap: 2px; align-items: center; }
+  .nav-item { position: relative; }
+  .nav-item > a { text-decoration: none; color: var(--navy); font-size: 0.88rem; font-weight: 600; padding: 8px 14px; border-radius: 4px; transition: background 0.15s, color 0.15s; letter-spacing: 0.02em; display: flex; align-items: center; gap: 5px; cursor: pointer; white-space: nowrap; }
+  .nav-item > a .chevron { font-size: 0.6rem; transition: transform 0.2s; }
+  .nav-item:hover > a { background: var(--navy); color: var(--white); }
+  .nav-item:hover > a .chevron { transform: rotate(180deg); }
+  .dropdown { display: none; position: absolute; top: 100%; left: 0; background: var(--white); border-radius: 10px; box-shadow: 0 12px 40px rgba(0,0,0,0.15); border: 1px solid #e0e4ea; border-top: 3px solid var(--gold); min-width: 220px; z-index: 200; padding: 8px 0; }
+  .nav-item:hover .dropdown { display: block; }
+  .dropdown a { display: flex; align-items: center; gap: 10px; padding: 10px 18px; font-size: 0.87rem; font-weight: 500; color: var(--dark); text-decoration: none; transition: background 0.12s; }
+  .dropdown a:hover { background: #f4f7fb; color: var(--navy); }
+  .dropdown a .di { font-size: 1rem; width: 22px; text-align: center; }
+  .dropdown-divider { height: 1px; background: #eef0f4; margin: 6px 0; }
+  .dropdown-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); padding: 8px 18px 4px; }
+  .nav-cta { background: var(--gold) !important; color: var(--white) !important; margin-left: 8px; border-radius: 6px !important; padding: 9px 16px !important; text-decoration: none !important; }
+  .nav-cta:hover { background: #a96e1a !important; }
+
+  /* BREADCRUMB */
+  .breadcrumb { background: var(--white); border-bottom: 1px solid #e4e8ef; padding: 12px 0; }
+  .breadcrumb .inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; font-size: 0.82rem; color: var(--gray); display: flex; align-items: center; gap: 8px; }
+  .breadcrumb a { color: var(--navy); text-decoration: none; font-weight: 500; }
+  .breadcrumb a:hover { color: var(--gold); }
+  .breadcrumb .sep { color: #ccc; }
+
+  /* PAGE HERO */
+  .page-hero {
+    background: linear-gradient(135deg, var(--navy) 0%, #00234d 60%, #001a3a 100%);
+    color: var(--white);
+    padding: 56px 24px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .page-hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 400px; height: 400px; border-radius: 50%; background: rgba(197,136,42,0.1); pointer-events: none; }
+  .page-hero-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+  .page-hero-label { font-size: 0.78rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--light-gold); font-weight: 700; margin-bottom: 10px; }
+  .page-hero h1 { font-size: clamp(1.8rem, 3.5vw, 2.6rem); font-weight: 900; line-height: 1.15; margin-bottom: 14px; max-width: 600px; }
+  .page-hero p { color: #a8bdd4; font-size: 1.02rem; max-width: 560px; line-height: 1.65; }
+
+  /* MAIN LAYOUT */
+  .page-layout {
+    max-width: 1200px;
+    margin: 48px auto;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 36px;
+    align-items: start;
+  }
+
+  /* CONTENT AREA */
+  .content-area { display: flex; flex-direction: column; gap: 32px; }
+
+  .section-block {
+    background: var(--white);
+    border-radius: 12px;
+    border: 1px solid #e4e8ef;
+    padding: 36px;
+  }
+  .section-block h2 { font-size: 1.4rem; font-weight: 800; color: var(--navy); margin-bottom: 12px; }
+  .section-block h3 { font-size: 1.05rem; font-weight: 700; color: var(--navy); margin-bottom: 8px; margin-top: 24px; }
+  .section-block h3:first-of-type { margin-top: 20px; }
+  .section-block p { font-size: 0.93rem; color: var(--gray); line-height: 1.7; margin-bottom: 14px; }
+  .section-block p:last-child { margin-bottom: 0; }
+
+  .lead-text { font-size: 1.02rem !important; color: var(--dark) !important; font-weight: 500; }
+
+  /* OVERVIEW CARDS */
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+  .overview-card { background: #f4f7fb; border-radius: 10px; padding: 20px; border: 1px solid #dde4ef; }
+  .overview-card .oc-icon { font-size: 1.6rem; margin-bottom: 10px; }
+  .overview-card h4 { font-size: 0.95rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  .overview-card p { font-size: 0.83rem; color: var(--gray); line-height: 1.55; margin: 0; }
+
+  /* STEPS */
+  .steps { display: flex; flex-direction: column; gap: 0; margin-top: 20px; }
+  .step { display: flex; gap: 20px; position: relative; padding-bottom: 28px; }
+  .step:last-child { padding-bottom: 0; }
+  .step-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .step-num { width: 36px; height: 36px; border-radius: 50%; background: var(--navy); color: var(--white); font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-line { width: 2px; background: #dde4ef; flex: 1; margin-top: 6px; }
+  .step:last-child .step-line { display: none; }
+  .step-content h4 { font-size: 0.97rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; padding-top: 6px; }
+  .step-content p { font-size: 0.87rem; color: var(--gray); line-height: 1.6; margin: 0; }
+
+  /* REQUIREMENTS LIST */
+  .req-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .req-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: #f8fafd; border-radius: 8px; border: 1px solid #e4e8ef; }
+  .req-item .req-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+  .req-item .req-text .req-title { font-weight: 700; font-size: 0.9rem; color: var(--navy); }
+  .req-item .req-text .req-desc { font-size: 0.82rem; color: var(--gray); margin-top: 2px; line-height: 1.5; }
+
+  /* DENIAL TABLE */
+  .denial-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .denial-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: #fff8f8; border-radius: 8px; border: 1px solid #f0d0d0; }
+  .denial-item .di-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+  .denial-item .di-text .di-title { font-weight: 700; font-size: 0.9rem; color: #8b2020; }
+  .denial-item .di-text .di-desc { font-size: 0.82rem; color: #7a4040; margin-top: 2px; line-height: 1.5; }
+
+  /* INFO CALLOUT */
+  .callout { background: #e8f0f9; border-left: 4px solid var(--navy); border-radius: 0 8px 8px 0; padding: 16px 20px; margin-top: 16px; }
+  .callout p { font-size: 0.88rem; color: #1a2a4a; line-height: 1.6; margin: 0; }
+  .callout strong { color: var(--navy); }
+
+  .callout-gold { background: #fff8e6; border-left: 4px solid var(--gold); }
+  .callout-gold p { color: #5a4010; }
+  .callout-gold strong { color: #7a5a00; }
+
+  /* SIDEBAR */
+  .sidebar { display: flex; flex-direction: column; gap: 20px; }
+  .sidebar-card { background: var(--white); border-radius: 12px; border: 1px solid #e4e8ef; padding: 24px; }
+  .sidebar-card h3 { font-size: 1rem; font-weight: 800; color: var(--navy); margin-bottom: 16px; }
+
+  .apply-cta { background: var(--navy); border-radius: 12px; padding: 28px 24px; color: var(--white); text-align: center; }
+  .apply-cta h3 { font-size: 1.1rem; font-weight: 800; color: var(--white); margin-bottom: 8px; }
+  .apply-cta p { font-size: 0.85rem; color: #a8bdd4; line-height: 1.55; margin-bottom: 20px; }
+  .apply-cta a { display: block; background: var(--gold); color: var(--white); text-align: center; padding: 13px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 0.92rem; transition: background 0.15s; }
+  .apply-cta a:hover { background: #a96e1a; }
+
+  .quick-links-side { display: flex; flex-direction: column; gap: 8px; }
+  .ql-side-link { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid #dde4ef; border-radius: 8px; text-decoration: none; color: var(--navy); font-size: 0.88rem; font-weight: 600; transition: background 0.12s, border-color 0.12s; }
+  .ql-side-link:hover { background: #f4f7fb; border-color: var(--navy); }
+  .ql-side-link .ql-icon { font-size: 1.1rem; }
+
+  .def-list { display: flex; flex-direction: column; gap: 12px; }
+  .def-item { border-bottom: 1px solid #f0f2f5; padding-bottom: 12px; }
+  .def-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .def-term { font-size: 0.85rem; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
+  .def-desc { font-size: 0.8rem; color: var(--gray); line-height: 1.5; }
+
+  /* AUTHORITY BADGE */
+  .authority-badge { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: #f4f7fb; border-radius: 8px; border: 1px solid #dde4ef; margin-top: 0; }
+  .authority-badge .ab-icon { font-size: 1.4rem; }
+  .authority-badge .ab-text .ab-title { font-size: 0.85rem; font-weight: 700; color: var(--navy); }
+  .authority-badge .ab-text .ab-sub { font-size: 0.78rem; color: var(--gray); margin-top: 2px; }
+
+  /* FOOTER */
+  footer { background: var(--dark); color: #8a9ab0; padding: 48px 24px 24px; }
+  .footer-inner { max-width: 1200px; margin: 0 auto; }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+  .footer-brand .state-name { font-size: 1.2rem; color: var(--white); font-weight: 700; margin-bottom: 6px; }
+  .footer-brand p { font-size: 0.83rem; line-height: 1.6; color: #6a7a8a; max-width: 260px; }
+  .footer-col h4 { font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--light-gold); font-weight: 700; margin-bottom: 14px; }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .footer-col a { color: #7a8fa8; text-decoration: none; font-size: 0.85rem; }
+  .footer-col a:hover { color: var(--light-gold); }
+  .footer-bottom { border-top: 1px solid #2a3240; padding-top: 20px; display: flex; justify-content: space-between; font-size: 0.78rem; color: #4a5a6a; flex-wrap: wrap; gap: 8px; }
+
+  @media (max-width: 900px) { .page-layout { grid-template-columns: 1fr; } .overview-grid { grid-template-columns: 1fr; } .footer-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 600px) { nav { display: none; } .footer-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="inner">
+    <span>This is not an official government website and does not represent any real government body or authority.</span>
+    <div class="links">
+      <a href="#">Michigan.gov</a>
+      <a href="/sos/contact/">Contact Us</a>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a class="logo-area" href="/sos/">
+      <div class="logo-text">
+        <div class="state">MICHIGAN</div>
+        <div class="dept">Secretary of State</div>
+      </div>
+    </a>
+    <nav>
+      <div class="nav-item">
+        <a href="#">About <span class="chevron">▼</span></a>
+        <div class="dropdown">
+          <a href="/sos/about/"><span class="di">ℹ️</span>About</a>
+          <a href="/sos/news/"><span class="di">📰</span>News & Press Releases</a>
+          <a href="/sos/careers/"><span class="di">💼</span>Careers</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="#">Online Services<span class="chevron">▼</span></a>
+        <div class="dropdown">
+          <div class="dropdown-label">Citizenship</div>
+          <a href="/sos/citizenship/"><span class="di">🪪</span> Apply for Citizenship</a>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-label">SIN Services</div>
+          <a href="/sos/citizenship/"><span class="di">❓</span> What is a SIN?</a>
+          <a href="/sos/citizenship/"><span class="di">🔐</span> Manage your SIN</a>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-label">Licenses &amp; IDs</div>
+          <a href="/sos/realid/"><span class="di">⭐</span> Get a REAL ID</a>
+          <a href="/sos/cdl/"><span class="di">🚛</span> CDL Licenses</a>
+          <a href="/sos/driving-records/"><span class="di">📄</span> Order Driving Record</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="#">Business<span class="chevron">▼</span></a>
+        <div class="dropdown">
+          <div class="dropdown-label">Entity Services</div>
+          <a href="/sos/business/file/new/"><span class="di">🏢</span> File a New Business</a>
+          <a href="/sos/business/file/report/"><span class="di">📝</span> Annual Report Filing</a>
+          <a href="/sos/business/search/"><span class="di">🔍</span> Business Entity Search</a>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-label">Notary</div>
+          <a href="/sos/notary/"><span class="di">✍️</span> Notary Public Commission</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="#">Elections <span class="chevron">▼</span></a>
+        <div class="dropdown">
+          <div class="dropdown-label">Voters</div>
+          <a href="/sos/vote/"><span class="di">🗳️</span> Register to Vote</a>
+          <a href="/sos/vote/absentee/"><span class="di">📬</span> Absentee Ballot</a>
+          <a href="/sos/vote/polling/"><span class="di">📍</span> Find My Polling Place</a>
+          <a href="/sos/vote/results/"><span class="di">📊</span> Election Results</a>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-label">Candidates</div>
+          <a href="/sos/elections/canidates/finance/"><span class="di">💰</span> Campaign Finance</a>
+          <a href="/sos/elections/canidates/filing/"><span class="di">📋</span> Candidate Filing</a>
+        </div>
+      </div>
+      <a class="nav-cta" href="/sos/appointment/">Schedule Appointment</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb">
+  <div class="inner">
+    <a href="/sos/">Home</a>
+    <span class="sep">›</span>
+    <span>Citizenship</span>
+  </div>
+</div>
+
+<!-- PAGE HERO -->
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <div class="page-hero-label">Bureau of Citizenship & Civil Records</div>
+    <h1>Michigan State Citizenship</h1>
+    <p>Learn about Michigan citizenship — what it means, who qualifies, how to apply, and how your identity is recorded in the Michigan Identity Registry.</p>
+  </div>
+</section>
+
+<!-- MAIN CONTENT -->
+<div class="page-layout">
+  <div class="content-area">
+
+    <!-- OVERVIEW -->
+    <div class="section-block">
+      <h2>What is Michigan Citizenship?</h2>
+      <p class="lead-text">Michigan citizenship is a formal legal status granted to residents who register with the Michigan Identity Registry and are recognized by the state as a citizen under the Citizenship and National Status Act (SB 13).</p>
+      <p>A citizen is a person who has been lawfully recognized as a citizen of the state pursuant to established procedures, and whose identity and citizenship status have been recorded in the Michigan Identity Registry. Once granted, citizenship entitles you to all rights and privileges provided by state law.</p>
+
+      <div class="overview-grid">
+        <div class="overview-card">
+          <div class="oc-icon">🪪</div>
+          <h4>Citizen</h4>
+          <p>A person lawfully recognized as a citizen with their identity recorded in the Michigan Identity Registry.</p>
+        </div>
+        <div class="overview-card">
+          <div class="oc-icon">🌐</div>
+          <h4>National</h4>
+          <p>A person with a recognized legal affiliation with the state who may or may not hold full citizenship status.</p>
+        </div>
+        <div class="overview-card">
+          <div class="oc-icon">🔗</div>
+          <h4>Dual Citizenship</h4>
+          <p>Michigan recognizes dual citizenship — holding status in another jurisdiction does not affect your eligibility here.</p>
+        </div>
+        <div class="overview-card">
+          <div class="oc-icon">📋</div>
+          <h4>Michigan Identity Registry</h4>
+          <p>The official state registry that records your identity, citizenship status, and links your roleplay identity to your Roblox account.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOW TO APPLY -->
+    <div class="section-block">
+      <h2>How to Apply for Citizenship</h2>
+      <p>Citizenship is obtained by submitting a <strong>self-registration</strong> to the Michigan Identity Registry that includes a petition for citizenship. The Bureau of Citizenship & Civil Records reviews all applications within <strong>30 days</strong>.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-left">
+            <div class="step-num">1</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-content">
+            <h4>Submit a Self-Registration</h4>
+            <p>Complete the online self-registration form through the Michigan Identity Registry. Provide accurate and complete identifying information — your name, date of birth, Social Security Number, and Roblox account details.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-left">
+            <div class="step-num">2</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-content">
+            <h4>Check the Citizenship Petition Box</h4>
+            <p>During registration, you must affirmatively check the box indicating your intent to seek recognition as a citizen of the state. This designates your registration as a Petition for Citizenship.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-left">
+            <div class="step-num">3</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-content">
+            <h4>Registrar Review</h4>
+            <p>The Registrar of the Michigan Identity Registry will review your petition within 30 days to determine whether you satisfy all requirements established under law and that no grounds for denial exist.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-left">
+            <div class="step-num">4</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-content">
+            <h4>Citizenship Granted & Recorded</h4>
+            <p>If approved, citizenship is granted and your status is officially recorded in the Michigan Identity Registry. You are then recognized as a citizen of the State of Michigan for all purposes provided by law.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-gold" style="margin-top: 24px;">
+        <p><strong>Ready to apply?</strong> The online citizenship application is available 24/7 through the Michigan Identity Registry portal.</p>
+      </div>
+    </div>
+
+    <!-- REQUIREMENTS -->
+    <div class="section-block">
+      <h2>Eligibility Requirements</h2>
+      <p>To qualify for citizenship under the Citizenship and National Status Act, all of the following must be satisfied:</p>
+
+      <div class="req-list">
+        <div class="req-item">
+          <div class="req-icon">✅</div>
+          <div class="req-text">
+            <div class="req-title">Complete Self-Registration</div>
+            <div class="req-desc">Submit a self-registration to the Michigan Identity Registry with accurate and complete identifying information including your first and last name, date of birth, and Social Security Number.</div>
+          </div>
+        </div>
+        <div class="req-item">
+          <div class="req-icon">✅</div>
+          <div class="req-text">
+            <div class="req-title">Affirm Intent for Citizenship</div>
+            <div class="req-desc">Actively indicate your intent to seek recognition as a citizen by checking the designated checkbox on the registration form.</div>
+          </div>
+        </div>
+        <div class="req-item">
+          <div class="req-icon">✅</div>
+          <div class="req-text">
+            <div class="req-title">Roblox Account Link</div>
+            <div class="req-desc">Provide your Roblox platform identifier (account ID) so your roleplay identity — name and date of birth — can be linked in the Michigan Identity Registry.</div>
+          </div>
+        </div>
+        <div class="req-item">
+          <div class="req-icon">✅</div>
+          <div class="req-text">
+            <div class="req-title">No Grounds for Denial</div>
+            <div class="req-desc">You must not be listed in the Restricted Persons Database, have a court order prohibiting citizenship, or have been convicted of treason against the State.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 20px;">
+        <p><strong>Dual Citizenship:</strong> Holding citizenship, nationality, or legal status in another jurisdiction does not affect your eligibility. Michigan law explicitly prohibits using dual citizenship as a negative factor in reviewing a petition.</p>
+      </div>
+    </div>
+
+    <!-- DENIAL & REVOCATION -->
+    <div class="section-block">
+      <h2>Grounds for Denial or Revocation</h2>
+      <p>Citizenship will be denied or, if already granted, revoked under the following circumstances:</p>
+
+      <div class="denial-list">
+        <div class="denial-item">
+          <div class="di-icon">🚫</div>
+          <div class="di-text">
+            <div class="di-title">Restricted Persons Database</div>
+            <div class="di-desc">Placement in the Restricted Persons Database — a registry of individuals determined by a court to pose a significant threat to the state or convicted of treason.</div>
+          </div>
+        </div>
+        <div class="denial-item">
+          <div class="di-icon">🚫</div>
+          <div class="di-text">
+            <div class="di-title">Conviction of Treason</div>
+            <div class="di-desc">A conviction of treason against the State of Michigan is an absolute bar to citizenship.</div>
+          </div>
+        </div>
+        <div class="denial-item">
+          <div class="di-icon">🚫</div>
+          <div class="di-text">
+            <div class="di-title">Court Order</div>
+            <div class="di-desc">An existing court order prohibiting the recognition of citizenship for the individual.</div>
+          </div>
+        </div>
+        <div class="denial-item">
+          <div class="di-icon">🚫</div>
+          <div class="di-text">
+            <div class="di-title">False or Incomplete Information</div>
+            <div class="di-desc">Providing false, misleading, or incomplete information during self-registration or any subsequent update to the Michigan Identity Registry.</div>
+          </div>
+        </div>
+      </div>
+
+      <p style="margin-top: 18px; font-size: 0.88rem;">Upon revocation, the individual's status is updated in the Michigan Identity Registry and they immediately lose all rights and privileges associated with citizenship of this state.</p>
+    </div>
+
+    <!-- ABOUT THE REGISTRY -->
+    <div class="section-block">
+      <h2>The Michigan Identity Registry</h2>
+      <p>The Michigan Identity Registry (established under SB 12 — the Michigan Identity Registry Act) is the official state system that links your <strong>roleplay identity</strong> — your chosen name and date of birth — with your <strong>Roblox platform account identifier</strong>.</p>
+      <p>Registration within the registry alone does not grant citizenship, residency, or any other legal status. Citizenship is a separate step that must be affirmatively requested through the petition process described above.</p>
+
+      <h3>Who Administers the Registry?</h3>
+      <p>The Secretary of State is responsible for the administration and maintenance of the Michigan Identity Registry. This is carried out through the <strong>Bureau of Citizenship & Civil Records</strong>, which serves as the official registrar. The Bureau is responsible for:</p>
+
+      <div class="req-list">
+        <div class="req-item">
+          <div class="req-icon">📋</div>
+          <div class="req-text">
+            <div class="req-title">Review Petitions</div>
+            <div class="req-desc">Review all self-registrations submitted as petitions for citizenship and determine whether applicants satisfy all requirements.</div>
+          </div>
+        </div>
+        <div class="req-item">
+          <div class="req-icon">✍️</div>
+          <div class="req-text">
+            <div class="req-title">Grant or Deny Citizenship</div>
+            <div class="req-desc">Issue decisions on citizenship applications in accordance with the Citizenship and National Status Act and other applicable law.</div>
+          </div>
+        </div>
+        <div class="req-item">
+          <div class="req-icon">🔒</div>
+          <div class="req-text">
+            <div class="req-title">Maintain Secure Records</div>
+            <div class="req-desc">Maintain accurate and secure records of all registered citizens in the Michigan Identity Registry.</div>
+          </div>
+        </div>
+        <div class="req-item">
+          <div class="req-icon">🤝</div>
+          <div class="req-text">
+            <div class="req-title">Coordinate with Other Agencies</div>
+            <div class="req-desc">Work with the Office of State Intelligence and the Department of Attorney General on matters related to citizenship eligibility and restricted persons.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEGAL AUTHORITY -->
+    <div class="section-block">
+      <h2>Legal Authority</h2>
+      <p>Michigan citizenship services are governed by the following legislation:</p>
+      <div class="req-list">
+        <div class="req-item">
+          <div class="req-icon">📜</div>
+          <div class="req-text">
+            <div class="req-title">SB 12 — Michigan Identity Registry Act</div>
+            <div class="req-desc">Establishes the Michigan Identity Registry as the official record system for identity registration within the State, and designates the Secretary of State as Maintaining Officer.</div>
+          </div>
+        </div>
+        <div class="req-item">
+          <div class="req-icon">📜</div>
+          <div class="req-text">
+            <div class="req-title">SB 13 — Citizenship and National Status Act</div>
+            <div class="req-desc">Establishes the registration, recognition, and qualifications of citizens; administers the Michigan Identity Registry; identifies restricted persons; and recognizes dual citizenship.</div>
+          </div>
+        </div>
+        <div class="req-item">
+          <div class="req-icon">📜</div>
+          <div class="req-text">
+            <div class="req-title">Bill No. 21 — Bureau of Citizenship & Civil Records Act</div>
+            <div class="req-desc">Formally establishes the Bureau of Citizenship & Civil Records within the Department of State, defining its administrative responsibilities for the Registry and citizenship services.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end content-area -->
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div class="apply-cta">
+      <h3>Ready to Apply?</h3>
+      <p>Apply for Michigan citizenship online through the Michigan Identity Registry portal.</p>
+      <a href="/sos/citizenship/apply/">Apply for Citizenship →</a>
+    </div>
+
+    <div class="sidebar-card">
+      <h3>Related Services</h3>
+      <div class="quick-links-side">
+        <a class="ql-side-link" href="/sos/sin/">
+          <span class="ql-icon">🔢</span> What is a SIN?
+        </a>
+        <a class="ql-side-link" href="/sos/sin/manage/">
+          <span class="ql-icon">🔐</span> Manage Your SIN
+        </a>
+        <a class="ql-side-link" href="/sos/realid/">
+          <span class="ql-icon">⭐</span> Get a REAL ID
+        </a>
+        <a class="ql-side-link" href="/sos/driving-records/">
+          <span class="ql-icon">📄</span> Driving Records
+        </a>
+        <a class="ql-side-link" href="/sos/appointment/">
+          <span class="ql-icon">📅</span> Schedule Appointment
+        </a>
+      </div>
+    </div>
+
+    <div class="sidebar-card">
+      <h3>Key Terms</h3>
+      <div class="def-list">
+        <div class="def-item">
+          <div class="def-term">Self-Registration</div>
+          <div class="def-desc">A voluntary registration submitted directly by an individual to the Michigan Identity Registry to establish an official identity record.</div>
+        </div>
+        <div class="def-item">
+          <div class="def-term">Petition for Citizenship</div>
+          <div class="def-desc">A designation made during self-registration indicating that the individual seeks recognition as a citizen of the state.</div>
+        </div>
+        <div class="def-item">
+          <div class="def-term">Platform Identifier</div>
+          <div class="def-desc">The permanent numerical identifier assigned to a player's Roblox account, used to link your roleplay identity in the Registry.</div>
+        </div>
+        <div class="def-item">
+          <div class="def-term">Restricted Persons Database</div>
+          <div class="def-desc">A registry of individuals barred from citizenship by court order or conviction of treason.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-card">
+      <h3>Administering Office</h3>
+      <div class="authority-badge">
+        <div class="ab-icon">🏛️</div>
+        <div class="ab-text">
+          <div class="ab-title">Bureau of Citizenship & Civil Records</div>
+          <div class="ab-sub">Department of State · Office of the Secretary of State</div>
+        </div>
+      </div>
+      <p style="font-size: 0.82rem; color: var(--gray); margin-top: 14px; line-height: 1.55;">The Bureau serves as the official Registrar for all citizenship petitions and maintains the Michigan Identity Registry on behalf of the Secretary of State.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="state-name">Michigan Secretary of State</div>
+        <p>The Office of the Secretary of State serves millions of Michigan residents each year through vehicle, driver, business, and elections services.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Services & Info</h4>
+        <ul>
+          <li><a href="/sos/about/">About the Department</a></li>
+          <li><a href="/sos/news/">News & Press Releases</a></li>
+          <li><a href="/sos/careers/">Careers</a></li>
+          <li><a href="/sos/contact/">Contact Us</a></li>
+          <li><a href="/sos/citizenship/">Citizenship</a></li>
+          <li><a href="/sos/realid/">Get a REAL ID</a></li>
+          <li><a href="/sos/cdl/">CDL Licenses</a></li>
+          <li><a href="/sos/driving-records/">Driving Records</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Business</h4>
+        <ul>
+          <li><a href="/sos/business/file/new/">File a Business</a></li>
+          <li><a href="/sos/business/file/report/">Annual Reports</a></li>
+          <li><a href="/sos/business/search/">Business Search</a></li>
+          <li><a href="/sos/notary/">Notary Services</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Elections</h4>
+        <ul>
+          <li><a href="/sos/vote/">Register to Vote</a></li>
+          <li><a href="/sos/vote/absentee/">Absentee Ballot</a></li>
+          <li><a href="/sos/vote/polling/">Polling Place Lookup</a></li>
+          <li><a href="/sos/vote/results/">Election Results</a></li>
+          <li><a href="/sos/elections/candidates/finance/">Campaign Finance</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>This is not an official government website and does not represent any real government body or authority.</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
