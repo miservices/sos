@@ -55,15 +55,24 @@
     top: 0;
     z-index: 100;
   }
-  .header-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 80px;
-  }
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;  /* was 40px */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 80px;
+}
+
+.top-bar .inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;  /* was 40px */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
   .logo-area {
     display: flex;
     align-items: center;
@@ -127,7 +136,7 @@
   .dropdown {
     display: none;
     position: absolute;
-    top: calc(100% + 8px);
+    top: 100%;
     left: 0;
     background: var(--white);
     border-radius: 10px;
@@ -174,6 +183,7 @@
     margin-left: 8px;
     border-radius: 6px !important;
     padding: 9px 16px !important;
+    text-decoration: none !important;
   }
   .nav-cta:hover { background: #a96e1a !important; color: var(--white) !important; }
 
@@ -184,6 +194,7 @@
     padding: 70px 24px 60px;
     position: relative;
     overflow: hidden;
+    
   }
   .hero::before {
     content: '';
@@ -203,12 +214,13 @@
     background: rgba(197,136,42,0.07);
     pointer-events: none;
   }
-  .hero-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 1;
-  }
+.hero-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;  /* ADD THIS */
+  position: relative;
+  z-index: 1;
+}
   .hero-label {
     font-size: 0.78rem;
     letter-spacing: 0.15em;
@@ -413,6 +425,7 @@
     display: grid;
     grid-template-columns: 1fr 340px;
     gap: 32px;
+    align-items: stretch; /* ADD THIS */
   }
 
   /* APPOINTMENTS */
@@ -459,6 +472,7 @@
     border-radius: 12px;
     border: 1px solid #e4e8ef;
     padding: 24px;
+     height: 100%;
   }
   .sidebar-card h3 { font-family: 'DM Sans', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--navy); margin-bottom: 14px; }
   .news-items { display: flex; flex-direction: column; gap: 14px; }
@@ -580,7 +594,7 @@
     <span>This is not an official government website and does not represent any real government body or authority.</span>
     <div class="links">
       <a href="#">Michigan.gov</a>
-      <a href="#">Contact Us</a>
+      <a href="/sos/contact/">Contact Us</a>
     </div>
   </div>
 </div>
@@ -608,6 +622,10 @@
         <div class="dropdown">
         <div class="dropdown-label">Citizenship</div>
           <a href="/sos/citizenship/"><span class="di">🪪</span> Apply for Citizenship</a>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-label">SIN Services</div>
+          <a href="/sos/citizenship/"><span class="di">❓</span> What is a SIN?</a>
+          <a href="/sos/citizenship/"><span class="di">🔐</span> Manage your SIN</a>
           <div class="dropdown-divider"></div>
           <div class="dropdown-label">Licenses &amp; IDs</div>
           <a href="/sos/realid/"><span class="di">⭐</span> Get a REAL ID</a>
@@ -785,20 +803,15 @@
           <div class="news-date">Mar 30, 2026</div>
           <div class="news-title"><a href="#">New kiosks added at 12 additional Michigan locations</a></div>
         </div>
+  <div class="news-item">
+        <div class="news-date">Mar 18, 2026</div>
+        <div class="news-title"><a href="#">Enhanced ID adoption increases ahead of federal deadline</a></div>
       </div>
-    </div>
-    <div class="sidebar-card">
-      <h3>Branch Hours</h3>
-      <div class="hours-list">
-        <div class="hours-row"><span class="day">Monday</span><span class="time">9:00 AM – 5:00 PM</span></div>
-        <div class="hours-row"><span class="day">Tuesday</span><span class="time">9:00 AM – 5:00 PM</span></div>
-        <div class="hours-row"><span class="day">Wednesday</span><span class="time">11:00 AM – 7:00 PM</span></div>
-        <div class="hours-row"><span class="day">Thursday</span><span class="time">9:00 AM – 5:00 PM</span></div>
-        <div class="hours-row"><span class="day">Friday</span><span class="time">9:00 AM – 5:00 PM</span></div>
-        <div class="hours-row"><span class="day">Saturday</span><span class="time">9:00 AM – 12:00 PM</span></div>
-        <div class="hours-row"><span class="day">Sunday</span><span class="time">Closed</span></div>
+            <div class="news-item">
+        <div class="news-date">Mar 5, 2026</div>
+        <div class="news-title"><a href="#">Mobile SOS units to visit rural communities this spring</a></div>
       </div>
-      <p class="hours-note">Hours vary by location. <a href="#" style="color:var(--gold);font-weight:700;">Find your nearest branch ></a></p>
+      </div>
     </div>
   </div>
 </div>
@@ -811,45 +824,43 @@
         <div class="state-name">Michigan Secretary of State</div>
         <p>The Office of the Secretary of State serves millions of Michigan residents each year through vehicle, driver, business, and elections services.</p>
       </div>
-      <div class="footer-col">
-        <h4>Vehicles</h4>
-        <ul>
-          <li><a href="#">Registration Renewal</a></li>
-          <li><a href="#">Title Transfer</a></li>
-          <li><a href="#">Plate Lookup</a></li>
-          <li><a href="#">Specialty Plates</a></li>
-          <li><a href="#">Dealer Services</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Licenses & IDs</h4>
-        <ul>
-          <li><a href="#">Renew License</a></li>
-          <li><a href="#">REAL ID Info</a></li>
-          <li><a href="#">Enhanced DL</a></li>
-          <li><a href="#">Driving Record</a></li>
-          <li><a href="#">CDL Services</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Elections</h4>
-        <ul>
-          <li><a href="#">Register to Vote</a></li>
-          <li><a href="#">Absentee Ballot</a></li>
-          <li><a href="#">Find My Polling Place</a></li>
-          <li><a href="#">Election Results</a></li>
-          <li><a href="#">Campaign Finance</a></li>
-        </ul>
-      </div>
+  <div class="footer-col">
+    <h4>Services & Info</h4>
+    <ul>
+      <li><a href="/sos/about/">About the Department</a></li>
+      <li><a href="/sos/news/">News & Press Releases</a></li>
+      <li><a href="/sos/careers/">Careers</a></li>
+      <li><a href="/sos/contact/">Contact Us</a></li>
+      <li><a href="/sos/citizenship/">Apply for Citizenship</a></li>
+      <li><a href="/sos/realid/">Get a REAL ID</a></li>
+      <li><a href="/sos/cdl/">CDL Licenses</a></li>
+      <li><a href="/sos/driving-records/">Driving Records</a></li>
+    </ul>
+  </div>
+
+  <div class="footer-col">
+    <h4>Business</h4>
+    <ul>
+      <li><a href="/sos/business/file/new/">File a Business</a></li>
+      <li><a href="/sos/business/file/report/">Annual Reports</a></li>
+      <li><a href="/sos/business/search/">Business Search</a></li>
+      <li><a href="/sos/notary/">Notary Services</a></li>
+    </ul>
+  </div>
+
+  <div class="footer-col">
+    <h4>Elections</h4>
+    <ul>
+      <li><a href="/sos/vote/">Register to Vote</a></li>
+      <li><a href="/sos/vote/absentee/">Absentee Ballot</a></li>
+      <li><a href="/sos/vote/polling/">Polling Place Lookup</a></li>
+      <li><a href="/sos/vote/results/">Election Results</a></li>
+      <li><a href="/sos/elections/candidates/finance/">Campaign Finance</a></li>
+    </ul>
+  </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 State of Michigan. All Rights Reserved.</span>
-      <span>
-        <a href="#">Accessibility</a> · 
-        <a href="#">Privacy Policy</a> · 
-        <a href="#">Disclaimer</a> · 
-        <a href="#">Contact</a>
-      </span>
+      <span>This is not an official government website and does not represent any real government body or authority.</span>
     </div>
   </div>
 </footer>
