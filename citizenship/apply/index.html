@@ -59,7 +59,7 @@
 
   .progress-bar-wrap { background: var(--white); border-bottom: 1px solid #e4e8ef; padding: 20px 0; }
   .progress-bar-inner { max-width: 860px; margin: 0 auto; padding: 0 24px; }
-  .progress-steps { display: flex; align-items: center; gap: 0; }
+  .progress-steps { display: flex; align-items: center; }
   .progress-step { display: flex; align-items: center; gap: 10px; flex: 1; }
   .progress-step:last-child { flex: 0; }
   .ps-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.82rem; font-weight: 800; flex-shrink: 0; border: 2px solid #d0d6e0; background: var(--white); color: #a0a8b4; transition: all 0.2s; }
@@ -79,44 +79,44 @@
 
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
   .form-row.single { grid-template-columns: 1fr; }
-  .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
   .field { display: flex; flex-direction: column; gap: 6px; }
   .field label { font-size: 0.85rem; font-weight: 700; color: var(--dark); }
   .field label .req { color: var(--gold); margin-left: 2px; }
   .field label .opt { font-size: 0.75rem; font-weight: 500; color: var(--gray); margin-left: 4px; }
-  .field input, .field select { height: 44px; border: 1.5px solid #d0d6e0; border-radius: 8px; padding: 0 14px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: var(--dark); background: var(--white); transition: border-color 0.15s, box-shadow 0.15s; outline: none; }
-  .field input:focus, .field select:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(0,51,102,0.1); }
-  .field input.error, .field select.error { border-color: #c0392b; }
+  .field input { height: 44px; border: 1.5px solid #d0d6e0; border-radius: 8px; padding: 0 14px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: var(--dark); background: var(--white); transition: border-color 0.15s, box-shadow 0.15s; outline: none; }
+  .field input:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(0,51,102,0.1); }
+  .field input.error { border-color: #c0392b; }
   .field .hint { font-size: 0.77rem; color: var(--gray); line-height: 1.4; }
   .field .err-msg { font-size: 0.77rem; color: #c0392b; display: none; }
-  .field input.error ~ .err-msg, .field select.error ~ .err-msg { display: block; }
+  .field input.error ~ .err-msg { display: block; }
 
-  .roblox-box { border: 1.5px solid #d0d6e0; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
-  .roblox-box-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .roblox-box-header h3 { font-size: 0.95rem; font-weight: 700; color: var(--navy); display: flex; align-items: center; gap: 8px; }
-  .roblox-badge { font-size: 0.72rem; font-weight: 700; background: #fff8e6; color: #7a5a00; border-radius: 20px; padding: 3px 10px; }
-  .roblox-badge.connected { background: #e8f5ee; color: var(--green); }
-  .roblox-auto-row { display: flex; align-items: center; gap: 12px; }
-  .roblox-auto-btn { display: flex; align-items: center; gap: 8px; background: #1a1a2e; color: var(--white); border: none; border-radius: 8px; padding: 10px 18px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
-  .roblox-auto-btn:hover { background: #2d2d4a; }
-  .roblox-auto-btn:disabled { background: #555; cursor: not-allowed; }
-  .roblox-auto-btn .rb-icon { font-size: 1rem; }
-  .roblox-or { font-size: 0.8rem; color: var(--gray); }
-  .roblox-manual-link { font-size: 0.82rem; color: var(--navy); font-weight: 600; cursor: pointer; text-decoration: underline; }
-  .roblox-manual-fields { display: none; margin-top: 16px; flex-direction: column; gap: 14px; }
-  .roblox-connected { display: none; align-items: center; gap: 12px; padding: 12px 16px; background: var(--light-green); border-radius: 8px; border: 1px solid #b0dfc0; }
-  .roblox-connected .rc-icon { font-size: 1.2rem; }
-  .roblox-connected .rc-info .rc-name { font-size: 0.9rem; font-weight: 700; color: var(--green); }
-  .roblox-connected .rc-info .rc-id { font-size: 0.78rem; color: #3a7a5a; }
-  .roblox-connected .rc-change { font-size: 0.78rem; color: var(--navy); font-weight: 600; cursor: pointer; text-decoration: underline; margin-left: auto; }
+  /* ROBLOX STEP */
+  .roblox-connect-card { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 20px 0 10px; gap: 20px; }
+  .roblox-logo { font-size: 3rem; }
+  .roblox-connect-card h3 { font-size: 1.1rem; font-weight: 800; color: var(--navy); }
+  .roblox-connect-card p { font-size: 0.88rem; color: var(--gray); line-height: 1.6; max-width: 420px; }
+  .roblox-connect-btn { display: flex; align-items: center; gap: 10px; background: #1a1a2e; color: var(--white); border: none; border-radius: 10px; padding: 14px 28px; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.15s, transform 0.1s; }
+  .roblox-connect-btn:hover { background: #2d2d4a; transform: translateY(-1px); }
+  .roblox-permission-note { display: flex; gap: 24px; background: #f4f7fb; border: 1px solid #dde4ef; border-radius: 10px; padding: 14px 20px; font-size: 0.8rem; color: var(--gray); text-align: left; width: 100%; }
+  .roblox-permission-note .perm-item { display: flex; align-items: flex-start; gap: 8px; flex: 1; }
+  .roblox-permission-note .perm-item .picon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+  .roblox-permission-note .perm-item strong { color: var(--dark); display: block; margin-bottom: 2px; font-size: 0.82rem; }
 
-  /* Loading spinner */
-  .roblox-loading { display: none; align-items: center; gap: 12px; padding: 12px 16px; background: #f4f7fb; border-radius: 8px; border: 1px solid #dde4ef; font-size: 0.88rem; color: var(--gray); }
-  .spinner { width: 18px; height: 18px; border: 2px solid #d0d6e0; border-top-color: var(--navy); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  .roblox-loading { display: none; flex-direction: column; align-items: center; gap: 14px; padding: 40px 0; text-align: center; }
+  .spinner { width: 36px; height: 36px; border: 3px solid #d0d6e0; border-top-color: var(--navy); border-radius: 50%; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  .roblox-loading p { font-size: 0.9rem; color: var(--gray); }
 
-  /* Error state */
-  .roblox-error { display: none; padding: 12px 16px; background: var(--light-red); border-radius: 8px; border: 1px solid #f0c0c0; font-size: 0.85rem; color: var(--red); margin-top: 10px; }
+  .roblox-connected-card { display: none; flex-direction: column; align-items: center; gap: 14px; padding: 24px 0; text-align: center; }
+  .roblox-avatar-wrap { width: 72px; height: 72px; border-radius: 50%; background: var(--light-green); border: 3px solid #b0dfc0; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+  .roblox-connected-card .rc-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--light-green); border: 1px solid #b0dfc0; border-radius: 20px; padding: 5px 14px; font-size: 0.8rem; font-weight: 700; color: var(--green); }
+  .roblox-connected-card .rc-username { font-size: 1.2rem; font-weight: 800; color: var(--dark); }
+  .roblox-connected-card .rc-userid { font-size: 0.82rem; color: var(--gray); }
+  .roblox-connected-card .rc-change { font-size: 0.82rem; color: var(--gray); cursor: pointer; text-decoration: underline; margin-top: 4px; }
+
+  .roblox-error { display: none; flex-direction: column; align-items: center; gap: 12px; padding: 24px 20px; background: var(--light-red); border: 1px solid #f0c0c0; border-radius: 10px; text-align: center; margin-top: 8px; }
+  .roblox-error p { font-size: 0.88rem; color: var(--red); line-height: 1.5; }
+  .roblox-retry-btn { background: var(--navy); color: var(--white); border: none; border-radius: 8px; padding: 10px 20px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; }
 
   .prior-names-wrap { margin-bottom: 20px; }
   .prior-names-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
@@ -124,7 +124,6 @@
   .prior-name-item .remove-prior { margin-left: auto; background: none; border: none; color: #c0392b; cursor: pointer; font-size: 1rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
   .prior-name-item .remove-prior:hover { background: #fff0f0; }
   .add-prior-row { display: flex; gap: 10px; align-items: flex-end; }
-  .add-prior-row .field { flex: 1; }
   .add-prior-btn { height: 44px; padding: 0 16px; background: var(--navy); color: var(--white); border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 700; cursor: pointer; white-space: nowrap; transition: background 0.15s; flex-shrink: 0; }
   .add-prior-btn:hover { background: #00234d; }
   .no-prior-btn { background: none; border: none; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; color: var(--gray); cursor: pointer; padding: 6px 0; text-decoration: underline; }
@@ -148,7 +147,8 @@
   .btn-back { background: none; border: 1.5px solid #d0d6e0; color: var(--navy); padding: 11px 22px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
   .btn-back:hover { background: #f4f7fb; }
   .btn-next { background: var(--navy); color: var(--white); border: none; padding: 12px 28px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: background 0.15s; display: flex; align-items: center; gap: 8px; }
-  .btn-next:hover { background: #00234d; }
+  .btn-next:hover:not(:disabled) { background: #00234d; }
+  .btn-next:disabled { opacity: 0.45; cursor: not-allowed; }
   .btn-submit { background: var(--gold); color: var(--white); border: none; padding: 12px 28px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: background 0.15s; display: flex; align-items: center; gap: 8px; }
   .btn-submit:hover { background: #a96e1a; }
   .btn-submit:disabled { background: #c0a060; cursor: not-allowed; }
@@ -193,7 +193,7 @@
   .footer-bottom { border-top: 1px solid #2a3240; padding-top: 20px; display: flex; justify-content: space-between; font-size: 0.78rem; color: #4a5a6a; flex-wrap: wrap; gap: 8px; }
 
   @media (max-width: 900px) { .apply-layout { grid-template-columns: 1fr; } .footer-grid { grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 600px) { nav { display: none; } .footer-grid { grid-template-columns: 1fr; } .form-row { grid-template-columns: 1fr; } .form-row.triple { grid-template-columns: 1fr; } }
+  @media (max-width: 600px) { nav { display: none; } .footer-grid { grid-template-columns: 1fr; } .form-row { grid-template-columns: 1fr; } .roblox-permission-note { flex-direction: column; } }
 </style>
 </head>
 <body>
@@ -285,12 +285,12 @@
     <div class="progress-steps">
       <div class="progress-step">
         <div class="ps-circle active" id="pc1">1</div>
-        <div class="ps-label active" id="pl1">Identity</div>
+        <div class="ps-label active" id="pl1">Roblox Account</div>
       </div>
       <div class="ps-line" id="pline1"></div>
       <div class="progress-step">
         <div class="ps-circle" id="pc2">2</div>
-        <div class="ps-label" id="pl2">Roblox Account</div>
+        <div class="ps-label" id="pl2">Identity</div>
       </div>
       <div class="ps-line" id="pline2"></div>
       <div class="progress-step">
@@ -309,9 +309,55 @@
 <div class="apply-layout">
   <div id="mainContent">
 
-    <!-- STEP 1: IDENTITY -->
+    <!-- STEP 1: ROBLOX -->
     <div class="form-card form-step active" id="step1">
-      <h2>Step 1 — Identity Information</h2>
+      <h2>Step 1 — Roblox Account</h2>
+      <p class="step-desc">Connect your Roblox account to begin your application. This is required under the Revised Citizenship Act of 2026.</p>
+
+      <div id="robloxConnectCard" class="roblox-connect-card">
+        <div class="roblox-logo">🎮</div>
+        <h3>Connect Your Roblox Account</h3>
+        <p>Click the button below to securely sign in with Roblox. You'll be redirected to Roblox's authorization page and brought back here automatically.</p>
+        <button class="roblox-connect-btn" onclick="connectRoblox()">🔗 &nbsp;Connect with Roblox</button>
+        <div class="roblox-permission-note">
+          <div class="perm-item">
+            <span class="picon">✅</span>
+            <div><strong>We request</strong>Your username and user ID only.</div>
+          </div>
+          <div class="perm-item">
+            <span class="picon">🚫</span>
+            <div><strong>We never access</strong>Your inventory, Robux, friends, or any account actions.</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="robloxLoading" class="roblox-loading">
+        <div class="spinner"></div>
+        <p>Verifying your Roblox account…</p>
+      </div>
+
+      <div id="robloxConnectedCard" class="roblox-connected-card">
+        <div class="roblox-avatar-wrap">🎮</div>
+        <div class="rc-badge">✅ &nbsp;Verified</div>
+        <div class="rc-username" id="rcUsername"></div>
+        <div class="rc-userid" id="rcUserId"></div>
+        <span class="rc-change" onclick="disconnectRoblox()">Not you? Disconnect and try again</span>
+      </div>
+
+      <div id="robloxError" class="roblox-error">
+        <p id="robloxErrorMsg">Something went wrong connecting your account.</p>
+        <button class="roblox-retry-btn" onclick="retryRoblox()">Try Again</button>
+      </div>
+
+      <div class="form-actions">
+        <span></span>
+        <button class="btn-next" id="robloxNextBtn" onclick="goToStep(2)" disabled>Continue <span>›</span></button>
+      </div>
+    </div>
+
+    <!-- STEP 2: IDENTITY -->
+    <div class="form-card form-step" id="step2">
+      <h2>Step 2 — Identity Information</h2>
       <p class="step-desc">Provide your personal identifying information exactly as it appears in your official records. All fields marked with <span style="color:var(--gold)">*</span> are required.</p>
 
       <div class="form-row">
@@ -349,70 +395,6 @@
       </div>
 
       <div class="form-actions">
-        <span></span>
-        <button class="btn-next" onclick="goToStep(2)">Continue <span>›</span></button>
-      </div>
-    </div>
-
-    <!-- STEP 2: ROBLOX -->
-    <div class="form-card form-step" id="step2">
-      <h2>Step 2 — Roblox Account</h2>
-      <p class="step-desc">Your Roblox account identifier and username are required under the Revised Citizenship Act of 2026. Connect your account to automatically retrieve your details.</p>
-
-      <div class="roblox-box">
-        <div class="roblox-box-header">
-          <h3>🎮 Roblox Account</h3>
-          <span class="roblox-badge" id="robloxBadge">Not Connected</span>
-        </div>
-
-        <!-- Connect row -->
-        <div id="robloxConnectRow">
-          <div class="roblox-auto-row">
-            <button class="roblox-auto-btn" id="connectBtn" onclick="connectRoblox()">
-              <span class="rb-icon">🔗</span> Connect Roblox Account
-            </button>
-            <span class="roblox-or">or</span>
-            <span class="roblox-manual-link" onclick="showManualRoblox()">Enter manually</span>
-          </div>
-          <p style="font-size:0.78rem;color:var(--gray);margin-top:10px;line-height:1.5;">You'll be redirected to Roblox to authorize access. We only request your username and user ID — we cannot access your account, inventory, or Robux.</p>
-        </div>
-
-        <!-- Loading state -->
-        <div class="roblox-loading" id="robloxLoading">
-          <div class="spinner"></div>
-          <span>Verifying your Roblox account...</span>
-        </div>
-
-        <!-- Connected state -->
-        <div class="roblox-connected" id="robloxConnected">
-          <div class="rc-icon">✅</div>
-          <div class="rc-info">
-            <div class="rc-name" id="rcName"></div>
-            <div class="rc-id" id="rcId"></div>
-          </div>
-          <span class="rc-change" onclick="disconnectRoblox()">Change</span>
-        </div>
-
-        <!-- Error state -->
-        <div class="roblox-error" id="robloxError"></div>
-
-        <!-- Manual fields -->
-        <div class="roblox-manual-fields" id="robloxManualFields">
-          <div class="field">
-            <label for="robloxId">Roblox Account Identifier <span class="req">*</span></label>
-            <input type="text" id="robloxId" placeholder="e.g. 1234567890" maxlength="20">
-            <span class="hint">The numerical ID assigned to your Roblox account. Found in your account settings or profile URL.</span>
-            <span class="err-msg">Roblox account identifier is required.</span>
-          </div>
-          <div class="field">
-            <label for="robloxUsername">Roblox Username <span class="req">*</span></label>
-            <input type="text" id="robloxUsername" placeholder="e.g. PlayerName123" maxlength="20">
-            <span class="err-msg">Roblox username is required.</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-actions">
         <button class="btn-back" onclick="goToStep(1)">‹ Back</button>
         <button class="btn-next" onclick="goToStep(3)">Continue <span>›</span></button>
       </div>
@@ -432,12 +414,12 @@
           </div>
           <button class="add-prior-btn" onclick="addPriorName()">+ Add</button>
         </div>
-        <div style="margin-top: 12px;">
+        <div style="margin-top:12px;">
           <button class="no-prior-btn" id="noPriorBtn" onclick="toggleNoPrior()">✓ &nbsp;No prior names — I have always used my current legal name</button>
         </div>
       </div>
 
-      <div id="noPriorConfirm" style="display:none; margin-top:4px;">
+      <div id="noPriorConfirm" style="display:none;margin-top:4px;">
         <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--light-green);border-radius:8px;border:1px solid #b0dfc0;font-size:0.87rem;color:var(--green);font-weight:600;">
           ✅ &nbsp;Confirmed — no prior legal names recorded.
           <span style="margin-left:auto;font-size:0.78rem;color:var(--navy);cursor:pointer;text-decoration:underline;font-weight:600;" onclick="undoNoPrior()">Undo</span>
@@ -456,44 +438,44 @@
       <p class="step-desc">Review your application carefully before submitting. Once submitted, your application will be processed by the Bureau of Citizenship &amp; Civil Records within 10 days.</p>
 
       <div class="review-group">
-        <h3>Identity Information</h3>
+        <h3>Roblox Account</h3>
         <div class="review-row">
-          <span class="review-label">First Name</span>
-          <span class="review-value" id="rv-firstName">—</span>
+          <span class="review-label">Username</span>
+          <span class="review-value" id="rv-robloxUsername">—</span>
           <span class="review-edit" onclick="goToStep(1)">Edit</span>
         </div>
         <div class="review-row">
-          <span class="review-label">Middle Name</span>
-          <span class="review-value" id="rv-middleName">—</span>
-          <span class="review-edit" onclick="goToStep(1)">Edit</span>
-        </div>
-        <div class="review-row">
-          <span class="review-label">Last Name</span>
-          <span class="review-value" id="rv-lastName">—</span>
-          <span class="review-edit" onclick="goToStep(1)">Edit</span>
-        </div>
-        <div class="review-row">
-          <span class="review-label">Date of Birth</span>
-          <span class="review-value" id="rv-dob">—</span>
-          <span class="review-edit" onclick="goToStep(1)">Edit</span>
-        </div>
-        <div class="review-row">
-          <span class="review-label">SIN</span>
-          <span class="review-value" id="rv-sin">—</span>
+          <span class="review-label">Account Identifier</span>
+          <span class="review-value" id="rv-robloxId">—</span>
           <span class="review-edit" onclick="goToStep(1)">Edit</span>
         </div>
       </div>
 
       <div class="review-group">
-        <h3>Roblox Account</h3>
+        <h3>Identity Information</h3>
         <div class="review-row">
-          <span class="review-label">Account Identifier</span>
-          <span class="review-value" id="rv-robloxId">—</span>
+          <span class="review-label">First Name</span>
+          <span class="review-value" id="rv-firstName">—</span>
           <span class="review-edit" onclick="goToStep(2)">Edit</span>
         </div>
         <div class="review-row">
-          <span class="review-label">Username</span>
-          <span class="review-value" id="rv-robloxUsername">—</span>
+          <span class="review-label">Middle Name</span>
+          <span class="review-value" id="rv-middleName">—</span>
+          <span class="review-edit" onclick="goToStep(2)">Edit</span>
+        </div>
+        <div class="review-row">
+          <span class="review-label">Last Name</span>
+          <span class="review-value" id="rv-lastName">—</span>
+          <span class="review-edit" onclick="goToStep(2)">Edit</span>
+        </div>
+        <div class="review-row">
+          <span class="review-label">Date of Birth</span>
+          <span class="review-value" id="rv-dob">—</span>
+          <span class="review-edit" onclick="goToStep(2)">Edit</span>
+        </div>
+        <div class="review-row">
+          <span class="review-label">SIN</span>
+          <span class="review-value" id="rv-sin">—</span>
           <span class="review-edit" onclick="goToStep(2)">Edit</span>
         </div>
       </div>
@@ -554,16 +536,16 @@
       <h3>What You'll Need</h3>
       <div class="info-list">
         <div class="info-item">
-          <span class="ii-icon">🪪</span>
-          <div><strong>State Identification Number (SIN)</strong>Assigned at birth under the Michigan Vital Identity and Records Act. Found on your birth certificate.</div>
+          <span class="ii-icon">🎮</span>
+          <div><strong>Roblox Account</strong>You'll be redirected to Roblox to securely authorize your account. Only your username and user ID are retrieved.</div>
         </div>
         <div class="info-item">
-          <span class="ii-icon">🎮</span>
-          <div><strong>Roblox Account</strong>You'll be redirected to Roblox to securely authorize access to your username and user ID.</div>
+          <span class="ii-icon">🪪</span>
+          <div><strong>State Identification Number (SIN)</strong>Assigned at birth. Found on your birth certificate.</div>
         </div>
         <div class="info-item">
           <span class="ii-icon">👤</span>
-          <div><strong>Legal Name &amp; DOB</strong>Your current legal first and last name and date of birth as recognized by law.</div>
+          <div><strong>Legal Name &amp; DOB</strong>Your current legal name and date of birth as recognized by law.</div>
         </div>
         <div class="info-item">
           <span class="ii-icon">📋</span>
@@ -652,19 +634,63 @@
   let robloxConnected = false;
   let robloxData      = { id: '', username: '' };
 
+  // ─── SESSION STORAGE KEYS ─────────────────────────────────
+  const SS = {
+    STATE:    'roblox_oauth_state',
+    FIELDS:   'form_fields',
+    PRIORS:   'prior_names',
+    NO_PRIOR: 'no_prior',
+  };
+
+  function saveFormFields() {
+    sessionStorage.setItem(SS.FIELDS, JSON.stringify({
+      firstName:  document.getElementById('firstName').value,
+      middleName: document.getElementById('middleName').value,
+      lastName:   document.getElementById('lastName').value,
+      dob:        document.getElementById('dob').value,
+      sin:        document.getElementById('sin').value,
+    }));
+    sessionStorage.setItem(SS.PRIORS,   JSON.stringify(priorNames));
+    sessionStorage.setItem(SS.NO_PRIOR, noPriorSelected ? '1' : '0');
+  }
+
+  function restoreFormFields() {
+    try {
+      const f = JSON.parse(sessionStorage.getItem(SS.FIELDS) || '{}');
+      if (f.firstName)  document.getElementById('firstName').value  = f.firstName;
+      if (f.middleName) document.getElementById('middleName').value = f.middleName;
+      if (f.lastName)   document.getElementById('lastName').value   = f.lastName;
+      if (f.dob)        document.getElementById('dob').value        = f.dob;
+      if (f.sin)        document.getElementById('sin').value        = f.sin;
+
+      priorNames      = JSON.parse(sessionStorage.getItem(SS.PRIORS) || '[]');
+      noPriorSelected = sessionStorage.getItem(SS.NO_PRIOR) === '1';
+      renderPriorNames();
+
+      if (noPriorSelected) {
+        document.getElementById('addPriorRow').style.display    = 'none';
+        document.getElementById('noPriorBtn').style.display     = 'none';
+        document.getElementById('noPriorConfirm').style.display = 'block';
+      }
+    } catch(e) { /* ignore parse errors */ }
+  }
+
+  function clearSession() {
+    Object.values(SS).forEach(k => sessionStorage.removeItem(k));
+  }
+
   // ─── OAUTH: REDIRECT TO ROBLOX ────────────────────────────
   function connectRoblox() {
+    saveFormFields(); // preserve any previously typed data
     const state = crypto.randomUUID();
-    sessionStorage.setItem('roblox_oauth_state', state);
-
+    sessionStorage.setItem(SS.STATE, state);
     const params = new URLSearchParams({
       client_id:     ROBLOX_CLIENT_ID,
       redirect_uri:  REDIRECT_URI,
       response_type: 'Code',
       scope:         'openid profile',
-      state:         state,
+      state,
     });
-
     window.location.href = 'https://authorize.roblox.com/?' + params.toString();
   }
 
@@ -673,32 +699,33 @@
     const params     = new URLSearchParams(window.location.search);
     const code       = params.get('code');
     const stateParam = params.get('state');
-    const savedState = sessionStorage.getItem('roblox_oauth_state');
+    const savedState = sessionStorage.getItem(SS.STATE);
 
-    if (!code) return; // Normal page load, not a callback
+    // Always restore saved fields regardless
+    restoreFormFields();
 
-    // Clean the URL immediately so the code doesn't sit in the address bar
+    if (!code) return; // Not a callback — normal page load
+
+    // Clean the URL right away
     window.history.replaceState({}, '', window.location.pathname);
-    sessionStorage.removeItem('roblox_oauth_state');
+    sessionStorage.removeItem(SS.STATE);
+
+    // Show step 1 in loading state
+    updateProgress(1);
+    showState('loading');
 
     // CSRF check
     if (stateParam !== savedState) {
       showRobloxError('Security validation failed. Please try connecting again.');
-      goToStep(2);
       return;
     }
 
-    // Jump to step 2 and show loading
-    goToStep(2);
-    setRobloxLoading(true);
-
     try {
-      const res = await fetch(WORKER_URL, {
+      const res  = await fetch(WORKER_URL, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ code }),
       });
-
       const data = await res.json();
 
       if (data.userId && data.username) {
@@ -707,70 +734,49 @@
         throw new Error(data.error || data.detail?.error_description || 'Could not retrieve account details.');
       }
     } catch (err) {
-      setRobloxLoading(false);
-      showRobloxError('Connection failed: ' + err.message + ' — please try again or enter your details manually.');
+      showRobloxError('Connection failed: ' + err.message);
     }
   }
 
-  function setRobloxLoading(on) {
-    document.getElementById('robloxConnectRow').style.display = on ? 'none' : 'block';
-    document.getElementById('robloxLoading').style.display    = on ? 'flex' : 'none';
-    document.getElementById('robloxConnected').style.display  = 'none';
-    document.getElementById('robloxError').style.display      = 'none';
+  // ─── ROBLOX UI STATE MACHINE ──────────────────────────────
+  function showState(state) {
+    document.getElementById('robloxConnectCard').style.display   = state === 'connect'   ? 'flex'  : 'none';
+    document.getElementById('robloxLoading').style.display       = state === 'loading'   ? 'flex'  : 'none';
+    document.getElementById('robloxConnectedCard').style.display = state === 'connected' ? 'flex'  : 'none';
+    document.getElementById('robloxError').style.display         = state === 'error'     ? 'flex'  : 'none';
   }
 
   function setRobloxConnected(userId, username) {
     robloxConnected = true;
     robloxData      = { id: userId, username };
-
-    document.getElementById('robloxLoading').style.display    = 'none';
-    document.getElementById('robloxConnectRow').style.display = 'none';
-    document.getElementById('robloxManualFields').style.display = 'none';
-    document.getElementById('robloxError').style.display      = 'none';
-
-    const conn = document.getElementById('robloxConnected');
-    conn.style.display = 'flex';
-    document.getElementById('rcName').textContent = username;
-    document.getElementById('rcId').textContent   = 'ID: ' + userId;
-
-    const badge = document.getElementById('robloxBadge');
-    badge.textContent = 'Connected';
-    badge.classList.add('connected');
+    document.getElementById('rcUsername').textContent = username;
+    document.getElementById('rcUserId').textContent   = 'User ID: ' + userId;
+    showState('connected');
+    document.getElementById('robloxNextBtn').disabled = false;
   }
 
   function showRobloxError(msg) {
-    const el = document.getElementById('robloxError');
-    el.textContent    = '⚠️ ' + msg;
-    el.style.display  = 'block';
-    document.getElementById('robloxLoading').style.display    = 'none';
-    document.getElementById('robloxConnectRow').style.display = 'block';
+    document.getElementById('robloxErrorMsg').textContent = msg;
+    showState('error');
+    document.getElementById('robloxNextBtn').disabled = true;
+  }
+
+  function retryRoblox() {
+    showState('connect');
   }
 
   function disconnectRoblox() {
     robloxConnected = false;
     robloxData      = { id: '', username: '' };
-
-    document.getElementById('robloxConnected').style.display  = 'none';
-    document.getElementById('robloxConnectRow').style.display = 'block';
-    document.getElementById('robloxManualFields').style.display = 'none';
-    document.getElementById('robloxError').style.display      = 'none';
-
-    const badge = document.getElementById('robloxBadge');
-    badge.textContent = 'Not Connected';
-    badge.classList.remove('connected');
-  }
-
-  function showManualRoblox() {
-    document.getElementById('robloxManualFields').style.display = 'flex';
+    showState('connect');
+    document.getElementById('robloxNextBtn').disabled = true;
   }
 
   // ─── STEP NAVIGATION ──────────────────────────────────────
   function goToStep(step) {
     if (step > currentStep && !validateStep(currentStep)) return;
-
     document.getElementById('step' + currentStep).classList.remove('active');
     currentStep = step;
-
     if (step <= totalSteps) {
       document.getElementById('step' + step).classList.add('active');
       updateProgress(step);
@@ -780,28 +786,23 @@
   }
 
   function validateStep(step) {
-    let valid = true;
     if (step === 1) {
+      if (!robloxConnected) {
+        showRobloxError('Please connect your Roblox account to continue.');
+        return false;
+      }
+      return true;
+    }
+    if (step === 2) {
+      let valid = true;
       ['firstName', 'lastName', 'dob', 'sin'].forEach(id => {
         const el = document.getElementById(id);
         if (!el.value.trim()) { el.classList.add('error'); valid = false; }
         else el.classList.remove('error');
       });
+      return valid;
     }
-    if (step === 2) {
-      const manualVisible = document.getElementById('robloxManualFields').style.display === 'flex';
-      if (!robloxConnected && manualVisible) {
-        ['robloxId', 'robloxUsername'].forEach(id => {
-          const el = document.getElementById(id);
-          if (!el.value.trim()) { el.classList.add('error'); valid = false; }
-          else el.classList.remove('error');
-        });
-      } else if (!robloxConnected && !manualVisible) {
-        showRobloxError('Please connect your Roblox account or enter your details manually.');
-        valid = false;
-      }
-    }
-    return valid;
+    return true;
   }
 
   function updateProgress(step) {
@@ -810,12 +811,10 @@
       const label  = document.getElementById('pl' + i);
       circle.classList.remove('active', 'done');
       label.classList.remove('active', 'done');
-      if (i < step)       { circle.classList.add('done'); circle.innerHTML = '✓'; label.classList.add('done'); }
+      if (i < step)        { circle.classList.add('done'); circle.innerHTML = '✓'; label.classList.add('done'); }
       else if (i === step) { circle.classList.add('active'); circle.innerHTML = i; label.classList.add('active'); }
       else                 { circle.innerHTML = i; }
-      if (i < totalSteps) {
-        document.getElementById('pline' + i).classList.toggle('done', i < step);
-      }
+      if (i < totalSteps) document.getElementById('pline' + i).classList.toggle('done', i < step);
     }
   }
 
@@ -844,15 +843,10 @@
     });
   }
 
-  function removePriorName(index) {
-    priorNames.splice(index, 1);
-    renderPriorNames();
-  }
+  function removePriorName(index) { priorNames.splice(index, 1); renderPriorNames(); }
 
   function toggleNoPrior() {
-    noPriorSelected = true;
-    priorNames      = [];
-    renderPriorNames();
+    noPriorSelected = true; priorNames = []; renderPriorNames();
     document.getElementById('addPriorRow').style.display    = 'none';
     document.getElementById('noPriorBtn').style.display     = 'none';
     document.getElementById('noPriorConfirm').style.display = 'block';
@@ -867,25 +861,25 @@
 
   // ─── REVIEW ───────────────────────────────────────────────
   function populateReview() {
-    const fn    = document.getElementById('firstName').value.trim();
-    const mn    = document.getElementById('middleName').value.trim();
-    const ln    = document.getElementById('lastName').value.trim();
-    const dob   = document.getElementById('dob').value;
-    const sin   = document.getElementById('sin').value.trim();
-    const rbId  = robloxConnected ? robloxData.id       : document.getElementById('robloxId').value.trim();
-    const rbUser= robloxConnected ? robloxData.username : document.getElementById('robloxUsername').value.trim();
+    const fn  = document.getElementById('firstName').value.trim();
+    const mn  = document.getElementById('middleName').value.trim();
+    const ln  = document.getElementById('lastName').value.trim();
+    const dob = document.getElementById('dob').value;
+    const sin = document.getElementById('sin').value.trim();
 
-    document.getElementById('rv-firstName').textContent   = fn  || '—';
-    document.getElementById('rv-middleName').textContent  = mn  || 'Not provided';
-    document.getElementById('rv-lastName').textContent    = ln  || '—';
-    document.getElementById('rv-dob').textContent         = dob ? new Date(dob + 'T12:00:00').toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }) : '—';
-    document.getElementById('rv-sin').textContent         = sin ? sin.slice(0, -3).replace(/./g, '•') + sin.slice(-3) : '—';
-    document.getElementById('rv-robloxId').textContent    = rbId   || '—';
-    document.getElementById('rv-robloxUsername').textContent = rbUser || '—';
+    document.getElementById('rv-robloxUsername').textContent = robloxData.username || '—';
+    document.getElementById('rv-robloxId').textContent       = robloxData.id       || '—';
+    document.getElementById('rv-firstName').textContent      = fn  || '—';
+    document.getElementById('rv-middleName').textContent     = mn  || 'Not provided';
+    document.getElementById('rv-lastName').textContent       = ln  || '—';
+    document.getElementById('rv-dob').textContent = dob
+      ? new Date(dob + 'T12:00:00').toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' })
+      : '—';
+    document.getElementById('rv-sin').textContent = sin
+      ? sin.slice(0, -3).replace(/./g, '•') + sin.slice(-3)
+      : '—';
 
-    let priorDisplay = 'None disclosed';
-    if (priorNames.length > 0) priorDisplay = priorNames.join(', ');
-    else if (!noPriorSelected)  priorDisplay = 'Not specified';
+    let priorDisplay = noPriorSelected ? 'None disclosed' : (priorNames.length > 0 ? priorNames.join(', ') : 'Not specified');
     document.getElementById('rv-priorNames').textContent = priorDisplay;
   }
 
@@ -894,12 +888,13 @@
   }
 
   function submitApplication() {
+    clearSession();
     const confNum = 'MI-CIT-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random() * 900000);
     document.getElementById('step4').classList.remove('active');
     document.getElementById('stepSuccess').classList.add('active');
-    document.getElementById('confirmNumber').textContent      = confNum;
-    document.getElementById('progressWrap').style.display     = 'none';
-    document.getElementById('sidebarArea').style.display      = 'none';
+    document.getElementById('confirmNumber').textContent  = confNum;
+    document.getElementById('progressWrap').style.display = 'none';
+    document.getElementById('sidebarArea').style.display  = 'none';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
