@@ -4,962 +4,896 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Michigan Secretary of State</title>
-<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --mi-blue: #003b70;
-    --mi-blue-mid: #0057a8;
-    --mi-blue-light: #d6e8f7;
-    --mi-gold: #c4a00f;
-    --mi-gold-bright: #f0c030;
-    --mi-green: #2e6b35;
-    --mi-red: #c0392b;
+    --navy: #003366;
+    --gold: #C5882A;
+    --light-gold: #F0C96B;
+    --cream: #FAF7F2;
     --white: #ffffff;
-    --gray-100: #f4f6f9;
-    --gray-200: #e2e8f0;
-    --gray-400: #94a3b8;
-    --gray-700: #374151;
-    --gray-900: #111827;
-    --text: #1a2535;
-    --link: #0057a8;
+    --gray: #5a6270;
+    --light-gray: #eef0f3;
+    --dark: #1a1f2e;
   }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    font-family: 'Source Sans 3', sans-serif;
-    font-size: 16px;
-    color: var(--text);
-    background: var(--white);
-    line-height: 1.6;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--dark);
+    overflow-x: hidden;
   }
 
-  a { color: var(--link); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-
-  /* ── ALERT BANNER ── */
-  .alert-bar {
-    background: #fff3cd;
-    border-bottom: 2px solid var(--mi-gold);
-    padding: 8px 0;
-    font-size: 13.5px;
-    text-align: center;
+  /* TOP BAR */
+  .top-bar {
+    background: var(--navy);
+    color: #aec7e8;
+    font-size: 0.78rem;
+    padding: 6px 0;
+    letter-spacing: 0.03em;
   }
-  .alert-bar a { color: #7a5900; font-weight: 600; }
-  .alert-bar span { margin: 0 6px; }
-
-  /* ── TOP UTILITY BAR ── */
-  .util-bar {
-    background: var(--mi-blue);
-    color: #b8d4ee;
-    font-size: 12.5px;
-  }
-  .util-bar .inner {
+  .top-bar .inner {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 6px 24px;
+    padding: 0 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-  .util-bar a { color: #b8d4ee; }
-  .util-bar a:hover { color: #fff; text-decoration: none; }
-  .util-links { display: flex; gap: 18px; }
+  .top-bar a { color: #aec7e8; text-decoration: none; }
+  .top-bar a:hover { color: var(--light-gold); }
+  .top-bar .links { display: flex; gap: 20px; }
 
-  /* ── HEADER ── */
-  .site-header {
+  /* HEADER */
+  header {
     background: var(--white);
-    border-bottom: 3px solid var(--mi-gold);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-bottom: 4px solid var(--gold);
+    box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
   .header-inner {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 14px 24px;
+    padding: 0 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    height: 80px;
+  }
+  .logo-area {
+    display: flex;
+    align-items: center;
     gap: 16px;
-  }
-  .logo-group {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-  .mi-seal {
-    width: 60px;
-    height: 60px;
-    flex-shrink: 0;
-  }
-  .site-title {
-    display: flex;
-    flex-direction: column;
-  }
-  .site-title .state-name {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--mi-blue);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .site-title .dept-name {
-    font-family: 'Source Serif 4', serif;
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--mi-blue);
-    line-height: 1.2;
-  }
-  .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .search-box {
-    display: flex;
-    border: 2px solid var(--mi-blue);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-  .search-box input {
-    border: none;
-    padding: 8px 12px;
-    font-size: 14px;
-    width: 220px;
-    font-family: inherit;
-    outline: none;
-    color: var(--text);
-  }
-  .search-box button {
-    background: var(--mi-blue);
-    border: none;
-    padding: 8px 14px;
-    color: white;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  .btn-online {
-    background: var(--mi-gold);
-    color: #1a1a00;
-    font-weight: 700;
-    font-size: 13px;
-    padding: 9px 16px;
-    border-radius: 4px;
-    white-space: nowrap;
-    letter-spacing: 0.02em;
-  }
-  .btn-online:hover { background: #a8880c; text-decoration: none; }
-
-  /* ── NAV ── */
-  nav {
-    background: var(--mi-blue);
-  }
-  .nav-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 24px;
-    display: flex;
-    align-items: stretch;
-  }
-  .nav-item {
-    position: relative;
-  }
-  .nav-item > a {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 14px 18px;
-    color: #cfe0f5;
-    font-size: 14.5px;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    white-space: nowrap;
-    transition: background 0.15s, color 0.15s;
-  }
-  .nav-item > a:hover, .nav-item.active > a {
-    background: var(--mi-blue-mid);
-    color: white;
     text-decoration: none;
   }
-  .nav-item > a .arrow { font-size: 10px; opacity: 0.7; }
-
-  .dropdown {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background: white;
-    border-top: 3px solid var(--mi-gold);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-    min-width: 240px;
-    z-index: 100;
-  }
-  .nav-item:hover .dropdown { display: block; }
-  .dropdown a {
-    display: block;
-    padding: 10px 18px;
-    font-size: 13.5px;
-    color: var(--text);
-    border-bottom: 1px solid var(--gray-200);
-  }
-  .dropdown a:hover { background: var(--mi-blue-light); text-decoration: none; color: var(--mi-blue); }
-
-  /* ── HERO ── */
-  .hero {
-    background: linear-gradient(135deg, var(--mi-blue) 0%, #004f99 60%, #00356b 100%);
-    color: white;
-    padding: 48px 24px 0;
-    overflow: hidden;
-  }
-  .hero-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 48px;
-    align-items: end;
-  }
-  .hero-text { padding-bottom: 48px; }
-  .hero-eyebrow {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--mi-gold-bright);
-    margin-bottom: 12px;
-  }
-  .hero h1 {
-    font-family: 'Source Serif 4', serif;
-    font-size: 38px;
-    font-weight: 600;
-    line-height: 1.18;
-    margin-bottom: 16px;
-  }
-  .hero p {
-    font-size: 17px;
-    color: #b8d4ee;
-    max-width: 440px;
-    margin-bottom: 28px;
-  }
-  .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
-  .btn-primary {
-    background: var(--mi-gold);
-    color: #1a1200;
-    font-weight: 700;
-    padding: 13px 24px;
-    border-radius: 4px;
-    font-size: 14.5px;
-  }
-  .btn-primary:hover { background: #d4ae10; text-decoration: none; }
-  .btn-outline {
-    background: transparent;
-    border: 2px solid rgba(255,255,255,0.5);
-    color: white;
-    font-weight: 600;
-    padding: 11px 22px;
-    border-radius: 4px;
-    font-size: 14.5px;
-  }
-  .btn-outline:hover { border-color: white; text-decoration: none; background: rgba(255,255,255,0.08); }
-
-  .hero-image {
-    display: flex;
-    justify-content: flex-end;
-    align-items: flex-end;
-    gap: 12px;
-  }
-  /* Decorative Michigan shape placeholder */
-  .mi-shape {
-    width: 200px;
-    height: 240px;
-    opacity: 0.18;
-    flex-shrink: 0;
-  }
-
-  /* ── QUICK TASKS ── */
-  .quick-tasks {
-    background: var(--white);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    position: relative;
-    z-index: 2;
-  }
-  .qt-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 24px;
-  }
-  .qt-tabs {
-    display: flex;
-    border-bottom: 2px solid var(--gray-200);
-    gap: 0;
-  }
-  .qt-tab {
-    padding: 14px 22px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--gray-700);
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-    margin-bottom: -2px;
-    white-space: nowrap;
-    transition: color 0.15s, border-color 0.15s;
-  }
-  .qt-tab.active { color: var(--mi-blue); border-bottom-color: var(--mi-blue); }
-  .qt-tab:hover:not(.active) { color: var(--mi-blue-mid); }
-  .qt-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0;
-    padding: 24px 0;
-  }
-  .qt-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 16px 12px;
-    border-radius: 6px;
-    gap: 10px;
-    transition: background 0.15s;
-    cursor: pointer;
-  }
-  .qt-card:hover { background: var(--mi-blue-light); text-decoration: none; }
-  .qt-icon {
-    width: 48px;
-    height: 48px;
-    background: var(--mi-blue-light);
+  .seal {
+    width: 56px;
+    height: 56px;
+    background: var(--navy);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 1.6rem;
     flex-shrink: 0;
+    border: 3px solid var(--gold);
   }
-  .qt-card:hover .qt-icon { background: var(--mi-blue); color: white; }
-  .qt-label {
-    font-size: 13px;
+  .logo-text .state {
+    font-family: 'DM Sans', sans-serif; font-weight: 800;
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--navy);
+    line-height: 1.1;
+  }
+  .logo-text .dept {
+    font-size: 0.78rem;
+    color: var(--gray);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     font-weight: 600;
-    color: var(--mi-blue);
-    line-height: 1.3;
   }
 
-  /* ── MAIN CONTENT AREA ── */
-  .main-content {
-    max-width: 1200px;
-    margin: 40px auto;
-    padding: 0 24px;
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 40px;
-  }
+  nav { display: flex; gap: 2px; align-items: center; }
 
-  /* ── SERVICES GRID ── */
-  .section-title {
-    font-family: 'Source Serif 4', serif;
-    font-size: 24px;
-    font-weight: 600;
-    color: var(--mi-blue);
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--mi-gold);
-  }
-  .services-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin-bottom: 40px;
-  }
-  .service-card {
-    border: 1px solid var(--gray-200);
-    border-radius: 6px;
-    padding: 20px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    cursor: pointer;
-  }
-  .service-card:hover { border-color: var(--mi-blue-mid); box-shadow: 0 4px 12px rgba(0,59,112,0.12); text-decoration: none; }
-  .service-card-icon { font-size: 28px; }
-  .service-card-title {
-    font-weight: 700;
-    font-size: 15px;
-    color: var(--mi-blue);
-  }
-  .service-card-desc {
-    font-size: 13px;
-    color: var(--gray-700);
-    line-height: 1.5;
-  }
-  .service-card-link {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--mi-blue-mid);
-    margin-top: auto;
-    padding-top: 4px;
-  }
+  .nav-item { position: relative; }
 
-  /* ── NEWS ── */
-  .news-list { display: flex; flex-direction: column; gap: 18px; }
-  .news-item {
-    display: flex;
-    gap: 14px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid var(--gray-200);
-  }
-  .news-item:last-child { border-bottom: none; }
-  .news-date {
-    flex-shrink: 0;
-    text-align: center;
-    background: var(--mi-blue);
-    color: white;
-    width: 54px;
-    padding: 8px 4px;
+  .nav-item > a {
+    text-decoration: none;
+    color: var(--navy);
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 8px 14px;
     border-radius: 4px;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1.3;
+    transition: background 0.15s, color 0.15s;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    white-space: nowrap;
   }
-  .news-date span { font-size: 22px; display: block; }
-  .news-body h4 {
-    font-size: 14.5px;
-    font-weight: 700;
-    color: var(--mi-blue);
-    margin-bottom: 4px;
-    line-height: 1.4;
+  .nav-item > a .chevron {
+    font-size: 0.6rem;
+    transition: transform 0.2s;
+    display: inline-block;
   }
-  .news-body p { font-size: 13px; color: var(--gray-700); }
-  .more-link { display: inline-flex; align-items: center; gap: 5px; font-size: 13.5px; font-weight: 700; color: var(--mi-blue-mid); margin-top: 12px; }
+  .nav-item:hover > a { background: var(--navy); color: var(--white); }
+  .nav-item:hover > a .chevron { transform: rotate(180deg); }
 
-  /* ── SIDEBAR ── */
-  .sidebar { display: flex; flex-direction: column; gap: 24px; }
-  .side-card {
-    border: 1px solid var(--gray-200);
-    border-radius: 6px;
+  .dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    background: var(--white);
+    border-radius: 10px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    border: 1px solid #e0e4ea;
+    border-top: 3px solid var(--gold);
+    min-width: 220px;
+    z-index: 200;
+    padding: 8px 0;
+    animation: dropFade 0.15s ease;
+  }
+  @keyframes dropFade {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .nav-item:hover .dropdown { display: block; }
+
+  .dropdown a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    font-size: 0.87rem;
+    font-weight: 500;
+    color: var(--dark);
+    text-decoration: none;
+    transition: background 0.12s, color 0.12s;
+  }
+  .dropdown a:hover { background: #f4f7fb; color: var(--navy); }
+  .dropdown a .di { font-size: 1rem; width: 22px; text-align: center; }
+  .dropdown-divider { height: 1px; background: #eef0f4; margin: 6px 0; }
+  .dropdown-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding: 8px 18px 4px;
+  }
+
+  .nav-cta {
+    background: var(--gold) !important;
+    color: var(--white) !important;
+    margin-left: 8px;
+    border-radius: 6px !important;
+    padding: 9px 16px !important;
+  }
+  .nav-cta:hover { background: #a96e1a !important; color: var(--white) !important; }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, #00234d 60%, #001a3a 100%);
+    color: var(--white);
+    padding: 70px 24px 60px;
+    position: relative;
     overflow: hidden;
   }
-  .side-card-head {
-    background: var(--mi-blue);
-    color: white;
-    padding: 12px 16px;
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: rgba(197,136,42,0.12);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: 30%;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: rgba(197,136,42,0.07);
+    pointer-events: none;
+  }
+  .hero-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-label {
+    font-size: 0.78rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--light-gold);
     font-weight: 700;
-    font-size: 14.5px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    margin-bottom: 12px;
   }
-  .side-card-body { padding: 16px; }
-  .side-links { display: flex; flex-direction: column; gap: 2px; }
-  .side-links a {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 9px 0;
-    font-size: 13.5px;
-    color: var(--text);
-    border-bottom: 1px solid var(--gray-200);
+  .hero h1 {
+    font-family: 'DM Sans', sans-serif; font-weight: 800;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 900;
+    line-height: 1.15;
+    margin-bottom: 16px;
+    max-width: 640px;
   }
-  .side-links a:last-child { border-bottom: none; }
-  .side-links a:hover { color: var(--mi-blue); text-decoration: none; }
-  .side-links a .chev { color: var(--mi-blue-mid); font-size: 12px; }
-
-  .appt-card { background: var(--mi-blue-light); }
-  .appt-card .side-card-head { background: var(--mi-green); }
-  .appt-body { padding: 16px; }
-  .appt-body p { font-size: 13.5px; color: var(--gray-700); margin-bottom: 14px; }
-  .btn-appt {
-    display: block;
-    width: 100%;
-    background: var(--mi-green);
-    color: white;
-    text-align: center;
-    padding: 11px;
-    border-radius: 4px;
+  .hero p {
+    color: #a8bdd4;
+    font-size: 1.05rem;
+    max-width: 540px;
+    margin-bottom: 36px;
+    line-height: 1.6;
+  }
+  .hero-search {
+    display: flex;
+    gap: 0;
+    max-width: 500px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  }
+  .hero-search input {
+    flex: 1;
+    padding: 14px 20px;
+    font-size: 1rem;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    color: var(--dark);
+  }
+  .hero-search button {
+    background: var(--gold);
+    color: var(--white);
+    border: none;
+    padding: 14px 24px;
+    font-size: 1rem;
     font-weight: 700;
-    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+    white-space: nowrap;
   }
-  .btn-appt:hover { background: #245429; text-decoration: none; }
+  .hero-search button:hover { background: #a96e1a; }
 
-  .wait-times { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-  .wait-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 13px;
-    padding: 6px 0;
-    border-bottom: 1px solid var(--gray-200);
+  /* QUICK LINKS */
+  .quick-links {
+    background: var(--white);
+    border-bottom: 1px solid #e0e4ea;
+    padding: 0;
   }
-  .wait-row:last-child { border-bottom: none; }
-  .wait-badge {
-    background: #e8f5e9;
-    color: #1b5e20;
-    border-radius: 12px;
-    padding: 3px 10px;
-    font-size: 12px;
-    font-weight: 700;
-  }
-  .wait-badge.busy { background: #fff3e0; color: #e65100; }
-
-  /* ── FEATURE BAND ── */
-  .feature-band {
-    background: var(--mi-blue-light);
-    border-top: 3px solid var(--mi-blue);
-    border-bottom: 3px solid var(--mi-blue);
-    padding: 40px 24px;
-    margin-bottom: 40px;
-  }
-  .fb-inner {
+  .quick-links .inner {
     max-width: 1200px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .quick-link {
+    padding: 22px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-right: 1px solid #e8eaee;
+    text-decoration: none;
+    color: var(--navy);
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  .quick-link:last-child { border-right: none; }
+  .quick-link:hover { background: var(--light-gray); }
+  .quick-link .icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #e8f0f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .quick-link:hover .icon { background: var(--navy); }
+  .quick-link .ql-text .ql-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--navy);
+  }
+  .quick-link .ql-text .ql-sub {
+    font-size: 0.78rem;
+    color: var(--gray);
+    margin-top: 2px;
+  }
+
+  /* SERVICES GRID */
+  .services {
+    max-width: 1200px;
+    margin: 56px auto;
+    padding: 0 24px;
+  }
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 28px;
+  }
+  .section-title {
+    font-family: 'DM Sans', sans-serif; font-weight: 800;
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .section-title span { color: var(--gold); }
+  .section-link {
+    color: var(--gold);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .section-link:hover { text-decoration: underline; }
+
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .service-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 28px;
+    border: 1px solid #e4e8ef;
+    text-decoration: none;
+    color: var(--dark);
+    transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: pointer;
+  }
+  .service-card:hover {
+    box-shadow: 0 8px 32px rgba(0,51,102,0.12);
+    transform: translateY(-3px);
+    border-color: var(--gold);
+  }
+  .service-card .card-icon {
+    font-size: 2rem;
+    margin-bottom: 4px;
+  }
+  .service-card h3 {
+    font-family: 'DM Sans', sans-serif; font-weight: 800;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .service-card p {
+    font-size: 0.88rem;
+    color: var(--gray);
+    line-height: 1.55;
+  }
+  .card-arrow {
+    margin-top: auto;
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ALERTS / BANNER */
+  .alert-bar {
+    background: #fff8e6;
+    border: 1px solid #f0d080;
+    border-left: 5px solid var(--gold);
+    border-radius: 8px;
+    padding: 16px 24px;
+    margin: 0 0 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .alert-bar .alert-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 1px; }
+  .alert-bar .alert-text { font-size: 0.9rem; line-height: 1.5; color: #5a4a10; }
+  .alert-bar .alert-text strong { color: #7a5e00; }
+  .alert-bar .alert-link { color: var(--gold); font-weight: 700; text-decoration: none; }
+
+  /* TWO COLUMN */
+  .two-col {
+    max-width: 1200px;
+    margin: 0 auto 56px;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 1fr 340px;
     gap: 32px;
   }
-  .fb-item { text-align: center; padding: 20px; }
-  .fb-num {
-    font-family: 'Source Serif 4', serif;
-    font-size: 48px;
-    font-weight: 600;
-    color: var(--mi-blue);
+
+  /* APPOINTMENTS */
+  .appt-section { background: var(--white); border-radius: 12px; border: 1px solid #e4e8ef; padding: 32px; }
+  .appt-section h2 { font-family: 'DM Sans', sans-serif; font-weight: 800; font-size: 1.4rem; color: var(--navy); margin-bottom: 8px; }
+  .appt-section .sub { font-size: 0.88rem; color: var(--gray); margin-bottom: 24px; line-height: 1.5; }
+
+  .appt-types { display: flex; flex-direction: column; gap: 12px; }
+  .appt-type {
+    border: 1px solid #dde2ea;
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    text-decoration: none;
+    color: var(--dark);
+  }
+  .appt-type:hover { border-color: var(--navy); background: #f4f7fb; }
+  .appt-type .at-icon { font-size: 1.4rem; }
+  .appt-type .at-info .at-name { font-weight: 700; font-size: 0.95rem; color: var(--navy); }
+  .appt-type .at-info .at-desc { font-size: 0.8rem; color: var(--gray); margin-top: 2px; }
+  .appt-btn {
+    display: block;
+    margin-top: 24px;
+    background: var(--navy);
+    color: var(--white);
+    text-align: center;
+    padding: 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    transition: background 0.15s;
+  }
+  .appt-btn:hover { background: #00234d; }
+
+  /* SIDEBAR */
+  .sidebar { display: flex; flex-direction: column; gap: 20px; }
+  .sidebar-card {
+    background: var(--white);
+    border-radius: 12px;
+    border: 1px solid #e4e8ef;
+    padding: 24px;
+  }
+  .sidebar-card h3 { font-family: 'DM Sans', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--navy); margin-bottom: 14px; }
+  .news-items { display: flex; flex-direction: column; gap: 14px; }
+  .news-item { border-bottom: 1px solid #f0f2f5; padding-bottom: 14px; }
+  .news-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .news-date { font-size: 0.72rem; color: var(--gold); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+  .news-title { font-size: 0.88rem; color: var(--navy); font-weight: 600; margin-top: 3px; line-height: 1.4; }
+  .news-title a { color: inherit; text-decoration: none; }
+  .news-title a:hover { color: var(--gold); }
+
+  .hours-list { display: flex; flex-direction: column; gap: 8px; }
+  .hours-row { display: flex; justify-content: space-between; font-size: 0.88rem; }
+  .hours-row .day { color: var(--gray); }
+  .hours-row .time { font-weight: 600; color: var(--dark); }
+  .hours-note { margin-top: 12px; font-size: 0.8rem; color: var(--gray); line-height: 1.5; }
+
+  /* STATS RIBBON */
+  .stats {
+    background: var(--navy);
+    color: var(--white);
+    padding: 48px 24px;
+    margin-bottom: 56px;
+  }
+  .stats-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+    text-align: center;
+  }
+  .stat-number {
+    font-family: 'DM Sans', sans-serif; font-weight: 800;
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: var(--light-gold);
     line-height: 1;
   }
-  .fb-label { font-size: 14px; color: var(--gray-700); margin-top: 6px; }
+  .stat-label {
+    font-size: 0.85rem;
+    color: #a8bdd4;
+    margin-top: 6px;
+    letter-spacing: 0.03em;
+  }
 
-  /* ── FOOTER ── */
+  /* FOOTER */
   footer {
-    background: #1a2535;
-    color: #94a3b8;
+    background: var(--dark);
+    color: #8a9ab0;
     padding: 48px 24px 24px;
-    margin-top: 48px;
   }
   .footer-inner {
     max-width: 1200px;
     margin: 0 auto;
   }
-  .footer-top {
+  .footer-grid {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr 1fr;
     gap: 40px;
-    padding-bottom: 32px;
-    border-bottom: 1px solid #2d3748;
+    margin-bottom: 40px;
   }
-  .footer-brand .dept { font-family: 'Source Serif 4', serif; font-size: 18px; color: white; font-weight: 600; margin-bottom: 10px; }
-  .footer-brand .addr { font-size: 13px; line-height: 1.7; }
-  .footer-col h5 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mi-gold-bright); margin-bottom: 14px; }
-  .footer-col a { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 8px; }
-  .footer-col a:hover { color: white; text-decoration: none; }
+  .footer-brand .state-name {
+    font-family: 'DM Sans', sans-serif; font-weight: 800;
+    font-size: 1.2rem;
+    color: var(--white);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .footer-brand p {
+    font-size: 0.83rem;
+    line-height: 1.6;
+    color: #6a7a8a;
+    max-width: 260px;
+  }
+  .footer-col h4 {
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--light-gold);
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .footer-col a { color: #7a8fa8; text-decoration: none; font-size: 0.85rem; }
+  .footer-col a:hover { color: var(--light-gold); }
   .footer-bottom {
+    border-top: 1px solid #2a3240;
+    padding-top: 20px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding-top: 24px;
-    font-size: 12.5px;
+    font-size: 0.78rem;
+    color: #4a5a6a;
+    flex-wrap: wrap;
+    gap: 8px;
   }
-  .footer-bottom a { color: #94a3b8; margin-left: 16px; }
-  .footer-bottom a:hover { color: white; text-decoration: none; }
-  .mi-flag { font-size: 20px; }
+  .footer-bottom a { color: #4a5a6a; text-decoration: none; }
+  .footer-bottom a:hover { color: #8a9ab0; }
+
+  @media (max-width: 900px) {
+    .services-grid { grid-template-columns: 1fr 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .stats-inner { grid-template-columns: 1fr 1fr; }
+    .quick-links .inner { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 600px) {
+    .services-grid { grid-template-columns: 1fr; }
+    .quick-links .inner { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr; }
+    nav { display: none; }
+  }
 </style>
 </head>
 <body>
 
-<!-- ALERT BAR -->
-<div class="alert-bar">
-  ⚠️ <strong>Service Notice:</strong> Some online services may experience intermittent delays. 
-  <a href="#">Learn more</a> <span>|</span>
-  <a href="#">Schedule an appointment</a> to visit a branch office.
-</div>
-
-<!-- UTILITY BAR -->
-<div class="util-bar">
+<!-- TOP BAR -->
+<div class="top-bar">
   <div class="inner">
-    <span>Michigan.gov &nbsp;›&nbsp; <strong style="color:white">Secretary of State</strong></span>
-    <div class="util-links">
+    <span>🏛️ Official Website of the State of Michigan</span>
+    <div class="links">
+      <a href="#">Michigan.gov</a>
       <a href="#">Español</a>
-      <a href="#">العربية</a>
       <a href="#">Contact Us</a>
-      <a href="#">Branch Locator</a>
-      <a href="#">Accessibility</a>
     </div>
   </div>
 </div>
 
 <!-- HEADER -->
-<header class="site-header">
+<header>
   <div class="header-inner">
-    <div class="logo-group">
-      <!-- Michigan Seal SVG -->
-      <svg class="mi-seal" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="50" cy="50" r="48" fill="#003b70" stroke="#c4a00f" stroke-width="3"/>
-        <circle cx="50" cy="50" r="42" fill="none" stroke="#c4a00f" stroke-width="1.5" stroke-dasharray="3,2"/>
-        <text x="50" y="28" text-anchor="middle" fill="#f0c030" font-size="7" font-family="serif" font-weight="bold">STATE OF MICHIGAN</text>
-        <!-- Stylized moose/elk head -->
-        <ellipse cx="50" cy="50" rx="18" ry="22" fill="#c4a00f" opacity="0.25"/>
-        <text x="50" y="55" text-anchor="middle" fill="#f0c030" font-size="26">🦌</text>
-        <text x="50" y="78" text-anchor="middle" fill="#aac8e8" font-size="6.5" font-family="serif">TUEBOR</text>
-      </svg>
-      <div class="site-title">
-        <span class="state-name">State of Michigan</span>
-        <span class="dept-name">Secretary of State</span>
+    <a class="logo-area" href="#">
+      <div class="logo-text">
+        <div class="state">MICHIGAN</div>
+        <div class="dept">Secretary of State</div>
       </div>
-    </div>
-    <div class="header-actions">
-      <div class="search-box">
-        <input type="text" placeholder="Search SOS services…" />
-        <button>🔍</button>
+    </a>
+    <nav>
+      <div class="nav-item">
+        <a href="#">About <span class="chevron">▼</span></a>
+        <div class="dropdown">
+          <a href="#"><span class="di">ℹ️</span>About</a>
+          <a href="#"><span class="di">📰</span>News & Press Releases</a>
+          <a href="#"><span class="di">💼</span>Careers</a>
+        </div>
       </div>
-      <a href="#" class="btn-online">Online Services</a>
-    </div>
+      <div class="nav-item">
+        <a href="#">Online Services<span class="chevron">▼</span></a>
+        <div class="dropdown">
+        <div class="dropdown-label">Citizenship</div>
+          <a href="#"><span class="di">🪪</span> Apply for Citizenship</a>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-label">Licenses &amp; IDs</div>
+          <a href="#"><span class="di">⭐</span> Enhanced ID</a>
+          <a href="#"><span class="di">🚛</span> CDL Licenses</a>
+          <a href="#"><span class="di">📄</span> Order Driving Record</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="#">Business<span class="chevron">▼</span></a>
+        <div class="dropdown">
+          <div class="dropdown-label">Entity Services</div>
+          <a href="#"><span class="di">🏢</span> File a New Business</a>
+          <a href="#"><span class="di">📝</span> Annual Report Filing</a>
+          <a href="#"><span class="di">🔍</span> Business Entity Search</a>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-label">Notary &amp; Other</div>
+          <a href="#"><span class="di">✍️</span> Notary Public Commission</a>
+          <a href="#"><span class="di">📜</span> Apostille &amp; Certification</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="#">Elections <span class="chevron">▼</span></a>
+        <div class="dropdown">
+          <div class="dropdown-label">Voters</div>
+          <a href="#"><span class="di">🗳️</span> Register to Vote</a>
+          <a href="#"><span class="di">📬</span> Absentee Ballot</a>
+          <a href="#"><span class="di">📍</span> Find My Polling Place</a>
+          <a href="#"><span class="di">📊</span> Election Results</a>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-label">Candidates</div>
+          <a href="#"><span class="di">💰</span> Campaign Finance</a>
+          <a href="#"><span class="di">📋</span> Candidate Filing</a>
+        </div>
+      </div>
+      <a class="nav-cta" href="/appointment/">Schedule Appointment</a>
+    </nav>
   </div>
 </header>
-
-<!-- NAVIGATION -->
-<nav>
-  <div class="nav-inner">
-    <div class="nav-item active">
-      <a href="#">Home</a>
-    </div>
-    <div class="nav-item">
-      <a href="#">Drivers &amp; Vehicles <span class="arrow">▾</span></a>
-      <div class="dropdown">
-        <a href="#">Driver's License &amp; ID</a>
-        <a href="#">Vehicle Registration</a>
-        <a href="#">License Plate Renewal</a>
-        <a href="#">Title Transfers</a>
-        <a href="#">Enhanced License (REAL ID)</a>
-        <a href="#">Commercial Vehicles</a>
-        <a href="#">Motorcycles</a>
-      </div>
-    </div>
-    <div class="nav-item">
-      <a href="#">Business Services <span class="arrow">▾</span></a>
-      <div class="dropdown">
-        <a href="#">File a Business</a>
-        <a href="#">Search Business Records</a>
-        <a href="#">Annual Reports</a>
-        <a href="#">Registered Agents</a>
-        <a href="#">Notary Public</a>
-        <a href="#">UCC Filings</a>
-      </div>
-    </div>
-    <div class="nav-item">
-      <a href="#">Elections <span class="arrow">▾</span></a>
-      <div class="dropdown">
-        <a href="#">Voter Registration</a>
-        <a href="#">Find Your Polling Place</a>
-        <a href="#">Absentee Ballots</a>
-        <a href="#">Candidate Filing</a>
-        <a href="#">Campaign Finance</a>
-        <a href="#">Election Results</a>
-      </div>
-    </div>
-    <div class="nav-item">
-      <a href="#">Branch Offices <span class="arrow">▾</span></a>
-      <div class="dropdown">
-        <a href="#">Find a Branch</a>
-        <a href="#">Schedule an Appointment</a>
-        <a href="#">Office Hours</a>
-        <a href="#">Self-Service Stations</a>
-      </div>
-    </div>
-    <div class="nav-item">
-      <a href="#">About <span class="arrow">▾</span></a>
-      <div class="dropdown">
-        <a href="#">About the SOS</a>
-        <a href="#">Secretary Jocelyn Benson</a>
-        <a href="#">News &amp; Press Releases</a>
-        <a href="#">Publications</a>
-        <a href="#">Careers</a>
-      </div>
-    </div>
-  </div>
-</nav>
 
 <!-- HERO -->
 <section class="hero">
   <div class="hero-inner">
-    <div class="hero-text">
-      <div class="hero-eyebrow">Michigan Secretary of State</div>
-      <h1>Serving Michiganders,<br>One Transaction at a Time</h1>
-      <p>Renew licenses, register vehicles, update your voter registration, and more — all online or at a branch near you.</p>
-      <div class="hero-ctas">
-        <a href="#" class="btn-primary">Renew Online Now</a>
-        <a href="#" class="btn-outline">Find a Branch Office</a>
-      </div>
-    </div>
-    <div class="hero-image">
-      <svg class="mi-shape" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
-        <!-- Simplified Michigan Lower Peninsula outline -->
-        <path d="M80,20 L100,15 L120,22 L130,35 L140,40 L155,38 L165,50 L160,65 L150,70 L145,80 L150,95 L148,110 L160,120 L158,135 L145,145 L130,148 L120,160 L110,175 L100,185 L90,180 L80,170 L70,158 L55,150 L45,140 L40,125 L45,110 L55,100 L50,85 L45,70 L50,55 L60,45 L65,30 Z" fill="white"/>
-        <!-- Upper Peninsula -->
-        <path d="M30,35 L45,30 L55,35 L60,45 L50,55 L40,58 L30,52 L25,42 Z" fill="white"/>
-      </svg>
+    <div class="hero-label">Michigan Secretary of State — Robert Hayes</div>
+    <h1>Fast, Reliable Services for Every Michigander</h1>
+    <p>Renew your license, register your vehicle, schedule an appointment, and more — all online, available 24/7.</p>
+    <div class="hero-search">
+      <input type="text" placeholder="Search for a service (e.g. renew license plate)…">
+      <button>Search</button>
     </div>
   </div>
 </section>
 
-<!-- QUICK TASKS -->
-<section class="quick-tasks">
-  <div class="qt-inner">
-    <div class="qt-tabs">
-      <div class="qt-tab active">🚗 Drivers &amp; Vehicles</div>
-      <div class="qt-tab">🏢 Business</div>
-      <div class="qt-tab">🗳️ Elections</div>
-      <div class="qt-tab">📋 Records</div>
+<!-- QUICK LINKS -->
+<div class="quick-links">
+  <div class="inner">
+    <a class="quick-link" href="#">
+      <div class="icon">🪪</div>
+      <div class="ql-text">
+        <div class="ql-title">Apply for Citizenship</div>
+        <div class="ql-sub">Online renewal available</div>
+      </div>
+    </a>
+    <a class="quick-link" href="#">
+      <div class="icon">🚗</div>
+      <div class="ql-text">
+        <div class="ql-title">Renew License Plate</div>
+        <div class="ql-sub">Tabs & registration</div>
+      </div>
+    </a>
+    <a class="quick-link" href="#">
+      <div class="icon">📋</div>
+      <div class="ql-text">
+        <div class="ql-title">Transfer Vehicle Title</div>
+        <div class="ql-sub">Buy or sell a vehicle</div>
+      </div>
+    </a>
+    <a class="quick-link" href="#">
+      <div class="icon">🗳️</div>
+      <div class="ql-text">
+        <div class="ql-title">Voter Registration</div>
+        <div class="ql-sub">Register or update info</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section class="services">
+  <div class="alert-bar">
+    <div class="alert-icon">⚠️</div>
+    <div class="alert-text">
+      <strong>Notice:</strong> REAL ID requirements go into effect May 7, 2025. A Michigan Enhanced Driver's License or REAL ID is required for domestic flights and federal buildings. <a class="alert-link" href="#">Learn more →</a>
     </div>
-    <div class="qt-grid">
-      <a href="#" class="qt-card">
-        <div class="qt-icon">🪪</div>
-        <span class="qt-label">Renew Driver's License</span>
-      </a>
-      <a href="#" class="qt-card">
-        <div class="qt-icon">🚘</div>
-        <span class="qt-label">Renew Vehicle Registration</span>
-      </a>
-      <a href="#" class="qt-card">
-        <div class="qt-icon">🔖</div>
-        <span class="qt-label">Renew License Plate Tab</span>
-      </a>
-      <a href="#" class="qt-card">
-        <div class="qt-icon">📄</div>
-        <span class="qt-label">Order a Driving Record</span>
-      </a>
-      <a href="#" class="qt-card">
-        <div class="qt-icon">🔄</div>
-        <span class="qt-label">Transfer a Vehicle Title</span>
-      </a>
-    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">Popular <span>Services</span></div>
+    <a class="section-link" href="#">View all services →</a>
+  </div>
+  <div class="services-grid">
+    <a class="service-card" href="#">
+      <div class="card-icon">🪪</div>
+      <h3>Driver's License & State ID</h3>
+      <p>Apply for, renew, or replace your Michigan Driver's License, Enhanced DL, REAL ID, or State ID.</p>
+      <div class="card-arrow">Get Started →</div>
+    </a>
+    <a class="service-card" href="#">
+      <div class="card-icon">🚘</div>
+      <h3>Vehicle Registration</h3>
+      <p>Register a new vehicle, renew your license plate tabs, or transfer a title to a new owner.</p>
+      <div class="card-arrow">Get Started →</div>
+    </a>
+    <a class="service-card" href="#">
+      <div class="card-icon">📄</div>
+      <h3>Driving Record</h3>
+      <p>Order your official Michigan driving record for employment, insurance, or personal use.</p>
+      <div class="card-arrow">Get Started →</div>
+    </a>
+    <a class="service-card" href="#">
+      <div class="card-icon">🏢</div>
+      <h3>Business Filing</h3>
+      <p>File, register, or manage your Michigan business entity — LLCs, corporations, nonprofits, and more.</p>
+      <div class="card-arrow">Get Started →</div>
+    </a>
+    <a class="service-card" href="#">
+      <div class="card-icon">🗳️</div>
+      <h3>Elections & Voting</h3>
+      <p>Register to vote, find your polling location, track your absentee ballot, and view election results.</p>
+      <div class="card-arrow">Get Started →</div>
+    </a>
+    <a class="service-card" href="#">
+      <div class="card-icon">🔎</div>
+      <h3>Look Up a Vehicle</h3>
+      <p>Check the title history, lien status, or registration of a Michigan vehicle by VIN or plate number.</p>
+      <div class="card-arrow">Get Started →</div>
+    </a>
   </div>
 </section>
 
-<!-- FEATURE STATS BAND -->
-<section class="feature-band">
-  <div class="fb-inner">
-    <div class="fb-item">
-      <div class="fb-num">7.2M</div>
-      <div class="fb-label">Registered voters in Michigan</div>
+<!-- TWO COLUMN -->
+<div class="two-col">
+  <!-- APPOINTMENTS -->
+  <div class="appt-section">
+    <h2>Schedule a Branch Appointment</h2>
+    <p class="sub">Many services can be completed online, but some require an in-person visit. Select the service type below to find available times at a branch near you.</p>
+    <div class="appt-types">
+      <a class="appt-type" href="#">
+        <div class="at-icon">🪪</div>
+        <div class="at-info">
+          <div class="at-name">Driver's License / State ID</div>
+          <div class="at-desc">New, renewal, replacement, or REAL ID upgrade</div>
+        </div>
+      </a>
+      <a class="appt-type" href="#">
+        <div class="at-icon">🚗</div>
+        <div class="at-info">
+          <div class="at-name">Vehicle Title Transfer</div>
+          <div class="at-desc">Transfer ownership or process a salvage title</div>
+        </div>
+      </a>
+      <a class="appt-type" href="#">
+        <div class="at-icon">🌐</div>
+        <div class="at-info">
+          <div class="at-name">Undocumented Individual DL</div>
+          <div class="at-desc">Apply under Michigan's expanded eligibility</div>
+        </div>
+      </a>
+      <a class="appt-type" href="#">
+        <div class="at-icon">📋</div>
+        <div class="at-info">
+          <div class="at-name">Other Branch Services</div>
+          <div class="at-desc">Notary, plates, records, and general inquiries</div>
+        </div>
+      </a>
     </div>
-    <div class="fb-item">
-      <div class="fb-num">10M+</div>
-      <div class="fb-label">Driver's licenses &amp; IDs issued</div>
-    </div>
-    <div class="fb-item">
-      <div class="fb-num">170+</div>
-      <div class="fb-label">Branch office locations statewide</div>
-    </div>
+    <a class="appt-btn" href="#">Find Appointment Times Near Me →</a>
   </div>
-</section>
-
-<!-- MAIN CONTENT -->
-<div class="main-content">
-  <main>
-    <h2 class="section-title">Popular Services</h2>
-    <div class="services-grid">
-      <a href="#" class="service-card">
-        <div class="service-card-icon">🪪</div>
-        <div class="service-card-title">Driver's License &amp; State ID</div>
-        <div class="service-card-desc">Renew, replace, or get a REAL ID-compliant license or state ID card.</div>
-        <div class="service-card-link">Get started →</div>
-      </a>
-      <a href="#" class="service-card">
-        <div class="service-card-icon">🚗</div>
-        <div class="service-card-title">Vehicle Registration</div>
-        <div class="service-card-desc">Renew tabs, register a new vehicle, or transfer ownership in Michigan.</div>
-        <div class="service-card-link">Renew online →</div>
-      </a>
-      <a href="#" class="service-card">
-        <div class="service-card-icon">🗳️</div>
-        <div class="service-card-title">Voter Registration</div>
-        <div class="service-card-desc">Register to vote, update your address, or check your registration status.</div>
-        <div class="service-card-link">Check status →</div>
-      </a>
-      <a href="#" class="service-card">
-        <div class="service-card-icon">🏢</div>
-        <div class="service-card-title">Business Filing</div>
-        <div class="service-card-desc">Form an LLC, corporation, or nonprofit and search existing Michigan businesses.</div>
-        <div class="service-card-link">File a business →</div>
-      </a>
-      <a href="#" class="service-card">
-        <div class="service-card-icon">📋</div>
-        <div class="service-card-title">Notary Public</div>
-        <div class="service-card-desc">Apply for a notary commission, renew, or search for a commissioned notary.</div>
-        <div class="service-card-link">Apply now →</div>
-      </a>
-      <a href="#" class="service-card">
-        <div class="service-card-icon">📬</div>
-        <div class="service-card-title">Absentee Voting</div>
-        <div class="service-card-desc">Request an absentee ballot, track its status, or find your drop box location.</div>
-        <div class="service-card-link">Request ballot →</div>
-      </a>
-    </div>
-
-    <h2 class="section-title">News &amp; Announcements</h2>
-    <div class="news-list">
-      <div class="news-item">
-        <div class="news-date"><span>28</span>APR<br>2026</div>
-        <div class="news-body">
-          <h4>Secretary Benson Announces Expanded Self-Service Kiosk Locations Across Genesee County</h4>
-          <p>Three new self-service stations will be added in Flint, Burton, and Grand Blanc to reduce wait times and improve access for residents.</p>
-        </div>
-      </div>
-      <div class="news-item">
-        <div class="news-date"><span>22</span>APR<br>2026</div>
-        <div class="news-body">
-          <h4>REAL ID Compliance: What Michigan Drivers Need to Know Before May 7</h4>
-          <p>Federal enforcement of REAL ID requirements begins May 7. Michigan residents flying domestically must have a REAL ID-compliant license, enhanced license, or passport.</p>
-        </div>
-      </div>
-      <div class="news-item">
-        <div class="news-date"><span>15</span>APR<br>2026</div>
-        <div class="news-body">
-          <h4>Online Business Filing System Upgrade Improves Speed and Reliability</h4>
-          <p>The Michigan Business One Stop system has been updated with improved performance and a streamlined filing experience for LLCs and corporations.</p>
-        </div>
-      </div>
-      <div class="news-item">
-        <div class="news-date"><span>8</span>APR<br>2026</div>
-        <div class="news-body">
-          <h4>2026 August Primary Voter Registration Deadline Approaches</h4>
-          <p>Michigan residents wishing to vote in the August 5 primary election must be registered by July 20, or register in person at their local clerk's office up to and including Election Day.</p>
-        </div>
-      </div>
-    </div>
-    <a href="#" class="more-link">View all news &amp; announcements ›</a>
-  </main>
 
   <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <!-- Schedule Appointment -->
-    <div class="side-card appt-card">
-      <div class="side-card-head">📅 Schedule an Appointment</div>
-      <div class="appt-body">
-        <p>Skip the wait — schedule a time to visit your local branch office. Same-day slots may be available.</p>
-        <a href="#" class="btn-appt">Schedule Now</a>
-      </div>
-    </div>
-
-    <!-- Branch Wait Times -->
-    <div class="side-card">
-      <div class="side-card-head">⏱️ Estimated Branch Wait Times</div>
-      <div class="side-card-body">
-        <div class="wait-times">
-          <div class="wait-row">
-            <span>Flint — Dort Hwy</span>
-            <span class="wait-badge">~12 min</span>
-          </div>
-          <div class="wait-row">
-            <span>Burton</span>
-            <span class="wait-badge busy">~38 min</span>
-          </div>
-          <div class="wait-row">
-            <span>Grand Blanc</span>
-            <span class="wait-badge">~9 min</span>
-          </div>
-          <div class="wait-row">
-            <span>Fenton</span>
-            <span class="wait-badge">~15 min</span>
-          </div>
-          <div class="wait-row">
-            <span>Swartz Creek</span>
-            <span class="wait-badge">~6 min</span>
-          </div>
+  <div class="sidebar">
+    <div class="sidebar-card">
+      <h3>News & Announcements</h3>
+      <div class="news-items">
+        <div class="news-item">
+          <div class="news-date">Apr 28, 2026</div>
+          <div class="news-title"><a href="#">SOS offices to extend hours ahead of May 7 REAL ID deadline</a></div>
         </div>
-        <div style="margin-top:12px; font-size:12px; color:#666;">Wait times are estimated and updated every 15 minutes.</div>
-      </div>
-    </div>
-
-    <!-- Quick Links -->
-    <div class="side-card">
-      <div class="side-card-head">🔗 Quick Links</div>
-      <div class="side-card-body">
-        <div class="side-links">
-          <a href="#">Change of Address <span class="chev">›</span></a>
-          <a href="#">Organ Donor Registration <span class="chev">›</span></a>
-          <a href="#">Driving Record Request <span class="chev">›</span></a>
-          <a href="#">Dealer &amp; Mechanic Licensing <span class="chev">›</span></a>
-          <a href="#">UCC Filings <span class="chev">›</span></a>
-          <a href="#">Campaign Finance Reports <span class="chev">›</span></a>
-          <a href="#">FOIA Requests <span class="chev">›</span></a>
+        <div class="news-item">
+          <div class="news-date">Apr 15, 2026</div>
+          <div class="news-title"><a href="#">Online title transfers now available for most private sales</a></div>
+        </div>
+        <div class="news-item">
+          <div class="news-date">Mar 30, 2026</div>
+          <div class="news-title"><a href="#">New kiosks added at 12 additional Michigan locations</a></div>
         </div>
       </div>
     </div>
-
-    <!-- Contact -->
-    <div class="side-card">
-      <div class="side-card-head">📞 Contact Us</div>
-      <div class="side-card-body">
-        <div style="font-size:13.5px; line-height:1.9; color: var(--gray-700);">
-          <strong style="color:var(--mi-blue)">Customer Service</strong><br>
-          <a href="tel:8882677526" style="color:var(--mi-blue-mid); font-weight:700;">1-888-SOS-MICH</a><br>
-          Mon–Fri: 8:00 AM – 5:00 PM<br><br>
-          <strong style="color:var(--mi-blue)">Mailing Address</strong><br>
-          Michigan Dept. of State<br>
-          430 W. Allegan St.<br>
-          Lansing, MI 48918
-        </div>
+    <div class="sidebar-card">
+      <h3>Branch Hours</h3>
+      <div class="hours-list">
+        <div class="hours-row"><span class="day">Monday</span><span class="time">9:00 AM – 5:00 PM</span></div>
+        <div class="hours-row"><span class="day">Tuesday</span><span class="time">9:00 AM – 5:00 PM</span></div>
+        <div class="hours-row"><span class="day">Wednesday</span><span class="time">11:00 AM – 7:00 PM</span></div>
+        <div class="hours-row"><span class="day">Thursday</span><span class="time">9:00 AM – 5:00 PM</span></div>
+        <div class="hours-row"><span class="day">Friday</span><span class="time">9:00 AM – 5:00 PM</span></div>
+        <div class="hours-row"><span class="day">Saturday</span><span class="time">9:00 AM – 12:00 PM</span></div>
+        <div class="hours-row"><span class="day">Sunday</span><span class="time">Closed</span></div>
       </div>
+      <p class="hours-note">Hours vary by location. <a href="#" style="color:var(--gold);font-weight:700;">Find your nearest branch →</a></p>
     </div>
-  </aside>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stats-inner">
+    <div>
+      <div class="stat-number">8.2M+</div>
+      <div class="stat-label">Registered Drivers in Michigan</div>
+    </div>
+    <div>
+      <div class="stat-number">11.4M</div>
+      <div class="stat-label">Registered Vehicles</div>
+    </div>
+    <div>
+      <div class="stat-number">7.8M</div>
+      <div class="stat-label">Registered Voters</div>
+    </div>
+    <div>
+      <div class="stat-number">130+</div>
+      <div class="stat-label">Branch Office Locations</div>
+    </div>
+  </div>
 </div>
 
 <!-- FOOTER -->
 <footer>
   <div class="footer-inner">
-    <div class="footer-top">
+    <div class="footer-grid">
       <div class="footer-brand">
-        <div class="dept">Michigan Secretary of State</div>
-        <div class="addr">
-          430 W. Allegan Street<br>
-          Lansing, Michigan 48918<br>
-          1-888-SOS-MICH (1-888-767-6424)
-        </div>
+        <div class="state-name">Michigan Secretary of State</div>
+        <p>The Office of the Secretary of State serves millions of Michigan residents each year through vehicle, driver, business, and elections services.</p>
       </div>
       <div class="footer-col">
-        <h5>Drivers &amp; Vehicles</h5>
-        <a href="#">Driver's License</a>
-        <a href="#">Vehicle Registration</a>
-        <a href="#">License Plates</a>
-        <a href="#">Title Transfers</a>
-        <a href="#">Driving Record</a>
+        <h4>Vehicles</h4>
+        <ul>
+          <li><a href="#">Registration Renewal</a></li>
+          <li><a href="#">Title Transfer</a></li>
+          <li><a href="#">Plate Lookup</a></li>
+          <li><a href="#">Specialty Plates</a></li>
+          <li><a href="#">Dealer Services</a></li>
+        </ul>
       </div>
       <div class="footer-col">
-        <h5>Business &amp; Elections</h5>
-        <a href="#">File a Business</a>
-        <a href="#">Business Search</a>
-        <a href="#">Voter Registration</a>
-        <a href="#">Absentee Ballot</a>
-        <a href="#">Campaign Finance</a>
+        <h4>Licenses & IDs</h4>
+        <ul>
+          <li><a href="#">Renew License</a></li>
+          <li><a href="#">REAL ID Info</a></li>
+          <li><a href="#">Enhanced DL</a></li>
+          <li><a href="#">Driving Record</a></li>
+          <li><a href="#">CDL Services</a></li>
+        </ul>
       </div>
       <div class="footer-col">
-        <h5>About</h5>
-        <a href="#">About the Secretary</a>
-        <a href="#">News &amp; Press</a>
-        <a href="#">Careers</a>
-        <a href="#">FOIA</a>
-        <a href="#">Accessibility</a>
+        <h4>Elections</h4>
+        <ul>
+          <li><a href="#">Register to Vote</a></li>
+          <li><a href="#">Absentee Ballot</a></li>
+          <li><a href="#">Find My Polling Place</a></li>
+          <li><a href="#">Election Results</a></li>
+          <li><a href="#">Campaign Finance</a></li>
+        </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <span class="mi-flag">🏛️</span>
-        <span>© 2026 State of Michigan — Michigan.gov</span>
-      </div>
-      <div>
-        <a href="#">Privacy Policy</a>
-        <a href="#">Accessibility</a>
-        <a href="#">Link Policy</a>
-        <a href="#">Security</a>
-      </div>
+      <span>© 2026 State of Michigan. All Rights Reserved.</span>
+      <span>
+        <a href="#">Accessibility</a> · 
+        <a href="#">Privacy Policy</a> · 
+        <a href="#">Disclaimer</a> · 
+        <a href="#">Contact</a>
+      </span>
     </div>
   </div>
 </footer>
 
-<script>
-  // Tab switching
-  document.querySelectorAll('.qt-tab').forEach((tab, i) => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.qt-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-    });
-  });
-</script>
 </body>
 </html>
