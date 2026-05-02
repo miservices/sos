@@ -80,7 +80,7 @@ header { background: var(--white); border-bottom: 4px solid var(--gold); box-sha
 .page.active { display: flex; flex-direction: column; gap: 20px; }
 
 /* ── PAGE HEADER ── */
-.page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 4px; }
 .page-header h1 { font-size: 1.5rem; font-weight: 900; color: var(--navy); line-height: 1.2; }
 .page-header p { font-size: 0.875rem; color: var(--gray); margin-top: 4px; }
 
@@ -129,8 +129,8 @@ header { background: var(--white); border-bottom: 4px solid var(--gold); box-sha
 .tl-dot.done { background: var(--green); border-color: var(--green); color: white; }
 .tl-dot.active { background: var(--navy); border-color: var(--navy); color: white; }
 .tl-dot.pending { background: var(--white); border-color: #d0d6e0; color: #a0a8b4; }
-.tl-dot.warn { background: var(--light-amber); border-color: #fbbf24; color: var(--amber); }
-.tl-dot.denied { background: var(--light-red); border-color: #fca5a5; color: var(--red); }
+.tl-dot.warn   { background: var(--light-amber); border-color: #fbbf24; color: var(--amber); }
+.tl-dot.denied { background: var(--light-red);  border-color: #fca5a5; color: var(--red); font-weight: 900; }
 .tl-line { flex: 1; width: 2px; background: #e4e8ef; margin: 4px 0; }
 .tl-line.done { background: var(--green); }
 .tl-item:last-child .tl-line { display: none; }
@@ -596,7 +596,7 @@ tr:hover td { background: #fafbff; }
         </select>
       </div>
       <div class="modal-field" id="actionReasonField">
-        <label>Reason / Notes <span style="color:var(--gold)">*</span></label>
+        <label id="actionReasonLabel">Reason / Notes <span style="color:var(--gold)">*</span></label>
         <textarea id="actionReason" placeholder="Provide the statutory or regulatory basis for this action, as required under Section 10 of the Revised Citizenship Act of 2026…" rows="4"></textarea>
       </div>
       <div class="modal-field" id="actionDenialBasisField" style="display:none;">
@@ -690,6 +690,7 @@ const WORKER_URL       = 'https://roblox-oauth.takosull0.workers.dev/';
 // ── STATE ────────────────────────────────────────────────────
 let currentUser   = null; // { id, username, isStaff, isCitizen, registryDoc }
 let myApplication = null;
+let allMyApps     = [];
 let myNotifications = [];
 let allApps       = [];
 let allRegistry   = [];
@@ -842,10 +843,10 @@ async function loadMyApplication() {
     const q = query(collection(db, 'applications'), where('robloxId', '==', currentUser.id));
     const snap = await getDocs(q);
     if (!snap.empty) {
-      // Get the most recent one
       const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       docs.sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''));
-      myApplication = docs[0];
+      myApplication  = docs[0];     // most recent
+      allMyApps      = docs;        // all of them
     }
   } catch (e) { console.error('loadMyApplication', e); }
 }
@@ -954,6 +955,10 @@ function buildTimeline() {
   const submittedDate = myApplication.submittedAt ? formatDate(myApplication.submittedAt) : '—';
   const receivedDate  = myApplication.receivedAt  ? formatDate(myApplication.receivedAt)  : 'Next calendar day after submission';
 
+  const isFinal   = ['approved','denied'].includes(status);
+  const isDenied  = status === 'denied';
+  const isApproved = status === 'approved';
+
   const steps = [
     {
       key: 'submitted',
@@ -982,41 +987,44 @@ function buildTimeline() {
       icon: '⚠️',
       title: 'Conditional Exception',
       desc: myApplication.conditionalNote || 'A conditional exception may be issued if additional information is needed.',
-      done: status === 'conditional_exception' || ['approved','denied'].includes(status) && myApplication.hadConditional,
+      done: ['approved','denied'].includes(status) && myApplication.hadConditional,
       active: status === 'conditional_exception',
       warn: status === 'conditional_exception',
       hidden: status !== 'conditional_exception' && !myApplication.hadConditional,
     },
     {
       key: 'final',
-      icon: status === 'approved' ? '✅' : status === 'denied' ? '❌' : '⌛',
-      title: status === 'approved' ? 'Citizenship Granted' : status === 'denied' ? 'Application Denied' : 'Final Decision',
-      desc: status === 'approved'
+      icon: isApproved ? '✅' : isDenied ? '❌' : '⌛',
+      title: isApproved ? 'Citizenship Granted' : isDenied ? 'Application Denied' : 'Final Decision',
+      desc: isApproved
         ? 'Your citizenship has been granted and your record is on file.'
-        : status === 'denied'
+        : isDenied
         ? 'Your application was denied. See notifications for the statutory basis.'
         : 'Awaiting final decision from the Bureau.',
-      done: ['approved','denied'].includes(status),
-      active: !['approved','denied'].includes(status) && status !== 'conditional_exception',
+      done: isApproved,
+      denied: isDenied,
+      pending: !isFinal,
     },
   ];
 
   el.innerHTML = steps
     .filter(s => !s.hidden)
-    .map((s, i, arr) => {
+    .map((s) => {
       let dotClass = 'pending';
-      if (s.warn)   dotClass = 'warn';
-      else if (s.done)   dotClass = 'done';
-      else if (s.active) dotClass = 'active';
-      const icon = s.done ? '✓' : s.warn ? '!' : (i + 1);
+      let dotInner = '';
+      if (s.warn)        { dotClass = 'warn';   dotInner = '!'; }
+      else if (s.denied) { dotClass = 'denied';  dotInner = '✕'; }
+      else if (s.done)   { dotClass = 'done';    dotInner = '✓'; }
+      else if (s.active) { dotClass = 'active';  dotInner = ''; }
+      const isMuted = !s.done && !s.active && !s.warn && !s.denied;
       return `
         <div class="tl-item">
           <div class="tl-left">
-            <div class="tl-dot ${dotClass}">${s.done && !s.warn ? '✓' : s.warn ? '!' : ''}</div>
+            <div class="tl-dot ${dotClass}">${dotInner}</div>
             <div class="tl-line ${s.done ? 'done' : ''}"></div>
           </div>
           <div class="tl-body">
-            <div class="tl-title ${!s.done && !s.active && !s.warn ? 'muted' : ''}">${s.icon} ${s.title}</div>
+            <div class="tl-title ${isMuted ? 'muted' : ''}">${s.icon} ${s.title}</div>
             <div class="tl-desc">${s.desc}</div>
           </div>
         </div>`;
@@ -1062,27 +1070,30 @@ function buildAppDetail() {
     return;
   }
 
-  const a = myApplication;
-  const statusBadge = statusToBadge(a.status);
-  el.innerHTML = `
-    <div class="card">
-      <div class="card-header">
-        <h2>Application #${a.id}</h2>
-        ${statusBadge}
-      </div>
-      <div class="info-grid" style="margin-bottom:20px;">
-        <div class="info-row"><div class="ir-label">Submitted</div><div class="ir-value">${formatDate(a.submittedAt)}</div></div>
-        <div class="info-row"><div class="ir-label">Current Status</div><div class="ir-value">${(a.status || 'pending').replace(/_/g,' ')}</div></div>
-        <div class="info-row"><div class="ir-label">Full Name</div><div class="ir-value">${a.fullName || '—'}</div></div>
-        <div class="info-row"><div class="ir-label">Date of Birth</div><div class="ir-value">${a.dateOfBirth || '—'}</div></div>
-        <div class="info-row"><div class="ir-label">Roblox Username</div><div class="ir-value">${a.robloxUsername || '—'}</div></div>
-        <div class="info-row"><div class="ir-label">SIN (Roblox ID)</div><div class="ir-value mono">${a.sin || a.robloxId || '—'}</div></div>
-      </div>
-      <div class="divider" style="margin-bottom:16px;"></div>
-      <div class="card-header" style="margin-bottom:12px;"><h2>Prior Legal Names</h2></div>
-      <p style="font-size:0.875rem;color:var(--gray);">${a.noPriorNamesOnFile ? 'None disclosed — applicant confirmed no prior legal names.' : ((a.priorLegalNames || []).join(', ') || 'Not provided')}</p>
-      ${a.denialBasis ? `<div class="divider" style="margin:16px 0;"></div><div class="card-header" style="margin-bottom:8px;"><h2 style="color:var(--red);">Denial Information</h2></div><p style="font-size:0.875rem;color:var(--gray);">Statutory basis: <strong>${a.denialBasis}</strong></p>${a.denialNote ? `<p style="font-size:0.875rem;color:var(--gray);margin-top:6px;">${a.denialNote}</p>` : ''}` : ''}
-    </div>`;
+  function appCard(a, isPrimary) {
+    const statusBadge = statusToBadge(a.status);
+    return `
+      <div class="card" ${isPrimary ? '' : 'style="opacity:0.75;"'}>
+        <div class="card-header">
+          <h2>${isPrimary ? 'Most Recent Application' : 'Previous Application'} <span class="app-num">#${a.id}</span></h2>
+          ${statusBadge}
+        </div>
+        <div class="info-grid" style="margin-bottom:20px;">
+          <div class="info-row"><div class="ir-label">Submitted</div><div class="ir-value">${formatDate(a.submittedAt)}</div></div>
+          <div class="info-row"><div class="ir-label">Current Status</div><div class="ir-value">${(a.status || 'pending').replace(/_/g,' ')}</div></div>
+          <div class="info-row"><div class="ir-label">Full Name</div><div class="ir-value">${a.fullName || '—'}</div></div>
+          <div class="info-row"><div class="ir-label">Date of Birth</div><div class="ir-value">${a.dateOfBirth || '—'}</div></div>
+          <div class="info-row"><div class="ir-label">Roblox Username</div><div class="ir-value">${a.robloxUsername || '—'}</div></div>
+          <div class="info-row"><div class="ir-label">SIN (Roblox ID)</div><div class="ir-value mono">${a.sin || a.robloxId || '—'}</div></div>
+        </div>
+        <div class="divider" style="margin-bottom:16px;"></div>
+        <div class="card-header" style="margin-bottom:12px;"><h2>Prior Legal Names</h2></div>
+        <p style="font-size:0.875rem;color:var(--gray);">${a.noPriorNamesOnFile ? 'None disclosed — applicant confirmed no prior legal names.' : ((a.priorLegalNames || []).join(', ') || 'Not provided')}</p>
+        ${a.denialBasis ? `<div class="divider" style="margin:16px 0;"></div><div class="card-header" style="margin-bottom:8px;"><h2 style="color:var(--red);">Denial Information</h2></div><p style="font-size:0.875rem;color:var(--gray);">Statutory basis: <strong>${a.denialBasis}</strong></p>${a.denialNote ? `<p style="font-size:0.875rem;color:var(--gray);margin-top:6px;">${a.denialNote}</p>` : ''}` : ''}
+      </div>`;
+  }
+
+  el.innerHTML = allMyApps.map((a, i) => appCard(a, i === 0)).join('');
 }
 
 // ── NOTIFICATIONS ─────────────────────────────────────────────
@@ -1251,6 +1262,13 @@ function onActionTypeChange() {
   const type = document.getElementById('actionType').value;
   document.getElementById('actionDenialBasisField').style.display = type === 'denied' ? 'block' : 'none';
   document.getElementById('curePeriodField').style.display         = type === 'conditional_exception' ? 'block' : 'none';
+  // Notes required only for denied and conditional_exception
+  const reasonLabel = document.getElementById('actionReasonLabel');
+  if (type === 'approved' || type === 'under_review') {
+    reasonLabel.innerHTML = 'Notes <span style="color:var(--gray);font-size:0.78rem;font-weight:500;">(optional)</span>';
+  } else {
+    reasonLabel.innerHTML = 'Reason / Notes <span style="color:var(--gold)">*</span>';
+  }
 }
 
 async function submitAction() {
@@ -1260,7 +1278,8 @@ async function submitAction() {
   const cureDays = parseInt(document.getElementById('curePeriodDays').value);
 
   if (!type) { alert('Please select an action.'); return; }
-  if (!reason) { alert('Please provide a reason or note.'); return; }
+  const notesRequired = (type === 'denied' || type === 'conditional_exception');
+  if (notesRequired && !reason) { alert('Please provide a reason or note.'); return; }
   if (type === 'denied' && !denial) { alert('Please select a statutory denial basis.'); return; }
 
   const { doc, updateDoc, setDoc, collection, addDoc } = window._fs;
@@ -1297,6 +1316,7 @@ async function submitAction() {
     // Update registry
     const isCitizen = type === 'approved';
     const regUpdate = {
+      sin:            app.robloxId || app.sin,   // explicit field, not just doc ID
       robloxUsername: app.robloxUsername,
       fullName:       app.fullName,
       dateOfBirth:    app.dateOfBirth,
@@ -1396,8 +1416,7 @@ function renderRegistryTable(records) {
       <td>
         <div class="td-actions">
           <button class="btn-outline btn-sm" onclick="viewRegistryRecord('${r.id}')">View</button>
-          <button class="btn-outline btn-sm" onclick="toggleStaff('${r.id}', ${!!r.isStaff})">${r.isStaff ? 'Remove Staff' : 'Make Staff'}</button>
-          <button class="${r.isCitizen ? 'btn-danger' : 'btn-success'} btn-sm" onclick="toggleCitizen('${r.id}', ${!!r.isCitizen})">${r.isCitizen ? 'Revoke Citizenship' : 'Grant Citizenship'}</button>
+          <button class="${r.isCitizen ? 'btn-danger' : 'btn-success'} btn-sm" onclick="toggleCitizenWithReason('${r.id}', ${!!r.isCitizen})">${r.isCitizen ? 'Revoke Citizenship' : 'Grant Citizenship'}</button>
         </div>
       </td>
     </tr>`).join('');
@@ -1436,35 +1455,56 @@ function viewRegistryRecord(sin) {
   `;
   document.getElementById('modalRegFooter').innerHTML = `
     <button class="btn-outline" onclick="closeModal('modalRegistryDetail')">Close</button>
-    <button class="${r.isStaff ? 'btn-danger' : 'btn-success'}" onclick="toggleStaff('${r.id}', ${!!r.isStaff});closeModal('modalRegistryDetail')">${r.isStaff ? 'Remove Staff' : 'Make Staff'}</button>
-    <button class="${r.isCitizen ? 'btn-danger' : 'btn-success'}" onclick="toggleCitizen('${r.id}', ${!!r.isCitizen});closeModal('modalRegistryDetail')">${r.isCitizen ? 'Revoke Citizenship' : 'Grant Citizenship'}</button>
+    <button class="${r.isCitizen ? 'btn-danger' : 'btn-success'}" onclick="toggleCitizenWithReason('${r.id}', ${!!r.isCitizen});closeModal('modalRegistryDetail')">${r.isCitizen ? 'Revoke Citizenship' : 'Grant Citizenship'}</button>
   `;
   openModal('modalRegistryDetail');
 }
 
-async function toggleStaff(sin, currentlyStaff) {
-  if (!confirm(`${currentlyStaff ? 'Remove staff access from' : 'Grant staff access to'} SIN ${sin}?`)) return;
-  const { doc, updateDoc } = window._fs;
-  try {
-    await updateDoc(doc(window._db, 'registry', sin), { isStaff: !currentlyStaff });
-    const r = allRegistry.find(x => x.id === sin);
-    if (r) r.isStaff = !currentlyStaff;
-    renderRegistryTable(allRegistry);
-  } catch (e) { alert('Error: ' + e.message); }
+// toggleStaff removed — staff management not permitted through UI
+
+async function toggleCitizenWithReason(sin, currentlyCitizen) {
+  const action = currentlyCitizen ? 'revoke citizenship from' : 'grant citizenship to';
+  const reason = prompt(`You must provide a justification to ${action} SIN ${sin}:\n\n(This will be recorded and the individual will be notified.)`);
+  if (reason === null) return; // cancelled
+  if (!reason.trim()) { alert('A justification is required.'); return; }
+  await toggleCitizen(sin, currentlyCitizen, reason.trim());
 }
 
-async function toggleCitizen(sin, currentlyCitizen) {
-  const action = currentlyCitizen ? 'REVOKE citizenship from' : 'GRANT citizenship to';
-  if (!confirm(`Are you sure you want to ${action} SIN ${sin}? This will update the registry record directly.`)) return;
-  const { doc, updateDoc } = window._fs;
+async function toggleCitizen(sin, currentlyCitizen, reason) {
+  const { doc, updateDoc, setDoc, collection, addDoc } = window._fs;
+  const db = window._db;
+  const r  = allRegistry.find(x => x.id === sin);
   try {
-    const update = { isCitizen: !currentlyCitizen };
-    if (!currentlyCitizen) update.citizenSince = new Date().toISOString();
-    if (currentlyCitizen)  update.citizenshipRevokedAt = new Date().toISOString();
-    await updateDoc(doc(window._db, 'registry', sin), update);
-    const r = allRegistry.find(x => x.id === sin);
-    if (r) { r.isCitizen = !currentlyCitizen; if (!currentlyCitizen) r.citizenSince = update.citizenSince; }
+    const now    = new Date().toISOString();
+    const update = { isCitizen: !currentlyCitizen, sin };
+    if (!currentlyCitizen) { update.citizenSince = now; delete update.citizenshipRevokedAt; }
+    else                   { update.citizenshipRevokedAt = now; }
+    if (reason) update.registryNote = (currentlyCitizen ? 'Citizenship revoked: ' : 'Citizenship granted: ') + reason;
+    await setDoc(doc(db, 'registry', sin), update, { merge: true });
+
+    // Notify the individual
+    const notifType  = !currentlyCitizen ? 'approved' : 'denied';
+    const notifTitle = !currentlyCitizen
+      ? 'Citizenship Granted — Administrative Action'
+      : 'Citizenship Revoked — Administrative Action';
+    const notifBody  = !currentlyCitizen
+      ? `Your citizenship has been granted by an administrative action of the Bureau of Citizenship & Civil Records.\n\nJustification: ${reason}\n\nThis decision is effective immediately. Your registry record has been updated.`
+      : `Your citizenship has been revoked by an administrative action of the Bureau of Citizenship & Civil Records.\n\nJustification: ${reason}\n\nIf you believe this action was taken in error, please contact the Bureau.`;
+
+    await addDoc(collection(db, 'notifications'), {
+      recipientSIN:  sin,
+      applicationId: r?.lastApplicationId || null,
+      title:         notifTitle,
+      type:          notifType,
+      body:          notifBody,
+      effectiveDate: new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }),
+      read:          false,
+      createdAt:     now,
+    });
+
+    if (r) { r.isCitizen = !currentlyCitizen; if (!currentlyCitizen) r.citizenSince = now; }
     renderRegistryTable(allRegistry);
+    alert(`Done. The individual has been notified.`);
   } catch (e) { alert('Error: ' + e.message); }
 }
 
