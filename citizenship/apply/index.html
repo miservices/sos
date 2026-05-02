@@ -118,6 +118,13 @@
   .roblox-error p { font-size: 0.88rem; color: var(--red); line-height: 1.5; }
   .roblox-retry-btn { background: var(--navy); color: var(--white); border: none; border-radius: 8px; padding: 10px 20px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; }
 
+  /* DUPLICATE APP WARNING */
+  .duplicate-warning { display: none; flex-direction: column; align-items: center; gap: 12px; padding: 24px 20px; background: #fff8e8; border: 1.5px solid #e8c060; border-radius: 10px; text-align: center; margin-top: 8px; }
+  .duplicate-warning .dw-icon { font-size: 2rem; }
+  .duplicate-warning h3 { font-size: 1rem; font-weight: 800; color: #8a5c00; }
+  .duplicate-warning p { font-size: 0.87rem; color: #6a4800; line-height: 1.6; max-width: 420px; }
+  .duplicate-warning .dw-appnum { font-family: monospace; font-size: 0.9rem; font-weight: 700; background: #fef3d0; border: 1px solid #e8c060; border-radius: 6px; padding: 6px 12px; color: #6a4800; }
+
   .prior-names-wrap { margin-bottom: 20px; }
   .prior-names-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
   .prior-name-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f4f7fb; border-radius: 8px; border: 1px solid #dde4ef; font-size: 0.88rem; color: var(--dark); }
@@ -150,8 +157,12 @@
   .btn-next:hover:not(:disabled) { background: #00234d; }
   .btn-next:disabled { opacity: 0.45; cursor: not-allowed; }
   .btn-submit { background: var(--gold); color: var(--white); border: none; padding: 12px 28px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: background 0.15s; display: flex; align-items: center; gap: 8px; }
-  .btn-submit:hover { background: #a96e1a; }
+  .btn-submit:hover:not(:disabled) { background: #a96e1a; }
   .btn-submit:disabled { background: #c0a060; cursor: not-allowed; }
+  .btn-submit.loading { background: #a96e1a; cursor: not-allowed; }
+
+  .submit-spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+  .btn-submit.loading .submit-spinner { display: block; }
 
   .success-card { background: var(--white); border-radius: 12px; border: 1px solid #b0dfc0; padding: 48px 40px; text-align: center; }
   .success-icon { font-size: 3rem; margin-bottom: 16px; }
@@ -159,7 +170,7 @@
   .success-card p { font-size: 0.93rem; color: var(--gray); line-height: 1.7; max-width: 480px; margin: 0 auto 20px; }
   .confirmation-box { background: var(--light-green); border: 1px solid #b0dfc0; border-radius: 10px; padding: 18px 24px; display: inline-block; margin: 0 auto 24px; text-align: left; }
   .confirmation-box .conf-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green); margin-bottom: 4px; }
-  .confirmation-box .conf-number { font-size: 1.3rem; font-weight: 800; color: var(--dark); letter-spacing: 0.05em; }
+  .confirmation-box .conf-number { font-size: 1.3rem; font-weight: 800; color: var(--dark); letter-spacing: 0.05em; font-family: monospace; }
   .what-next { background: #f4f7fb; border-radius: 10px; padding: 20px 24px; text-align: left; margin-top: 8px; }
   .what-next h3 { font-size: 0.9rem; font-weight: 800; color: var(--navy); margin-bottom: 12px; }
   .what-next ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
@@ -312,7 +323,7 @@
     <!-- STEP 1: ROBLOX -->
     <div class="form-card form-step active" id="step1">
       <h2>Step 1 — Roblox Account</h2>
-      <p class="step-desc">Connect your Roblox account to begin your application. This is required under the Revised Citizenship Act of 2026.</p>
+      <p class="step-desc">Connect your Roblox account to begin your application. This is required under the Revised Citizenship Act of 2026. Your Roblox User ID serves as your State Identification Number (SIN).</p>
 
       <div id="robloxConnectCard" class="roblox-connect-card">
         <div class="roblox-logo">🎮</div>
@@ -333,7 +344,7 @@
 
       <div id="robloxLoading" class="roblox-loading">
         <div class="spinner"></div>
-        <p>Verifying your Roblox account…</p>
+        <p id="robloxLoadingMsg">Verifying your Roblox account…</p>
       </div>
 
       <div id="robloxConnectedCard" class="roblox-connected-card">
@@ -347,6 +358,15 @@
       <div id="robloxError" class="roblox-error">
         <p id="robloxErrorMsg">Something went wrong connecting your account.</p>
         <button class="roblox-retry-btn" onclick="retryRoblox()">Try Again</button>
+      </div>
+
+      <!-- DUPLICATE APPLICATION WARNING -->
+      <div id="duplicateWarning" class="duplicate-warning">
+        <div class="dw-icon">⚠️</div>
+        <h3>Open Application Already on File</h3>
+        <p>Your Roblox account already has an open citizenship application. You may not submit a new application while one is pending review.</p>
+        <div class="dw-appnum" id="duplicateAppNum"></div>
+        <p style="font-size:0.8rem;">If you believe this is an error, please <a href="/sos/contact/" style="color:#8a5c00;font-weight:700;">contact the Bureau</a>.</p>
       </div>
 
       <div class="form-actions">
@@ -382,15 +402,6 @@
           <label for="dob">Date of Birth <span class="req">*</span></label>
           <input type="date" id="dob" autocomplete="bday">
           <span class="err-msg">Date of birth is required.</span>
-        </div>
-      </div>
-
-      <div class="form-row single">
-        <div class="field">
-          <label for="sin">State Identification Number (SIN) <span class="req">*</span></label>
-          <input type="text" id="sin" placeholder="Enter your SIN" maxlength="20" autocomplete="off">
-          <span class="hint">Your SIN was assigned to you at birth under the Michigan Vital Identity and Records Act. It can be found on your birth certificate or official identity documents.</span>
-          <span class="err-msg">A valid SIN is required.</span>
         </div>
       </div>
 
@@ -445,7 +456,7 @@
           <span class="review-edit" onclick="goToStep(1)">Edit</span>
         </div>
         <div class="review-row">
-          <span class="review-label">Account Identifier</span>
+          <span class="review-label">State Identification Number (SIN)</span>
           <span class="review-value" id="rv-robloxId">—</span>
           <span class="review-edit" onclick="goToStep(1)">Edit</span>
         </div>
@@ -473,11 +484,6 @@
           <span class="review-value" id="rv-dob">—</span>
           <span class="review-edit" onclick="goToStep(2)">Edit</span>
         </div>
-        <div class="review-row">
-          <span class="review-label">SIN</span>
-          <span class="review-value" id="rv-sin">—</span>
-          <span class="review-edit" onclick="goToStep(2)">Edit</span>
-        </div>
       </div>
 
       <div class="review-group">
@@ -498,9 +504,14 @@
         </div>
       </div>
 
+      <div id="submitError" style="display:none;margin-top:12px;padding:12px 16px;background:var(--light-red);border:1px solid #f0c0c0;border-radius:8px;font-size:0.85rem;color:var(--red);"></div>
+
       <div class="form-actions">
         <button class="btn-back" onclick="goToStep(3)">‹ Back</button>
-        <button class="btn-submit" id="submitBtn" onclick="submitApplication()" disabled>Submit Application ›</button>
+        <button class="btn-submit" id="submitBtn" onclick="submitApplication()" disabled>
+          <span id="submitBtnText">Submit Application ›</span>
+          <div class="submit-spinner" id="submitSpinner"></div>
+        </button>
       </div>
     </div>
 
@@ -537,11 +548,7 @@
       <div class="info-list">
         <div class="info-item">
           <span class="ii-icon">🎮</span>
-          <div><strong>Roblox Account</strong>You'll be redirected to Roblox to securely authorize your account. Only your username and user ID are retrieved.</div>
-        </div>
-        <div class="info-item">
-          <span class="ii-icon">🪪</span>
-          <div><strong>State Identification Number (SIN)</strong>Assigned at birth. Found on your birth certificate.</div>
+          <div><strong>Roblox Account</strong>You'll be redirected to Roblox to securely authorize your account. Your Roblox User ID is your State Identification Number (SIN).</div>
         </div>
         <div class="info-item">
           <span class="ii-icon">👤</span>
@@ -620,6 +627,32 @@
   </div>
 </footer>
 
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, setDoc, query, where } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  // ─── FIREBASE CONFIG ──────────────────────────────────────
+  const firebaseConfig = {
+    apiKey: "AIzaSyCzMDtySiPOXM5J15ePmjyUZRn_Zcyz2w0",
+    authDomain: "misos-f7956.firebaseapp.com",
+    projectId: "misos-f7956",
+    storageBucket: "misos-f7956.firebasestorage.app",
+    messagingSenderId: "696781263120",
+    appId: "1:696781263120:web:0a2b3c56d8ad9ede0f5595",
+    measurementId: "G-JRGCL61BWX"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  // Expose db and helpers to global scope for use in non-module script
+  window._db         = db;
+  window._firestoreHelpers = { collection, doc, getDoc, getDocs, setDoc, query, where };
+  window._firebaseReady = true;
+  document.dispatchEvent(new Event('firebaseReady'));
+</script>
+
 <script>
   // ─── CONFIG ───────────────────────────────────────────────
   const ROBLOX_CLIENT_ID = '6125371219815664523';
@@ -632,6 +665,7 @@
   let priorNames      = [];
   let noPriorSelected = false;
   let robloxConnected = false;
+  let hasDuplicateApp = false;
   let robloxData      = { id: '', username: '' };
 
   // ─── SESSION STORAGE KEYS ─────────────────────────────────
@@ -648,7 +682,6 @@
       middleName: document.getElementById('middleName').value,
       lastName:   document.getElementById('lastName').value,
       dob:        document.getElementById('dob').value,
-      sin:        document.getElementById('sin').value,
     }));
     sessionStorage.setItem(SS.PRIORS,   JSON.stringify(priorNames));
     sessionStorage.setItem(SS.NO_PRIOR, noPriorSelected ? '1' : '0');
@@ -661,7 +694,6 @@
       if (f.middleName) document.getElementById('middleName').value = f.middleName;
       if (f.lastName)   document.getElementById('lastName').value   = f.lastName;
       if (f.dob)        document.getElementById('dob').value        = f.dob;
-      if (f.sin)        document.getElementById('sin').value        = f.sin;
 
       priorNames      = JSON.parse(sessionStorage.getItem(SS.PRIORS) || '[]');
       noPriorSelected = sessionStorage.getItem(SS.NO_PRIOR) === '1';
@@ -679,9 +711,91 @@
     Object.values(SS).forEach(k => sessionStorage.removeItem(k));
   }
 
+  // ─── APPLICATION NUMBER GENERATOR ─────────────────────────
+  // Format: YY-MMDDrrrrrr (e.g. 26-05015829)
+  function generateAppNumber() {
+    const now    = new Date();
+    const yy     = String(now.getFullYear()).slice(-2);
+    const mm     = String(now.getMonth() + 1).padStart(2, '0');
+    const dd     = String(now.getDate()).padStart(2, '0');
+    const rand   = String(Math.floor(10000 + Math.random() * 90000)); // 5 digits
+    return `${yy}-${mm}${dd}${rand}`;
+  }
+
+  // ─── FIRESTORE: CHECK FOR DUPLICATE OPEN APPLICATION ──────
+  async function checkForOpenApplication(robloxId) {
+    // Wait for Firebase to be ready
+    if (!window._firebaseReady) {
+      await new Promise(resolve => document.addEventListener('firebaseReady', resolve, { once: true }));
+    }
+    const { collection, getDocs, query, where } = window._firestoreHelpers;
+    const db = window._db;
+
+    try {
+      const appsRef = collection(db, 'applications');
+      // Query for any open/pending applications with this roblox ID
+      const q = query(
+        appsRef,
+        where('robloxId', '==', String(robloxId)),
+        where('status', 'in', ['pending', 'open', 'under_review', 'conditional_exception'])
+      );
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        // Return the first matching app number
+        return snapshot.docs[0].id;
+      }
+      return null;
+    } catch (err) {
+      console.error('Firestore check error:', err);
+      // Don't block the user if Firestore check fails — fail open
+      return null;
+    }
+  }
+
+  // ─── FIRESTORE: SAVE APPLICATION ──────────────────────────
+  async function saveApplicationToFirestore(appNumber) {
+    if (!window._firebaseReady) {
+      await new Promise(resolve => document.addEventListener('firebaseReady', resolve, { once: true }));
+    }
+    const { doc, setDoc } = window._firestoreHelpers;
+    const db = window._db;
+
+    const fn  = document.getElementById('firstName').value.trim();
+    const mn  = document.getElementById('middleName').value.trim();
+    const ln  = document.getElementById('lastName').value.trim();
+    const dob = document.getElementById('dob').value;
+
+    const payload = {
+      // Application metadata
+      applicationNumber: appNumber,
+      status:            'pending',
+      submittedAt:       new Date().toISOString(),
+
+      // Roblox / identity
+      robloxUsername: robloxData.username,
+      robloxId:       String(robloxData.id),
+      sin:            String(robloxData.id), // SIN = Roblox User ID
+
+      // Personal info
+      firstName:  fn,
+      middleName: mn || null,
+      lastName:   ln,
+      dateOfBirth: dob,
+      fullName:   [fn, mn, ln].filter(Boolean).join(' '),
+
+      // Name history
+      priorLegalNames:    priorNames,
+      noPriorNamesOnFile: noPriorSelected,
+    };
+
+    const appDocRef = doc(db, 'applications', appNumber);
+    await setDoc(appDocRef, payload);
+    return payload;
+  }
+
   // ─── OAUTH: REDIRECT TO ROBLOX ────────────────────────────
   function connectRoblox() {
-    saveFormFields(); // preserve any previously typed data
+    saveFormFields();
     const state = crypto.randomUUID();
     sessionStorage.setItem(SS.STATE, state);
     const params = new URLSearchParams({
@@ -701,20 +815,16 @@
     const stateParam = params.get('state');
     const savedState = sessionStorage.getItem(SS.STATE);
 
-    // Always restore saved fields regardless
     restoreFormFields();
 
-    if (!code) return; // Not a callback — normal page load
+    if (!code) return;
 
-    // Clean the URL right away
     window.history.replaceState({}, '', window.location.pathname);
     sessionStorage.removeItem(SS.STATE);
 
-    // Show step 1 in loading state
     updateProgress(1);
     showState('loading');
 
-    // CSRF check
     if (stateParam !== savedState) {
       showRobloxError('Security validation failed. Please try connecting again.');
       return;
@@ -729,12 +839,39 @@
       const data = await res.json();
 
       if (data.userId && data.username) {
-        setRobloxConnected(data.userId, data.username);
+        // Check for duplicate before showing connected state
+        await checkDuplicateAndConnect(data.userId, data.username);
       } else {
         throw new Error(data.error || data.detail?.error_description || 'Could not retrieve account details.');
       }
     } catch (err) {
       showRobloxError('Connection failed: ' + err.message);
+    }
+  }
+
+  // ─── DUPLICATE CHECK + CONNECT ────────────────────────────
+  async function checkDuplicateAndConnect(userId, username) {
+    document.getElementById('robloxLoadingMsg').textContent = 'Checking for existing applications…';
+
+    const existingAppNum = await checkForOpenApplication(userId);
+
+    if (existingAppNum) {
+      // Show the connected card but also show the duplicate warning
+      robloxData      = { id: userId, username };
+      robloxConnected = true;
+      hasDuplicateApp = true;
+
+      document.getElementById('rcUsername').textContent = username;
+      document.getElementById('rcUserId').textContent   = 'SIN (User ID): ' + userId;
+      showState('connected');
+
+      // Show duplicate warning
+      document.getElementById('duplicateWarning').style.display = 'flex';
+      document.getElementById('duplicateAppNum').textContent     = 'Application #' + existingAppNum;
+      document.getElementById('robloxNextBtn').disabled          = true;
+    } else {
+      hasDuplicateApp = false;
+      setRobloxConnected(userId, username);
     }
   }
 
@@ -744,13 +881,19 @@
     document.getElementById('robloxLoading').style.display       = state === 'loading'   ? 'flex'  : 'none';
     document.getElementById('robloxConnectedCard').style.display = state === 'connected' ? 'flex'  : 'none';
     document.getElementById('robloxError').style.display         = state === 'error'     ? 'flex'  : 'none';
+    // Always hide duplicate warning when switching states (except connected)
+    if (state !== 'connected') {
+      document.getElementById('duplicateWarning').style.display = 'none';
+    }
   }
 
   function setRobloxConnected(userId, username) {
     robloxConnected = true;
+    hasDuplicateApp = false;
     robloxData      = { id: userId, username };
     document.getElementById('rcUsername').textContent = username;
-    document.getElementById('rcUserId').textContent   = 'User ID: ' + userId;
+    document.getElementById('rcUserId').textContent   = 'SIN (User ID): ' + userId;
+    document.getElementById('duplicateWarning').style.display = 'none';
     showState('connected');
     document.getElementById('robloxNextBtn').disabled = false;
   }
@@ -762,12 +905,15 @@
   }
 
   function retryRoblox() {
+    hasDuplicateApp = false;
     showState('connect');
   }
 
   function disconnectRoblox() {
     robloxConnected = false;
+    hasDuplicateApp = false;
     robloxData      = { id: '', username: '' };
+    document.getElementById('duplicateWarning').style.display = 'none';
     showState('connect');
     document.getElementById('robloxNextBtn').disabled = true;
   }
@@ -791,11 +937,14 @@
         showRobloxError('Please connect your Roblox account to continue.');
         return false;
       }
+      if (hasDuplicateApp) {
+        return false;
+      }
       return true;
     }
     if (step === 2) {
       let valid = true;
-      ['firstName', 'lastName', 'dob', 'sin'].forEach(id => {
+      ['firstName', 'lastName', 'dob'].forEach(id => {
         const el = document.getElementById(id);
         if (!el.value.trim()) { el.classList.add('error'); valid = false; }
         else el.classList.remove('error');
@@ -865,7 +1014,6 @@
     const mn  = document.getElementById('middleName').value.trim();
     const ln  = document.getElementById('lastName').value.trim();
     const dob = document.getElementById('dob').value;
-    const sin = document.getElementById('sin').value.trim();
 
     document.getElementById('rv-robloxUsername').textContent = robloxData.username || '—';
     document.getElementById('rv-robloxId').textContent       = robloxData.id       || '—';
@@ -874,9 +1022,6 @@
     document.getElementById('rv-lastName').textContent       = ln  || '—';
     document.getElementById('rv-dob').textContent = dob
       ? new Date(dob + 'T12:00:00').toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' })
-      : '—';
-    document.getElementById('rv-sin').textContent = sin
-      ? sin.slice(0, -3).replace(/./g, '•') + sin.slice(-3)
       : '—';
 
     let priorDisplay = noPriorSelected ? 'None disclosed' : (priorNames.length > 0 ? priorNames.join(', ') : 'Not specified');
@@ -887,19 +1032,70 @@
     document.getElementById('submitBtn').disabled = !document.getElementById('declarationCheck').checked;
   }
 
-  function submitApplication() {
-    clearSession();
-    const confNum = 'MI-CIT-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random() * 900000);
-    document.getElementById('step4').classList.remove('active');
-    document.getElementById('stepSuccess').classList.add('active');
-    document.getElementById('confirmNumber').textContent  = confNum;
-    document.getElementById('progressWrap').style.display = 'none';
-    document.getElementById('sidebarArea').style.display  = 'none';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  // ─── SUBMIT APPLICATION ───────────────────────────────────
+  async function submitApplication() {
+    const btn     = document.getElementById('submitBtn');
+    const spinner = document.getElementById('submitSpinner');
+    const errBox  = document.getElementById('submitError');
+    const btnText = document.getElementById('submitBtnText');
+
+    // Set loading state
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btnText.textContent = 'Submitting…';
+    spinner.style.display = 'block';
+    errBox.style.display = 'none';
+
+    try {
+      // Final duplicate check before saving (race condition safety)
+      const existingAppNum = await checkForOpenApplication(robloxData.id);
+      if (existingAppNum) {
+        throw new Error('An open application already exists for this account (' + existingAppNum + '). You may not submit a new application.');
+      }
+
+      // Generate app number and save
+      const appNumber = generateAppNumber();
+      await saveApplicationToFirestore(appNumber);
+
+      // Success
+      clearSession();
+      document.getElementById('step4').classList.remove('active');
+      document.getElementById('stepSuccess').classList.add('active');
+      document.getElementById('confirmNumber').textContent  = appNumber;
+      document.getElementById('progressWrap').style.display = 'none';
+      document.getElementById('sidebarArea').style.display  = 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (err) {
+      // Restore button
+      btn.disabled = false;
+      btn.classList.remove('loading');
+      btnText.textContent = 'Submit Application ›';
+      spinner.style.display = 'none';
+
+      // Show error
+      errBox.style.display = 'block';
+      errBox.textContent   = '⚠️ ' + (err.message || 'Submission failed. Please try again.');
+
+      // Re-enable submit only if checkbox still checked
+      btn.disabled = !document.getElementById('declarationCheck').checked;
+    }
   }
 
   // ─── INIT ─────────────────────────────────────────────────
   window.addEventListener('DOMContentLoaded', handleOAuthCallback);
+
+  // Expose functions needed by inline onclick handlers
+  window.connectRoblox    = connectRoblox;
+  window.disconnectRoblox = disconnectRoblox;
+  window.retryRoblox      = retryRoblox;
+  window.goToStep         = goToStep;
+  window.addPriorName     = addPriorName;
+  window.removePriorName  = removePriorName;
+  window.toggleNoPrior    = toggleNoPrior;
+  window.undoNoPrior      = undoNoPrior;
+  window.toggleSubmit     = toggleSubmit;
+  window.submitApplication = submitApplication;
 </script>
 </body>
 </html>
