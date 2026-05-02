@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Citizenship Dashboard | Michigan Department of State</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #003366;
+  --navy-deep: #00234d;
+  --gold: #C5882A;
+  --light-gold: #F0C96B;
+  --cream: #FAF7F2;
+  --white: #ffffff;
+  --gray: #5a6270;
+  --light-gray: #eef0f3;
+  --dark: #1a1f2e;
+  --green: #1a7a4a;
+  --light-green: #e8f5ee;
+  --red: #8b2020;
+  --light-red: #fff0f0;
+  --amber: #b45309;
+  --light-amber: #fffbeb;
+  --blue: #1d4ed8;
+  --light-blue: #eff6ff;
+  --staff-accent: #7c3aed;
+  --staff-light: #f5f3ff;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--dark); min-height: 100vh; }
+
+/* ── TOP BAR ── */
+.top-bar { background: var(--navy); color: #aec7e8; font-size: 0.78rem; padding: 6px 0; }
+.top-bar .inner { max-width: 1300px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
+.top-bar a { color: #aec7e8; text-decoration: none; }
+.top-bar a:hover { color: var(--light-gold); }
+.top-bar .links { display: flex; gap: 20px; }
+
+/* ── HEADER ── */
+header { background: var(--white); border-bottom: 4px solid var(--gold); box-shadow: 0 2px 16px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
+.header-inner { max-width: 1300px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 72px; gap: 16px; }
+.logo-area { display: flex; align-items: center; gap: 12px; text-decoration: none; flex-shrink: 0; }
+.logo-text .state { font-weight: 900; font-size: 1.2rem; color: var(--navy); line-height: 1.1; }
+.logo-text .dept { font-size: 0.72rem; color: var(--gray); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+.header-user { display: flex; align-items: center; gap: 12px; }
+.user-chip { display: flex; align-items: center; gap: 10px; background: var(--light-gray); border: 1px solid #dde4ef; border-radius: 40px; padding: 6px 14px 6px 8px; }
+.user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--navy); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: var(--white); font-weight: 700; flex-shrink: 0; }
+.user-chip .name { font-size: 0.85rem; font-weight: 700; color: var(--dark); }
+.user-chip .sin { font-size: 0.72rem; color: var(--gray); font-family: monospace; }
+.staff-badge { background: var(--staff-accent); color: white; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border-radius: 20px; }
+.sign-out-btn { background: none; border: 1.5px solid #dde4ef; color: var(--gray); padding: 7px 14px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.sign-out-btn:hover { border-color: var(--red); color: var(--red); background: var(--light-red); }
+
+/* ── DASHBOARD LAYOUT ── */
+.dash-wrap { max-width: 1300px; margin: 0 auto; padding: 32px 24px 60px; }
+.dash-grid { display: grid; grid-template-columns: 260px 1fr; gap: 28px; align-items: start; }
+
+/* ── SIDEBAR NAV ── */
+.dash-nav { background: var(--white); border-radius: 14px; border: 1px solid #e4e8ef; overflow: hidden; position: sticky; top: 88px; }
+.dash-nav-header { background: var(--navy); color: var(--white); padding: 18px 20px; }
+.dash-nav-header .label { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: #7aa0c8; font-weight: 700; margin-bottom: 4px; }
+.dash-nav-header .title { font-size: 1rem; font-weight: 800; }
+.nav-section { padding: 10px 0; }
+.nav-section-label { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray); padding: 8px 18px 4px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 18px; font-size: 0.875rem; font-weight: 600; color: #4a5568; cursor: pointer; transition: all 0.12s; border-left: 3px solid transparent; text-decoration: none; }
+.nav-item:hover { background: #f4f7fb; color: var(--navy); }
+.nav-item.active { background: #eef3ff; color: var(--navy); border-left-color: var(--navy); }
+.nav-item .ni-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+.nav-item .ni-badge { margin-left: auto; background: var(--red); color: white; font-size: 0.68rem; font-weight: 800; padding: 2px 7px; border-radius: 10px; min-width: 20px; text-align: center; }
+.nav-item .ni-badge.green { background: var(--green); }
+.nav-item .ni-badge.amber { background: var(--amber); }
+.nav-divider { height: 1px; background: #f0f2f6; margin: 4px 0; }
+
+/* ── MAIN CONTENT ── */
+.dash-main { display: flex; flex-direction: column; gap: 24px; }
+
+/* ── PAGE ── */
+.page { display: none; }
+.page.active { display: flex; flex-direction: column; gap: 20px; }
+
+/* ── PAGE HEADER ── */
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.page-header h1 { font-size: 1.5rem; font-weight: 900; color: var(--navy); line-height: 1.2; }
+.page-header p { font-size: 0.875rem; color: var(--gray); margin-top: 4px; }
+
+/* ── CARDS ── */
+.card { background: var(--white); border-radius: 12px; border: 1px solid #e4e8ef; padding: 24px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 12px; }
+.card-header h2 { font-size: 1rem; font-weight: 800; color: var(--navy); }
+.card-header .ch-right { display: flex; gap: 8px; align-items: center; }
+
+/* ── STATUS BANNER ── */
+.status-banner { border-radius: 12px; padding: 20px 24px; display: flex; align-items: center; gap: 16px; border: 1.5px solid; }
+.status-banner.pending { background: var(--light-amber); border-color: #fbbf24; }
+.status-banner.approved { background: var(--light-green); border-color: #6ee7a0; }
+.status-banner.denied { background: var(--light-red); border-color: #fca5a5; }
+.status-banner.conditional { background: var(--light-blue); border-color: #93c5fd; }
+.status-banner.no-app { background: #f8f9fb; border-color: #dde4ef; }
+.sb-icon { font-size: 2rem; flex-shrink: 0; }
+.sb-body { flex: 1; }
+.sb-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+.status-banner.pending .sb-label { color: var(--amber); }
+.status-banner.approved .sb-label { color: var(--green); }
+.status-banner.denied .sb-label { color: var(--red); }
+.status-banner.conditional .sb-label { color: var(--blue); }
+.status-banner.no-app .sb-label { color: var(--gray); }
+.sb-title { font-size: 1.05rem; font-weight: 800; color: var(--dark); margin-bottom: 3px; }
+.sb-sub { font-size: 0.83rem; color: var(--gray); line-height: 1.5; }
+.sb-action { flex-shrink: 0; }
+.btn-primary { background: var(--navy); color: var(--white); border: none; padding: 10px 20px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: background 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary:hover { background: var(--navy-deep); }
+.btn-gold { background: var(--gold); color: var(--white); border: none; padding: 10px 20px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+.btn-gold:hover { background: #a96e1a; }
+.btn-outline { background: none; border: 1.5px solid #dde4ef; color: var(--navy); padding: 8px 16px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.btn-outline:hover { background: #f4f7fb; }
+.btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+.btn-danger { background: var(--light-red); color: var(--red); border: 1.5px solid #fca5a5; padding: 6px 12px; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.btn-danger:hover { background: #fee2e2; }
+.btn-success { background: var(--light-green); color: var(--green); border: 1.5px solid #6ee7a0; padding: 6px 12px; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+.btn-success:hover { background: #d1fae5; }
+
+/* ── TIMELINE ── */
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.tl-item { display: flex; gap: 16px; padding-bottom: 20px; position: relative; }
+.tl-item:last-child { padding-bottom: 0; }
+.tl-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.tl-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; border: 2px solid; flex-shrink: 0; z-index: 1; }
+.tl-dot.done { background: var(--green); border-color: var(--green); color: white; }
+.tl-dot.active { background: var(--navy); border-color: var(--navy); color: white; }
+.tl-dot.pending { background: var(--white); border-color: #d0d6e0; color: #a0a8b4; }
+.tl-dot.warn { background: var(--light-amber); border-color: #fbbf24; color: var(--amber); }
+.tl-dot.denied { background: var(--light-red); border-color: #fca5a5; color: var(--red); }
+.tl-line { flex: 1; width: 2px; background: #e4e8ef; margin: 4px 0; }
+.tl-line.done { background: var(--green); }
+.tl-item:last-child .tl-line { display: none; }
+.tl-body { padding-top: 4px; flex: 1; }
+.tl-title { font-size: 0.9rem; font-weight: 700; color: var(--dark); margin-bottom: 2px; }
+.tl-title.muted { color: #a0a8b4; }
+.tl-desc { font-size: 0.8rem; color: var(--gray); line-height: 1.5; }
+.tl-date { font-size: 0.72rem; color: #a0a8b4; margin-top: 4px; }
+
+/* ── NOTIFICATIONS ── */
+.notif-list { display: flex; flex-direction: column; gap: 10px; }
+.notif-item { display: flex; gap: 14px; padding: 14px 16px; border-radius: 10px; border: 1px solid; background: var(--white); cursor: pointer; transition: all 0.12s; }
+.notif-item:hover { transform: translateX(2px); }
+.notif-item.unread { background: #fafbff; border-color: #c7d7f5; }
+.notif-item.read { border-color: #eef0f3; }
+.notif-item.type-approved { border-left: 4px solid var(--green); }
+.notif-item.type-denied { border-left: 4px solid var(--red); }
+.notif-item.type-pending { border-left: 4px solid var(--amber); }
+.notif-item.type-conditional { border-left: 4px solid var(--blue); }
+.notif-item.type-info { border-left: 4px solid var(--navy); }
+.notif-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 1px; }
+.notif-body { flex: 1; }
+.notif-title { font-size: 0.87rem; font-weight: 700; color: var(--dark); margin-bottom: 2px; display: flex; align-items: center; gap: 8px; }
+.notif-title .unread-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--navy); flex-shrink: 0; }
+.notif-text { font-size: 0.8rem; color: var(--gray); line-height: 1.5; }
+.notif-time { font-size: 0.72rem; color: #a0a8b4; margin-top: 4px; }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--gray); }
+.empty-state .es-icon { font-size: 2.5rem; margin-bottom: 12px; }
+.empty-state p { font-size: 0.875rem; }
+
+/* ── INFO ROWS ── */
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.info-row { display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; background: #f8f9fb; border-radius: 8px; }
+.info-row .ir-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray); }
+.info-row .ir-value { font-size: 0.9rem; font-weight: 600; color: var(--dark); }
+.info-row .ir-value.mono { font-family: monospace; font-size: 0.95rem; letter-spacing: 0.05em; }
+
+/* ── BADGE ── */
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+.badge.green { background: var(--light-green); color: var(--green); border: 1px solid #a7f3d0; }
+.badge.red { background: var(--light-red); color: var(--red); border: 1px solid #fca5a5; }
+.badge.amber { background: var(--light-amber); color: var(--amber); border: 1px solid #fde68a; }
+.badge.blue { background: var(--light-blue); color: var(--blue); border: 1px solid #bfdbfe; }
+.badge.gray { background: var(--light-gray); color: var(--gray); border: 1px solid #d0d6e0; }
+.badge.purple { background: var(--staff-light); color: var(--staff-accent); border: 1px solid #ddd6fe; }
+
+/* ── STAFF: TABLE ── */
+.table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #e4e8ef; }
+table { width: 100%; border-collapse: collapse; }
+thead { background: #f4f7fb; }
+th { padding: 11px 16px; text-align: left; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray); white-space: nowrap; }
+td { padding: 13px 16px; font-size: 0.85rem; color: var(--dark); border-top: 1px solid #f0f2f6; vertical-align: middle; }
+tr:hover td { background: #fafbff; }
+.td-name { font-weight: 700; }
+.td-mono { font-family: monospace; font-size: 0.8rem; color: var(--gray); }
+.td-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+/* ── MODAL ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(10,18,40,0.55); backdrop-filter: blur(3px); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--white); border-radius: 16px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.2); }
+.modal-header { padding: 24px 28px 16px; border-bottom: 1px solid #f0f2f6; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.modal-header h2 { font-size: 1.1rem; font-weight: 800; color: var(--navy); }
+.modal-close { background: none; border: none; font-size: 1.3rem; color: var(--gray); cursor: pointer; padding: 2px 6px; border-radius: 4px; line-height: 1; }
+.modal-close:hover { background: #f0f2f6; }
+.modal-body { padding: 20px 28px; }
+.modal-footer { padding: 16px 28px 24px; border-top: 1px solid #f0f2f6; display: flex; justify-content: flex-end; gap: 10px; }
+.modal-field { margin-bottom: 16px; }
+.modal-field label { display: block; font-size: 0.82rem; font-weight: 700; color: var(--dark); margin-bottom: 6px; }
+.modal-field select, .modal-field textarea, .modal-field input { width: 100%; border: 1.5px solid #d0d6e0; border-radius: 8px; padding: 10px 12px; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; color: var(--dark); outline: none; transition: border-color 0.15s; background: var(--white); }
+.modal-field select:focus, .modal-field textarea:focus, .modal-field input:focus { border-color: var(--navy); }
+.modal-field textarea { resize: vertical; min-height: 80px; }
+
+/* ── SEARCH / FILTER ── */
+.filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.search-box { position: relative; flex: 1; min-width: 200px; }
+.search-box input { width: 100%; border: 1.5px solid #d0d6e0; border-radius: 8px; padding: 9px 12px 9px 36px; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; color: var(--dark); outline: none; transition: border-color 0.15s; }
+.search-box input:focus { border-color: var(--navy); }
+.search-box .si { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: 0.9rem; pointer-events: none; }
+.filter-select { border: 1.5px solid #d0d6e0; border-radius: 8px; padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; color: var(--dark); outline: none; background: var(--white); cursor: pointer; }
+
+/* ── STATS ROW ── */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.stat-card { background: var(--white); border-radius: 12px; border: 1px solid #e4e8ef; padding: 18px 20px; }
+.stat-card .sc-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray); margin-bottom: 8px; }
+.stat-card .sc-value { font-size: 1.8rem; font-weight: 900; color: var(--navy); line-height: 1; }
+.stat-card .sc-sub { font-size: 0.78rem; color: var(--gray); margin-top: 4px; }
+.stat-card.green .sc-value { color: var(--green); }
+.stat-card.red .sc-value { color: var(--red); }
+.stat-card.amber .sc-value { color: var(--amber); }
+
+/* ── REGISTRY DETAIL ── */
+.reg-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+
+/* ── LOADING ── */
+.loading-overlay { position: fixed; inset: 0; background: var(--cream); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+.spinner { width: 40px; height: 40px; border: 3px solid #d0d6e0; border-top-color: var(--navy); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-overlay p { font-size: 0.9rem; color: var(--gray); font-weight: 600; }
+
+/* ── LOGIN SCREEN ── */
+.login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--cream); padding: 24px; }
+.login-card { background: var(--white); border-radius: 16px; border: 1px solid #e4e8ef; padding: 48px 40px; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 8px 40px rgba(0,51,102,0.08); }
+.login-card .lc-logo { margin-bottom: 24px; }
+.login-card .lc-state { font-size: 1.4rem; font-weight: 900; color: var(--navy); }
+.login-card .lc-dept { font-size: 0.78rem; color: var(--gray); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+.login-card h1 { font-size: 1.3rem; font-weight: 800; color: var(--dark); margin-bottom: 8px; }
+.login-card p { font-size: 0.87rem; color: var(--gray); line-height: 1.6; margin-bottom: 28px; }
+.roblox-connect-btn { display: inline-flex; align-items: center; gap: 10px; background: #1a1a2e; color: var(--white); border: none; border-radius: 10px; padding: 14px 28px; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.15s, transform 0.1s; }
+.roblox-connect-btn:hover { background: #2d2d4a; transform: translateY(-1px); }
+.login-note { font-size: 0.78rem; color: #a0a8b4; margin-top: 16px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } .stats-row { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .stats-row { grid-template-columns: 1fr 1fr; } .info-grid { grid-template-columns: 1fr; } .header-inner { gap: 8px; } }
+
+/* ── CURE PERIOD ALERT ── */
+.cure-alert { background: var(--light-blue); border: 1.5px solid #93c5fd; border-radius: 12px; padding: 18px 20px; }
+.cure-alert h3 { font-size: 0.9rem; font-weight: 800; color: var(--blue); margin-bottom: 6px; }
+.cure-alert p { font-size: 0.83rem; color: #1e3a8a; line-height: 1.6; }
+.cure-countdown { font-size: 1.3rem; font-weight: 900; color: var(--blue); margin: 8px 0; }
+
+/* ── MISC ── */
+.divider { height: 1px; background: #f0f2f6; }
+.text-muted { font-size: 0.82rem; color: var(--gray); }
+.mt-8 { margin-top: 8px; }
+.app-num { font-family: monospace; font-size: 0.82rem; background: #f0f2f6; padding: 2px 8px; border-radius: 4px; color: var(--gray); }
+.full-width { grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <p>Loading your dashboard…</p>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" style="display:none;">
+  <div class="top-bar">
+    <div class="inner">
+      <span>This is not an official government website and does not represent any real government body or authority.</span>
+    </div>
+  </div>
+  <div class="login-screen">
+    <div class="login-card">
+      <div class="lc-logo">
+        <div class="lc-state">MICHIGAN</div>
+        <div class="lc-dept">Secretary of State</div>
+      </div>
+      <h1>Citizenship Dashboard</h1>
+      <p>Sign in with your Roblox account to access your citizenship dashboard, view application status, and receive official notices.</p>
+      <button class="roblox-connect-btn" onclick="loginWithRoblox()">🔗 &nbsp;Sign in with Roblox</button>
+      <p class="login-note">Your Roblox User ID serves as your State Identification Number (SIN). We only access your username and user ID.</p>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN DASHBOARD -->
+<div id="dashboardScreen" style="display:none;">
+
+  <div class="top-bar">
+    <div class="inner">
+      <span>This is not an official government website and does not represent any real government body or authority.</span>
+      <div class="links">
+        <a href="#">Michigan.gov</a>
+        <a href="/sos/contact/">Contact</a>
+      </div>
+    </div>
+  </div>
+
+  <header>
+    <div class="header-inner">
+      <a class="logo-area" href="/sos/">
+        <div class="logo-text">
+          <div class="state">MICHIGAN</div>
+          <div class="dept">Secretary of State</div>
+        </div>
+      </a>
+      <div class="header-user">
+        <div class="user-chip">
+          <div class="user-avatar" id="userAvatar">?</div>
+          <div>
+            <div class="name" id="headerUsername">—</div>
+            <div class="sin" id="headerSIN">SIN: —</div>
+          </div>
+          <span class="staff-badge" id="staffBadge" style="display:none;">STAFF</span>
+        </div>
+        <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="dash-wrap">
+    <div class="dash-grid">
+
+      <!-- SIDEBAR NAV -->
+      <div class="dash-nav">
+        <div class="dash-nav-header">
+          <div class="label">Citizen Portal</div>
+          <div class="title">My Dashboard</div>
+        </div>
+
+        <!-- Citizen nav -->
+        <div class="nav-section" id="citizenNav">
+          <div class="nav-section-label">My Account</div>
+          <a class="nav-item active" data-page="overview" onclick="showPage('overview')">
+            <span class="ni-icon">🏠</span> Overview
+          </a>
+          <a class="nav-item" data-page="notifications" onclick="showPage('notifications')">
+            <span class="ni-icon">🔔</span> Notifications
+            <span class="ni-badge" id="notifBadge" style="display:none;">0</span>
+          </a>
+          <a class="nav-item" data-page="application" onclick="showPage('application')">
+            <span class="ni-icon">📋</span> My Application
+          </a>
+          <a class="nav-item" data-page="profile" onclick="showPage('profile')">
+            <span class="ni-icon">👤</span> My Profile
+          </a>
+        </div>
+
+        <!-- Staff nav -->
+        <div class="nav-section" id="staffNav" style="display:none;">
+          <div class="nav-divider"></div>
+          <div class="nav-section-label" style="color: var(--staff-accent);">⚙️ Staff Tools</div>
+          <a class="nav-item" data-page="staff-apps" onclick="showPage('staff-apps')">
+            <span class="ni-icon">📁</span> Applications
+            <span class="ni-badge amber" id="pendingBadge" style="display:none;">0</span>
+          </a>
+          <a class="nav-item" data-page="staff-registry" onclick="showPage('staff-registry')">
+            <span class="ni-icon">🗂️</span> Registry
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-divider"></div>
+          <a class="nav-item" href="/sos/citizenship/">
+            <span class="ni-icon">ℹ️</span> Citizenship Info
+          </a>
+          <a class="nav-item" href="/sos/contact/">
+            <span class="ni-icon">💬</span> Contact Bureau
+          </a>
+        </div>
+      </div>
+
+      <!-- MAIN AREA -->
+      <div class="dash-main">
+
+        <!-- ═══════════ PAGE: OVERVIEW ═══════════ -->
+        <div class="page active" id="page-overview">
+          <div class="page-header">
+            <div>
+              <h1 id="welcomeHeading">Welcome back!</h1>
+              <p id="welcomeSub">Here's a summary of your citizenship status.</p>
+            </div>
+          </div>
+
+          <!-- Status Banner -->
+          <div id="statusBanner"></div>
+
+          <!-- Cure Period Alert (hidden by default) -->
+          <div class="cure-alert" id="cureAlert" style="display:none;">
+            <h3>⚠️ Action Required — Conditional Exception Issued</h3>
+            <p id="cureAlertText">The Bureau has identified an issue with your application that requires correction. You have a limited window to cure this deficiency before a final decision is made.</p>
+            <div class="cure-countdown" id="cureCountdown"></div>
+            <p>Please review the notice in your <a href="#" onclick="showPage('notifications')" style="color:var(--blue);font-weight:700;">Notifications</a> for full details and instructions.</p>
+          </div>
+
+          <!-- Application Timeline -->
+          <div class="card" id="timelineCard">
+            <div class="card-header">
+              <h2>Application Timeline</h2>
+              <span class="text-muted" id="appNumDisplay"></span>
+            </div>
+            <div class="timeline" id="timelineEl"></div>
+          </div>
+
+          <!-- Quick Info -->
+          <div class="card" id="quickInfoCard" style="display:none;">
+            <div class="card-header"><h2>My Information</h2></div>
+            <div class="info-grid" id="quickInfoGrid"></div>
+          </div>
+        </div>
+
+        <!-- ═══════════ PAGE: NOTIFICATIONS ═══════════ -->
+        <div class="page" id="page-notifications">
+          <div class="page-header">
+            <div>
+              <h1>Notifications</h1>
+              <p>Official notices and communications from the Bureau of Citizenship &amp; Civil Records.</p>
+            </div>
+            <button class="btn-outline" onclick="markAllRead()">Mark all read</button>
+          </div>
+          <div class="card">
+            <div class="notif-list" id="notifList">
+              <div class="empty-state">
+                <div class="es-icon">🔔</div>
+                <p>No notifications yet.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════ PAGE: MY APPLICATION ═══════════ -->
+        <div class="page" id="page-application">
+          <div class="page-header">
+            <div>
+              <h1>My Application</h1>
+              <p>View the details and current status of your citizenship application.</p>
+            </div>
+          </div>
+          <div id="appDetailContent">
+            <div class="card">
+              <div class="empty-state">
+                <div class="es-icon">📋</div>
+                <p>No application on file. <a href="/sos/citizenship/apply/" style="color:var(--navy);font-weight:700;">Apply for citizenship →</a></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════ PAGE: PROFILE ═══════════ -->
+        <div class="page" id="page-profile">
+          <div class="page-header">
+            <div><h1>My Profile</h1><p>Your identity and registry record.</p></div>
+          </div>
+          <div class="card" id="profileContent">
+            <div class="empty-state"><div class="es-icon">👤</div><p>Loading…</p></div>
+          </div>
+        </div>
+
+        <!-- ═══════════ PAGE: STAFF — APPLICATIONS ═══════════ -->
+        <div class="page" id="page-staff-apps">
+          <div class="page-header">
+            <div><h1>Applications</h1><p>Review and take action on submitted citizenship applications.</p></div>
+            <button class="btn-outline" onclick="loadStaffApps()">↺ Refresh</button>
+          </div>
+
+          <div class="stats-row" id="appStats">
+            <div class="stat-card"><div class="sc-label">Total</div><div class="sc-value" id="st-total">—</div></div>
+            <div class="stat-card amber"><div class="sc-label">Pending</div><div class="sc-value" id="st-pending">—</div></div>
+            <div class="stat-card green"><div class="sc-label">Approved</div><div class="sc-value" id="st-approved">—</div></div>
+            <div class="stat-card red"><div class="sc-label">Denied</div><div class="sc-value" id="st-denied">—</div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2>All Applications</h2>
+            </div>
+            <div class="filters" style="margin-bottom:16px;">
+              <div class="search-box">
+                <span class="si">🔍</span>
+                <input type="text" placeholder="Search by name, SIN, or app #…" id="appSearch" oninput="filterApps()">
+              </div>
+              <select class="filter-select" id="appStatusFilter" onchange="filterApps()">
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="under_review">Under Review</option>
+                <option value="conditional_exception">Conditional Exception</option>
+                <option value="approved">Approved</option>
+                <option value="denied">Denied</option>
+              </select>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>App #</th>
+                    <th>Name</th>
+                    <th>SIN (Roblox ID)</th>
+                    <th>Submitted</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="appsTableBody">
+                  <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--gray);">Loading applications…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════ PAGE: STAFF — REGISTRY ═══════════ -->
+        <div class="page" id="page-staff-registry">
+          <div class="page-header">
+            <div><h1>Registry</h1><p>View and manage the citizenship registry — includes all applicants, citizens, and denied individuals.</p></div>
+            <button class="btn-outline" onclick="loadRegistry()">↺ Refresh</button>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h2>Registry Records</h2>
+            </div>
+            <div class="filters" style="margin-bottom:16px;">
+              <div class="search-box">
+                <span class="si">🔍</span>
+                <input type="text" placeholder="Search by name or SIN…" id="regSearch" oninput="filterRegistry()">
+              </div>
+              <select class="filter-select" id="regCitizenFilter" onchange="filterRegistry()">
+                <option value="">All Records</option>
+                <option value="true">Citizens Only</option>
+                <option value="false">Non-Citizens</option>
+              </select>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>SIN</th>
+                    <th>Name</th>
+                    <th>Roblox Username</th>
+                    <th>Citizen?</th>
+                    <th>Staff?</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="registryTableBody">
+                  <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--gray);">Loading registry…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /dash-main -->
+    </div><!-- /dash-grid -->
+  </div><!-- /dash-wrap -->
+</div><!-- /dashboardScreen -->
+
+<!-- ═══════ MODAL: APPLICATION DETAIL (Staff) ═══════ -->
+<div class="modal-overlay" id="modalAppDetail">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2 id="modalAppTitle">Application Detail</h2>
+        <span class="app-num" id="modalAppNum"></span>
+      </div>
+      <button class="modal-close" onclick="closeModal('modalAppDetail')">✕</button>
+    </div>
+    <div class="modal-body" id="modalAppBody"></div>
+    <div class="modal-footer" id="modalAppFooter"></div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL: TAKE ACTION (Staff) ═══════ -->
+<div class="modal-overlay" id="modalAction">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Take Action</h2>
+      <button class="modal-close" onclick="closeModal('modalAction')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.83rem;color:var(--gray);margin-bottom:16px;">Application: <strong id="actionAppNum"></strong></p>
+      <div class="modal-field">
+        <label>Action <span style="color:var(--gold)">*</span></label>
+        <select id="actionType" onchange="onActionTypeChange()">
+          <option value="">Select an action…</option>
+          <option value="approved">✅ Approve — Grant Citizenship</option>
+          <option value="denied">❌ Deny — Reject Application</option>
+          <option value="conditional_exception">⚠️ Conditional Exception — Request Correction</option>
+          <option value="under_review">🔍 Mark as Under Review</option>
+        </select>
+      </div>
+      <div class="modal-field" id="actionReasonField">
+        <label>Reason / Notes <span style="color:var(--gold)">*</span></label>
+        <textarea id="actionReason" placeholder="Provide the statutory or regulatory basis for this action, as required under Section 10 of the Revised Citizenship Act of 2026…" rows="4"></textarea>
+      </div>
+      <div class="modal-field" id="actionDenialBasisField" style="display:none;">
+        <label>Denial Basis (Section 11) <span style="color:var(--gold)">*</span></label>
+        <select id="actionDenialBasis">
+          <option value="">Select statutory ground…</option>
+          <option value="11(1)(a)">§11(1)(a) — Threat screening database match</option>
+          <option value="11(1)(b)">§11(1)(b) — Convicted of treason or equivalent</option>
+          <option value="11(1)(c)">§11(1)(c) — False, misleading, or incomplete information</option>
+          <option value="11(1)(d)">§11(1)(d) — Court order restricting eligibility</option>
+        </select>
+      </div>
+      <div class="modal-field" id="curePeriodField" style="display:none;">
+        <label>Cure Period (days)</label>
+        <select id="curePeriodDays">
+          <option value="2">2 days</option>
+          <option value="3" selected>3 days</option>
+          <option value="4">4 days</option>
+        </select>
+        <p style="font-size:0.75rem;color:var(--gray);margin-top:4px;">Per Section 8, must be between 2 and 4 days.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modalAction')">Cancel</button>
+      <button class="btn-primary" onclick="submitAction()">Submit Action →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL: REGISTRY DETAIL (Staff) ═══════ -->
+<div class="modal-overlay" id="modalRegistryDetail">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h2>Registry Record</h2>
+        <span class="app-num" id="modalRegSIN"></span>
+      </div>
+      <button class="modal-close" onclick="closeModal('modalRegistryDetail')">✕</button>
+    </div>
+    <div class="modal-body" id="modalRegBody"></div>
+    <div class="modal-footer" id="modalRegFooter"></div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL: NOTIFICATION DETAIL ═══════ -->
+<div class="modal-overlay" id="modalNotif">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalNotifTitle">Notice</h2>
+      <button class="modal-close" onclick="closeModal('modalNotif')">✕</button>
+    </div>
+    <div class="modal-body" id="modalNotifBody"></div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="closeModal('modalNotif')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import {
+    getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc,
+    query, where, orderBy, addDoc, serverTimestamp, Timestamp
+  } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCzMDtySiPOXM5J15ePmjyUZRn_Zcyz2w0",
+    authDomain: "misos-f7956.firebaseapp.com",
+    projectId: "misos-f7956",
+    storageBucket: "misos-f7956.firebasestorage.app",
+    messagingSenderId: "696781263120",
+    appId: "1:696781263120:web:0a2b3c56d8ad9ede0f5595"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  window._db = db;
+  window._fs = { collection, doc, getDoc, getDocs, setDoc, updateDoc, query, where, orderBy, addDoc, serverTimestamp, Timestamp };
+  window._firebaseReady = true;
+  document.dispatchEvent(new Event('firebaseReady'));
+</script>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────
+const ROBLOX_CLIENT_ID = '6125371219815664523';
+const REDIRECT_URI     = 'https://miservices.github.io/sos/citizenship/dashboard/';
+const WORKER_URL       = 'https://roblox-oauth.takosull0.workers.dev/';
+
+// ── STATE ────────────────────────────────────────────────────
+let currentUser   = null; // { id, username, isStaff, isCitizen, registryDoc }
+let myApplication = null;
+let myNotifications = [];
+let allApps       = [];
+let allRegistry   = [];
+let actionTargetAppId = null;
+let currentPage   = 'overview';
+
+// ── FIREBASE WAIT ─────────────────────────────────────────────
+function waitForFirebase() {
+  if (window._firebaseReady) return Promise.resolve();
+  return new Promise(r => document.addEventListener('firebaseReady', r, { once: true }));
+}
+
+// ── SESSION ───────────────────────────────────────────────────
+const SS = {
+  STATE: 'roblox_oauth_state_dash',
+  USER:  'dashboard_user',
+};
+
+function saveSession(user) {
+  sessionStorage.setItem(SS.USER, JSON.stringify(user));
+}
+function loadSession() {
+  try { return JSON.parse(sessionStorage.getItem(SS.USER)); } catch { return null; }
+}
+function clearSession() {
+  Object.values(SS).forEach(k => sessionStorage.removeItem(k));
+}
+
+// ── OAUTH ─────────────────────────────────────────────────────
+function loginWithRoblox() {
+  const state = crypto.randomUUID();
+  sessionStorage.setItem(SS.STATE, state);
+  const params = new URLSearchParams({
+    client_id: ROBLOX_CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    response_type: 'Code',
+    scope: 'openid profile',
+    state,
+  });
+  window.location.href = 'https://authorize.roblox.com/?' + params.toString();
+}
+
+async function handleOAuthCallback() {
+  const params     = new URLSearchParams(window.location.search);
+  const code       = params.get('code');
+  const stateParam = params.get('state');
+  const savedState = sessionStorage.getItem(SS.STATE);
+
+  if (!code) {
+    // Check if we have a saved session
+    const saved = loadSession();
+    if (saved) {
+      currentUser = saved;
+      await initDashboard();
+    } else {
+      showLogin();
+    }
+    return;
+  }
+
+  // Exchange code
+  window.history.replaceState({}, '', window.location.pathname);
+  sessionStorage.removeItem(SS.STATE);
+
+  if (stateParam !== savedState) {
+    showLogin();
+    return;
+  }
+
+  try {
+    const res  = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    const data = await res.json();
+    if (!data.userId || !data.username) throw new Error('Could not retrieve account details.');
+
+    await waitForFirebase();
+    const { doc, getDoc, setDoc } = window._fs;
+    const db = window._db;
+
+    // Load or create registry record
+    const regRef = doc(db, 'registry', String(data.userId));
+    const regSnap = await getDoc(regRef);
+
+    let regData = {};
+    if (regSnap.exists()) {
+      regData = regSnap.data();
+    }
+
+    currentUser = {
+      id:         String(data.userId),
+      username:   data.username,
+      isStaff:    regData.isStaff === true,
+      isCitizen:  regData.isCitizen === true,
+      registryDoc: regData,
+    };
+
+    saveSession(currentUser);
+    await initDashboard();
+
+  } catch (err) {
+    console.error(err);
+    showLogin();
+  }
+}
+
+// ── INIT DASHBOARD ────────────────────────────────────────────
+async function initDashboard() {
+  await waitForFirebase();
+
+  // Set header
+  document.getElementById('headerUsername').textContent = currentUser.username;
+  document.getElementById('headerSIN').textContent      = 'SIN: ' + currentUser.id;
+  document.getElementById('userAvatar').textContent     = currentUser.username.slice(0,2).toUpperCase();
+  document.getElementById('welcomeHeading').textContent = 'Welcome back, ' + currentUser.username + '!';
+
+  if (currentUser.isStaff) {
+    document.getElementById('staffBadge').style.display = 'inline-flex';
+    document.getElementById('staffNav').style.display   = 'block';
+  }
+
+  // Load citizen data
+  await loadMyApplication();
+  await loadMyNotifications();
+  buildOverview();
+  buildProfile();
+  buildAppDetail();
+
+  if (currentUser.isStaff) {
+    await loadStaffApps();
+    await loadRegistry();
+  }
+
+  document.getElementById('loadingOverlay').style.display = 'none';
+  document.getElementById('dashboardScreen').style.display = 'block';
+}
+
+function showLogin() {
+  document.getElementById('loadingOverlay').style.display = 'none';
+  document.getElementById('loginScreen').style.display    = 'block';
+}
+
+// ── LOAD MY APPLICATION ───────────────────────────────────────
+async function loadMyApplication() {
+  const { collection, query, where, getDocs } = window._fs;
+  const db = window._db;
+  try {
+    const q = query(collection(db, 'applications'), where('robloxId', '==', currentUser.id));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      // Get the most recent one
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      docs.sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''));
+      myApplication = docs[0];
+    }
+  } catch (e) { console.error('loadMyApplication', e); }
+}
+
+// ── LOAD MY NOTIFICATIONS ─────────────────────────────────────
+async function loadMyNotifications() {
+  const { collection, query, where, getDocs, orderBy } = window._fs;
+  const db = window._db;
+  try {
+    const q = query(
+      collection(db, 'notifications'),
+      where('recipientSIN', '==', currentUser.id)
+    );
+    const snap = await getDocs(q);
+    myNotifications = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    myNotifications.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  } catch (e) { console.error('loadMyNotifications', e); }
+
+  updateNotifBadge();
+  renderNotifications();
+}
+
+function updateNotifBadge() {
+  const unread = myNotifications.filter(n => !n.read).length;
+  const badge = document.getElementById('notifBadge');
+  if (unread > 0) { badge.textContent = unread; badge.style.display = 'inline-flex'; }
+  else badge.style.display = 'none';
+}
+
+// ── BUILD OVERVIEW ────────────────────────────────────────────
+function buildOverview() {
+  buildStatusBanner();
+  buildTimeline();
+  buildQuickInfo();
+}
+
+function buildStatusBanner() {
+  const el = document.getElementById('statusBanner');
+  const cureAlert = document.getElementById('cureAlert');
+
+  if (!myApplication) {
+    el.innerHTML = `
+      <div class="status-banner no-app">
+        <div class="sb-icon">📋</div>
+        <div class="sb-body">
+          <div class="sb-label">No Application</div>
+          <div class="sb-title">You haven't applied for citizenship yet</div>
+          <div class="sb-sub">Submit a citizenship application through the portal to begin the process.</div>
+        </div>
+        <div class="sb-action">
+          <a href="/sos/citizenship/apply/" class="btn-primary">Apply Now →</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const status = myApplication.status || 'pending';
+  const configs = {
+    pending:              { cls:'pending',     icon:'⏳', label:'Pending Review',         title:'Your application is awaiting review',              sub:'The Bureau will take action within 10 days of the date of receipt.' },
+    under_review:         { cls:'pending',     icon:'🔍', label:'Under Review',            title:'Your application is being actively reviewed',      sub:'A Bureau officer is currently processing your application.' },
+    conditional_exception:{ cls:'conditional', icon:'⚠️', label:'Conditional Exception',   title:'Action required — see your notifications',         sub:'You have been issued a conditional exception. Please review the notice and respond within the cure window.' },
+    approved:             { cls:'approved',    icon:'✅', label:'Approved',                title:'Congratulations — you are a Michigan citizen!',    sub:'Your citizenship has been granted. Your record is now on file with the Bureau.' },
+    denied:               { cls:'denied',      icon:'❌', label:'Denied',                  title:'Your application has been denied',                 sub:'See your notifications for the specific grounds and statutory basis for this decision.' },
+  };
+  const c = configs[status] || configs.pending;
+
+  el.innerHTML = `
+    <div class="status-banner ${c.cls}">
+      <div class="sb-icon">${c.icon}</div>
+      <div class="sb-body">
+        <div class="sb-label">${c.label}</div>
+        <div class="sb-title">${c.title}</div>
+        <div class="sb-sub">${c.sub}</div>
+      </div>
+    </div>`;
+
+  // Cure alert
+  if (status === 'conditional_exception' && myApplication.cureDeadline) {
+    const deadline = new Date(myApplication.cureDeadline);
+    const now      = new Date();
+    const diffMs   = deadline - now;
+    if (diffMs > 0) {
+      const days  = Math.floor(diffMs / 86400000);
+      const hours = Math.floor((diffMs % 86400000) / 3600000);
+      document.getElementById('cureCountdown').textContent =
+        days > 0 ? `${days} day${days !== 1 ? 's' : ''} remaining` : `${hours} hour${hours !== 1 ? 's' : ''} remaining`;
+      cureAlert.style.display = 'block';
+    }
+  } else {
+    cureAlert.style.display = 'none';
+  }
+}
+
+function buildTimeline() {
+  const el = document.getElementById('timelineEl');
+  const numEl = document.getElementById('appNumDisplay');
+
+  if (!myApplication) {
+    el.innerHTML = '<p class="text-muted">No application submitted yet.</p>';
+    return;
+  }
+
+  numEl.textContent = 'App #' + myApplication.id;
+  const status = myApplication.status || 'pending';
+
+  const submittedDate = myApplication.submittedAt ? formatDate(myApplication.submittedAt) : '—';
+  const receivedDate  = myApplication.receivedAt  ? formatDate(myApplication.receivedAt)  : 'Next calendar day after submission';
+
+  const steps = [
+    {
+      key: 'submitted',
+      icon: '📤',
+      title: 'Application Submitted',
+      desc: `Submitted on ${submittedDate}`,
+      done: true,
+    },
+    {
+      key: 'received',
+      icon: '📬',
+      title: 'Application Received',
+      desc: `Deemed received: ${receivedDate}. The Bureau has 10 days from this date to take action.`,
+      done: true,
+    },
+    {
+      key: 'review',
+      icon: '🔍',
+      title: 'Under Review',
+      desc: 'The Bureau of Citizenship & Civil Records is reviewing your application.',
+      done: ['under_review','conditional_exception','approved','denied'].includes(status),
+      active: status === 'under_review',
+    },
+    {
+      key: 'conditional',
+      icon: '⚠️',
+      title: 'Conditional Exception',
+      desc: myApplication.conditionalNote || 'A conditional exception may be issued if additional information is needed.',
+      done: status === 'conditional_exception' || ['approved','denied'].includes(status) && myApplication.hadConditional,
+      active: status === 'conditional_exception',
+      warn: status === 'conditional_exception',
+      hidden: status !== 'conditional_exception' && !myApplication.hadConditional,
+    },
+    {
+      key: 'final',
+      icon: status === 'approved' ? '✅' : status === 'denied' ? '❌' : '⌛',
+      title: status === 'approved' ? 'Citizenship Granted' : status === 'denied' ? 'Application Denied' : 'Final Decision',
+      desc: status === 'approved'
+        ? 'Your citizenship has been granted and your record is on file.'
+        : status === 'denied'
+        ? 'Your application was denied. See notifications for the statutory basis.'
+        : 'Awaiting final decision from the Bureau.',
+      done: ['approved','denied'].includes(status),
+      active: !['approved','denied'].includes(status) && status !== 'conditional_exception',
+    },
+  ];
+
+  el.innerHTML = steps
+    .filter(s => !s.hidden)
+    .map((s, i, arr) => {
+      let dotClass = 'pending';
+      if (s.warn)   dotClass = 'warn';
+      else if (s.done)   dotClass = 'done';
+      else if (s.active) dotClass = 'active';
+      const icon = s.done ? '✓' : s.warn ? '!' : (i + 1);
+      return `
+        <div class="tl-item">
+          <div class="tl-left">
+            <div class="tl-dot ${dotClass}">${s.done && !s.warn ? '✓' : s.warn ? '!' : ''}</div>
+            <div class="tl-line ${s.done ? 'done' : ''}"></div>
+          </div>
+          <div class="tl-body">
+            <div class="tl-title ${!s.done && !s.active && !s.warn ? 'muted' : ''}">${s.icon} ${s.title}</div>
+            <div class="tl-desc">${s.desc}</div>
+          </div>
+        </div>`;
+    }).join('');
+}
+
+function buildQuickInfo() {
+  const card = document.getElementById('quickInfoCard');
+  const grid = document.getElementById('quickInfoGrid');
+  if (!myApplication) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  const reg = currentUser.registryDoc || {};
+  grid.innerHTML = `
+    <div class="info-row"><div class="ir-label">Roblox Username</div><div class="ir-value">${myApplication.robloxUsername || '—'}</div></div>
+    <div class="info-row"><div class="ir-label">State ID (SIN)</div><div class="ir-value mono">${myApplication.sin || currentUser.id}</div></div>
+    <div class="info-row"><div class="ir-label">Full Name</div><div class="ir-value">${myApplication.fullName || '—'}</div></div>
+    <div class="info-row"><div class="ir-label">Date of Birth</div><div class="ir-value">${myApplication.dateOfBirth || '—'}</div></div>
+    <div class="info-row"><div class="ir-label">Citizenship Status</div><div class="ir-value">${currentUser.isCitizen ? '<span class="badge green">✓ Citizen</span>' : '<span class="badge gray">Not a Citizen</span>'}</div></div>
+    <div class="info-row"><div class="ir-label">Application #</div><div class="ir-value mono">${myApplication.id}</div></div>
+  `;
+}
+
+function buildProfile() {
+  const content = document.getElementById('profileContent');
+  const reg = currentUser.registryDoc || {};
+  const app = myApplication || {};
+  content.innerHTML = `
+    <div class="card-header" style="margin-bottom:20px;"><h2>Registry Profile</h2> ${currentUser.isCitizen ? '<span class="badge green">✓ Citizen</span>' : '<span class="badge gray">Not a Citizen</span>'} ${currentUser.isStaff ? '<span class="badge purple">⚙️ Staff</span>' : ''}</div>
+    <div class="info-grid">
+      <div class="info-row"><div class="ir-label">Roblox Username</div><div class="ir-value">${currentUser.username}</div></div>
+      <div class="info-row"><div class="ir-label">SIN / Roblox ID</div><div class="ir-value mono">${currentUser.id}</div></div>
+      <div class="info-row"><div class="ir-label">Legal Name</div><div class="ir-value">${app.fullName || reg.fullName || '—'}</div></div>
+      <div class="info-row"><div class="ir-label">Date of Birth</div><div class="ir-value">${app.dateOfBirth || reg.dateOfBirth || '—'}</div></div>
+      <div class="info-row"><div class="ir-label">Prior Legal Names</div><div class="ir-value">${(app.priorLegalNames || []).join(', ') || (app.noPriorNamesOnFile ? 'None disclosed' : '—')}</div></div>
+      <div class="info-row"><div class="ir-label">Registry Status</div><div class="ir-value">${reg.registryNote || (currentUser.isCitizen ? 'Active citizen' : 'Registered, non-citizen')}</div></div>
+    </div>`;
+}
+
+function buildAppDetail() {
+  const el = document.getElementById('appDetailContent');
+  if (!myApplication) {
+    el.innerHTML = `<div class="card"><div class="empty-state"><div class="es-icon">📋</div><p>No application on file. <a href="/sos/citizenship/apply/" style="color:var(--navy);font-weight:700;">Apply for citizenship →</a></p></div></div>`;
+    return;
+  }
+
+  const a = myApplication;
+  const statusBadge = statusToBadge(a.status);
+  el.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <h2>Application #${a.id}</h2>
+        ${statusBadge}
+      </div>
+      <div class="info-grid" style="margin-bottom:20px;">
+        <div class="info-row"><div class="ir-label">Submitted</div><div class="ir-value">${formatDate(a.submittedAt)}</div></div>
+        <div class="info-row"><div class="ir-label">Current Status</div><div class="ir-value">${(a.status || 'pending').replace(/_/g,' ')}</div></div>
+        <div class="info-row"><div class="ir-label">Full Name</div><div class="ir-value">${a.fullName || '—'}</div></div>
+        <div class="info-row"><div class="ir-label">Date of Birth</div><div class="ir-value">${a.dateOfBirth || '—'}</div></div>
+        <div class="info-row"><div class="ir-label">Roblox Username</div><div class="ir-value">${a.robloxUsername || '—'}</div></div>
+        <div class="info-row"><div class="ir-label">SIN (Roblox ID)</div><div class="ir-value mono">${a.sin || a.robloxId || '—'}</div></div>
+      </div>
+      <div class="divider" style="margin-bottom:16px;"></div>
+      <div class="card-header" style="margin-bottom:12px;"><h2>Prior Legal Names</h2></div>
+      <p style="font-size:0.875rem;color:var(--gray);">${a.noPriorNamesOnFile ? 'None disclosed — applicant confirmed no prior legal names.' : ((a.priorLegalNames || []).join(', ') || 'Not provided')}</p>
+      ${a.denialBasis ? `<div class="divider" style="margin:16px 0;"></div><div class="card-header" style="margin-bottom:8px;"><h2 style="color:var(--red);">Denial Information</h2></div><p style="font-size:0.875rem;color:var(--gray);">Statutory basis: <strong>${a.denialBasis}</strong></p>${a.denialNote ? `<p style="font-size:0.875rem;color:var(--gray);margin-top:6px;">${a.denialNote}</p>` : ''}` : ''}
+    </div>`;
+}
+
+// ── NOTIFICATIONS ─────────────────────────────────────────────
+function renderNotifications() {
+  const el = document.getElementById('notifList');
+  if (!myNotifications.length) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon">🔔</div><p>No notifications yet.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = myNotifications.map(n => `
+    <div class="notif-item ${n.read ? 'read' : 'unread'} type-${n.type || 'info'}" onclick="openNotif('${n.id}')">
+      <div class="notif-icon">${notifIcon(n.type)}</div>
+      <div class="notif-body">
+        <div class="notif-title">${!n.read ? '<span class="unread-dot"></span>' : ''}${n.title || 'Notice'}</div>
+        <div class="notif-text">${(n.body || '').slice(0, 120)}${(n.body || '').length > 120 ? '…' : ''}</div>
+        <div class="notif-time">${formatDate(n.createdAt)} · App #${n.applicationId || '—'}</div>
+      </div>
+    </div>`).join('');
+}
+
+function notifIcon(type) {
+  const m = { approved:'✅', denied:'❌', conditional:'⚠️', pending:'⏳', info:'ℹ️', extension:'🕐' };
+  return m[type] || 'ℹ️';
+}
+
+async function openNotif(id) {
+  const n = myNotifications.find(x => x.id === id);
+  if (!n) return;
+
+  // Mark read
+  if (!n.read) {
+    try {
+      const { doc, updateDoc } = window._fs;
+      await updateDoc(doc(window._db, 'notifications', id), { read: true });
+      n.read = true;
+      updateNotifBadge();
+      renderNotifications();
+    } catch(e) {}
+  }
+
+  document.getElementById('modalNotifTitle').textContent = n.title || 'Notice';
+  document.getElementById('modalNotifBody').innerHTML = `
+    <div style="margin-bottom:12px;">${statusToBadge(n.type)}</div>
+    <p style="font-size:0.875rem;line-height:1.7;color:var(--dark);white-space:pre-wrap;">${n.body || ''}</p>
+    ${n.effectiveDate ? `<div class="info-row" style="margin-top:16px;"><div class="ir-label">Effective Date</div><div class="ir-value">${n.effectiveDate}</div></div>` : ''}
+    ${n.deadline ? `<div class="info-row" style="margin-top:8px;"><div class="ir-label">Deadline</div><div class="ir-value" style="color:var(--red);font-weight:700;">${n.deadline}</div></div>` : ''}
+    ${n.statutoryBasis ? `<div class="info-row" style="margin-top:8px;"><div class="ir-label">Statutory Basis</div><div class="ir-value">${n.statutoryBasis}</div></div>` : ''}
+    <div class="text-muted mt-8">Delivered: ${formatDate(n.createdAt)} · Application #${n.applicationId || '—'}</div>`;
+  openModal('modalNotif');
+}
+
+async function markAllRead() {
+  const { doc, updateDoc } = window._fs;
+  const db = window._db;
+  const unread = myNotifications.filter(n => !n.read);
+  await Promise.all(unread.map(n => updateDoc(doc(db, 'notifications', n.id), { read: true }).catch(() => {})));
+  unread.forEach(n => n.read = true);
+  updateNotifBadge();
+  renderNotifications();
+}
+
+// ── STAFF: LOAD APPLICATIONS ──────────────────────────────────
+async function loadStaffApps() {
+  const { collection, getDocs } = window._fs;
+  const db = window._db;
+  try {
+    const snap = await getDocs(collection(db, 'applications'));
+    allApps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    allApps.sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''));
+  } catch (e) { console.error('loadStaffApps', e); allApps = []; }
+
+  renderAppsTable(allApps);
+  updateAppStats();
+}
+
+function updateAppStats() {
+  const pending  = allApps.filter(a => ['pending','under_review','conditional_exception'].includes(a.status)).length;
+  const approved = allApps.filter(a => a.status === 'approved').length;
+  const denied   = allApps.filter(a => a.status === 'denied').length;
+  document.getElementById('st-total').textContent    = allApps.length;
+  document.getElementById('st-pending').textContent  = pending;
+  document.getElementById('st-approved').textContent = approved;
+  document.getElementById('st-denied').textContent   = denied;
+
+  const pb = document.getElementById('pendingBadge');
+  if (pending > 0) { pb.textContent = pending; pb.style.display = 'inline-flex'; }
+  else pb.style.display = 'none';
+}
+
+function renderAppsTable(apps) {
+  const tbody = document.getElementById('appsTableBody');
+  if (!apps.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--gray);">No applications found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = apps.map(a => `
+    <tr>
+      <td><span class="app-num">${a.id}</span></td>
+      <td class="td-name">${a.fullName || '—'}</td>
+      <td class="td-mono">${a.robloxId || '—'}</td>
+      <td class="text-muted">${formatDate(a.submittedAt)}</td>
+      <td>${statusToBadge(a.status)}</td>
+      <td>
+        <div class="td-actions">
+          <button class="btn-outline btn-sm" onclick="viewApp('${a.id}')">View</button>
+          ${['pending','under_review','conditional_exception'].includes(a.status)
+            ? `<button class="btn-primary btn-sm" onclick="openActionModal('${a.id}')">Take Action</button>`
+            : ''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function filterApps() {
+  const q      = (document.getElementById('appSearch').value || '').toLowerCase();
+  const status = document.getElementById('appStatusFilter').value;
+  const filtered = allApps.filter(a => {
+    const matchQ = !q || (a.id || '').toLowerCase().includes(q) || (a.fullName || '').toLowerCase().includes(q) || (a.robloxId || '').includes(q);
+    const matchS = !status || a.status === status;
+    return matchQ && matchS;
+  });
+  renderAppsTable(filtered);
+}
+
+function viewApp(id) {
+  const a = allApps.find(x => x.id === id);
+  if (!a) return;
+  document.getElementById('modalAppTitle').textContent = a.fullName || 'Application';
+  document.getElementById('modalAppNum').textContent   = 'App #' + a.id;
+  document.getElementById('modalAppBody').innerHTML = `
+    <div style="margin-bottom:16px;">${statusToBadge(a.status)}</div>
+    <div class="reg-detail-grid">
+      <div class="info-row"><div class="ir-label">Submitted</div><div class="ir-value">${formatDate(a.submittedAt)}</div></div>
+      <div class="info-row"><div class="ir-label">SIN / Roblox ID</div><div class="ir-value mono">${a.robloxId || '—'}</div></div>
+      <div class="info-row"><div class="ir-label">Full Name</div><div class="ir-value">${a.fullName || '—'}</div></div>
+      <div class="info-row"><div class="ir-label">Date of Birth</div><div class="ir-value">${a.dateOfBirth || '—'}</div></div>
+      <div class="info-row"><div class="ir-label">Roblox Username</div><div class="ir-value">${a.robloxUsername || '—'}</div></div>
+      <div class="info-row"><div class="ir-label">Prior Names</div><div class="ir-value">${a.noPriorNamesOnFile ? 'None' : (a.priorLegalNames || []).join(', ') || '—'}</div></div>
+    </div>
+    ${a.denialBasis ? `<div class="info-row" style="margin-top:8px;"><div class="ir-label">Denial Basis</div><div class="ir-value">${a.denialBasis}</div></div>` : ''}
+    ${a.actionNote ? `<div class="info-row" style="margin-top:8px;"><div class="ir-label">Notes</div><div class="ir-value">${a.actionNote}</div></div>` : ''}
+  `;
+  const footer = document.getElementById('modalAppFooter');
+  footer.innerHTML = `
+    <button class="btn-outline" onclick="closeModal('modalAppDetail')">Close</button>
+    ${['pending','under_review','conditional_exception'].includes(a.status)
+      ? `<button class="btn-primary" onclick="closeModal('modalAppDetail');openActionModal('${a.id}')">Take Action →</button>`
+      : ''}`;
+  openModal('modalAppDetail');
+}
+
+// ── STAFF: TAKE ACTION ────────────────────────────────────────
+function openActionModal(appId) {
+  actionTargetAppId = appId;
+  document.getElementById('actionAppNum').textContent = appId;
+  document.getElementById('actionType').value = '';
+  document.getElementById('actionReason').value = '';
+  document.getElementById('actionDenialBasis').value = '';
+  document.getElementById('actionDenialBasisField').style.display = 'none';
+  document.getElementById('curePeriodField').style.display = 'none';
+  openModal('modalAction');
+}
+
+function onActionTypeChange() {
+  const type = document.getElementById('actionType').value;
+  document.getElementById('actionDenialBasisField').style.display = type === 'denied' ? 'block' : 'none';
+  document.getElementById('curePeriodField').style.display         = type === 'conditional_exception' ? 'block' : 'none';
+}
+
+async function submitAction() {
+  const type   = document.getElementById('actionType').value;
+  const reason = document.getElementById('actionReason').value.trim();
+  const denial = document.getElementById('actionDenialBasis').value;
+  const cureDays = parseInt(document.getElementById('curePeriodDays').value);
+
+  if (!type) { alert('Please select an action.'); return; }
+  if (!reason) { alert('Please provide a reason or note.'); return; }
+  if (type === 'denied' && !denial) { alert('Please select a statutory denial basis.'); return; }
+
+  const { doc, updateDoc, setDoc, collection, addDoc } = window._fs;
+  const db = window._db;
+  const app = allApps.find(x => x.id === actionTargetAppId);
+  if (!app) return;
+
+  try {
+    // Build update
+    const now = new Date().toISOString();
+    const update = {
+      status: type,
+      actionDate: now,
+      actionNote: reason,
+      actionBy: currentUser.id,
+    };
+
+    if (type === 'denied') {
+      update.denialBasis = denial;
+      update.denialNote  = reason;
+    }
+
+    if (type === 'conditional_exception') {
+      const deadline = new Date();
+      deadline.setDate(deadline.getDate() + cureDays);
+      update.cureDeadline    = deadline.toISOString();
+      update.curePeriodDays  = cureDays;
+      update.conditionalNote = reason;
+    }
+
+    // Update application
+    await updateDoc(doc(db, 'applications', app.id), update);
+
+    // Update registry
+    const isCitizen = type === 'approved';
+    const regUpdate = {
+      robloxUsername: app.robloxUsername,
+      fullName:       app.fullName,
+      dateOfBirth:    app.dateOfBirth,
+      firstName:      app.firstName,
+      lastName:       app.lastName,
+      isCitizen,
+      lastApplicationId:     app.id,
+      lastApplicationStatus: type,
+      updatedAt: now,
+    };
+    if (app.priorLegalNames) regUpdate.priorLegalNames = app.priorLegalNames;
+    if (type === 'denied') regUpdate.registryNote = 'Application denied — ' + denial;
+    if (type === 'approved') regUpdate.citizenSince = now;
+
+    await setDoc(doc(db, 'registry', app.robloxId || app.sin), regUpdate, { merge: true });
+
+    // Create notification
+    const notifConfig = {
+      approved: {
+        title: 'Application Approved — Citizenship Granted',
+        type:  'approved',
+        body:  `Your citizenship application (#${app.id}) has been approved by the Bureau of Citizenship & Civil Records.\n\nYou are hereby recognized as a citizen of the State of Michigan under the Revised Citizenship Act of 2026.\n\nThis decision is effective immediately and your record has been updated in the registry.`,
+      },
+      denied: {
+        title: 'Application Denied',
+        type:  'denied',
+        body:  `Your citizenship application (#${app.id}) has been denied by the Bureau of Citizenship & Civil Records.\n\nStatutory Basis: Section ${denial} of the Revised Citizenship Act of 2026.\n\nReason: ${reason}\n\nThis denial is final unless otherwise provided by law. If you believe this decision was made in error, please contact the Bureau.`,
+      },
+      conditional_exception: {
+        title: 'Conditional Exception Issued — Action Required',
+        type:  'conditional',
+        body:  `The Bureau of Citizenship & Civil Records has issued a conditional exception on your citizenship application (#${app.id}).\n\nIssue Identified: ${reason}\n\nYou have ${cureDays} day(s) to cure or correct the identified deficiency. Failure to do so within this period will result in denial of your application per Section 8 of the Revised Citizenship Act of 2026.\n\nPlease contact the Bureau to resolve this issue.`,
+      },
+      under_review: {
+        title: 'Application Status Update — Under Review',
+        type:  'info',
+        body:  `Your citizenship application (#${app.id}) has been assigned for active review by the Bureau of Citizenship & Civil Records.\n\nNote: ${reason}\n\nNo further action is required from you at this time. You will be notified of the final decision.`,
+      },
+    };
+
+    const nc = notifConfig[type];
+    if (nc) {
+      const deadline = type === 'conditional_exception'
+        ? new Date(Date.now() + cureDays * 86400000).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' })
+        : undefined;
+
+      await addDoc(collection(db, 'notifications'), {
+        recipientSIN:   app.robloxId || app.sin,
+        applicationId:  app.id,
+        title:          nc.title,
+        type:           nc.type,
+        body:           nc.body,
+        effectiveDate:  new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }),
+        deadline:       deadline || null,
+        statutoryBasis: type === 'denied' ? `Section ${denial}` : null,
+        read:           false,
+        createdAt:      now,
+      });
+    }
+
+    closeModal('modalAction');
+    await loadStaffApps();
+    await loadRegistry();
+    alert(`Action recorded: ${type.replace(/_/g,' ')}. Notification sent to applicant.`);
+
+  } catch (err) {
+    console.error('submitAction', err);
+    alert('Error: ' + err.message);
+  }
+}
+
+// ── STAFF: REGISTRY ───────────────────────────────────────────
+async function loadRegistry() {
+  const { collection, getDocs } = window._fs;
+  const db = window._db;
+  try {
+    const snap = await getDocs(collection(db, 'registry'));
+    allRegistry = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    allRegistry.sort((a, b) => (a.fullName || a.id).localeCompare(b.fullName || b.id));
+  } catch (e) { console.error('loadRegistry', e); allRegistry = []; }
+  renderRegistryTable(allRegistry);
+}
+
+function renderRegistryTable(records) {
+  const tbody = document.getElementById('registryTableBody');
+  if (!records.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--gray);">No registry records found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = records.map(r => `
+    <tr>
+      <td class="td-mono">${r.id}</td>
+      <td class="td-name">${r.fullName || '—'}</td>
+      <td>${r.robloxUsername || '—'}</td>
+      <td>${r.isCitizen ? '<span class="badge green">✓ Citizen</span>' : '<span class="badge gray">No</span>'}</td>
+      <td>${r.isStaff ? '<span class="badge purple">⚙️ Staff</span>' : '<span class="badge gray">No</span>'}</td>
+      <td>
+        <div class="td-actions">
+          <button class="btn-outline btn-sm" onclick="viewRegistryRecord('${r.id}')">View</button>
+          <button class="btn-outline btn-sm" onclick="toggleStaff('${r.id}', ${!!r.isStaff})">${r.isStaff ? 'Remove Staff' : 'Make Staff'}</button>
+          <button class="${r.isCitizen ? 'btn-danger' : 'btn-success'} btn-sm" onclick="toggleCitizen('${r.id}', ${!!r.isCitizen})">${r.isCitizen ? 'Revoke Citizenship' : 'Grant Citizenship'}</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function filterRegistry() {
+  const q    = (document.getElementById('regSearch').value || '').toLowerCase();
+  const cit  = document.getElementById('regCitizenFilter').value;
+  const filtered = allRegistry.filter(r => {
+    const matchQ = !q || (r.fullName || '').toLowerCase().includes(q) || (r.id || '').includes(q) || (r.robloxUsername || '').toLowerCase().includes(q);
+    const matchC = cit === '' ? true : cit === 'true' ? r.isCitizen === true : r.isCitizen !== true;
+    return matchQ && matchC;
+  });
+  renderRegistryTable(filtered);
+}
+
+function viewRegistryRecord(sin) {
+  const r = allRegistry.find(x => x.id === sin);
+  if (!r) return;
+  document.getElementById('modalRegSIN').textContent = 'SIN: ' + r.id;
+  document.getElementById('modalRegBody').innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+      ${r.isCitizen ? '<span class="badge green">✓ Citizen</span>' : '<span class="badge gray">Non-Citizen</span>'}
+      ${r.isStaff ? '<span class="badge purple">⚙️ Staff</span>' : ''}
+    </div>
+    <div class="reg-detail-grid">
+      <div class="info-row"><div class="ir-label">Full Name</div><div class="ir-value">${r.fullName || '—'}</div></div>
+      <div class="info-row"><div class="ir-label">Roblox Username</div><div class="ir-value">${r.robloxUsername || '—'}</div></div>
+      <div class="info-row"><div class="ir-label">Date of Birth</div><div class="ir-value">${r.dateOfBirth || '—'}</div></div>
+      <div class="info-row"><div class="ir-label">Citizen Since</div><div class="ir-value">${r.citizenSince ? formatDate(r.citizenSince) : '—'}</div></div>
+      <div class="info-row"><div class="ir-label">Last Application</div><div class="ir-value mono">${r.lastApplicationId || '—'}</div></div>
+      <div class="info-row"><div class="ir-label">Last App Status</div><div class="ir-value">${r.lastApplicationStatus || '—'}</div></div>
+    </div>
+    ${r.registryNote ? `<div class="info-row" style="margin-top:8px;"><div class="ir-label">Registry Note</div><div class="ir-value">${r.registryNote}</div></div>` : ''}
+    ${(r.priorLegalNames || []).length ? `<div class="info-row" style="margin-top:8px;"><div class="ir-label">Prior Legal Names</div><div class="ir-value">${r.priorLegalNames.join(', ')}</div></div>` : ''}
+  `;
+  document.getElementById('modalRegFooter').innerHTML = `
+    <button class="btn-outline" onclick="closeModal('modalRegistryDetail')">Close</button>
+    <button class="${r.isStaff ? 'btn-danger' : 'btn-success'}" onclick="toggleStaff('${r.id}', ${!!r.isStaff});closeModal('modalRegistryDetail')">${r.isStaff ? 'Remove Staff' : 'Make Staff'}</button>
+    <button class="${r.isCitizen ? 'btn-danger' : 'btn-success'}" onclick="toggleCitizen('${r.id}', ${!!r.isCitizen});closeModal('modalRegistryDetail')">${r.isCitizen ? 'Revoke Citizenship' : 'Grant Citizenship'}</button>
+  `;
+  openModal('modalRegistryDetail');
+}
+
+async function toggleStaff(sin, currentlyStaff) {
+  if (!confirm(`${currentlyStaff ? 'Remove staff access from' : 'Grant staff access to'} SIN ${sin}?`)) return;
+  const { doc, updateDoc } = window._fs;
+  try {
+    await updateDoc(doc(window._db, 'registry', sin), { isStaff: !currentlyStaff });
+    const r = allRegistry.find(x => x.id === sin);
+    if (r) r.isStaff = !currentlyStaff;
+    renderRegistryTable(allRegistry);
+  } catch (e) { alert('Error: ' + e.message); }
+}
+
+async function toggleCitizen(sin, currentlyCitizen) {
+  const action = currentlyCitizen ? 'REVOKE citizenship from' : 'GRANT citizenship to';
+  if (!confirm(`Are you sure you want to ${action} SIN ${sin}? This will update the registry record directly.`)) return;
+  const { doc, updateDoc } = window._fs;
+  try {
+    const update = { isCitizen: !currentlyCitizen };
+    if (!currentlyCitizen) update.citizenSince = new Date().toISOString();
+    if (currentlyCitizen)  update.citizenshipRevokedAt = new Date().toISOString();
+    await updateDoc(doc(window._db, 'registry', sin), update);
+    const r = allRegistry.find(x => x.id === sin);
+    if (r) { r.isCitizen = !currentlyCitizen; if (!currentlyCitizen) r.citizenSince = update.citizenSince; }
+    renderRegistryTable(allRegistry);
+  } catch (e) { alert('Error: ' + e.message); }
+}
+
+// ── NAV ───────────────────────────────────────────────────────
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+  const navEl = document.querySelector(`[data-page="${page}"]`);
+  if (navEl) navEl.classList.add('active');
+  currentPage = page;
+}
+
+// ── MODALS ────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+});
+
+// ── SIGN OUT ──────────────────────────────────────────────────
+function signOut() {
+  clearSession();
+  window.location.reload();
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function formatDate(iso) {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+  } catch { return iso; }
+}
+
+function statusToBadge(status) {
+  const m = {
+    pending:              '<span class="badge amber">⏳ Pending</span>',
+    under_review:         '<span class="badge amber">🔍 Under Review</span>',
+    conditional_exception:'<span class="badge blue">⚠️ Conditional Exception</span>',
+    approved:             '<span class="badge green">✅ Approved</span>',
+    denied:               '<span class="badge red">❌ Denied</span>',
+    info:                 '<span class="badge gray">ℹ️ Info</span>',
+    conditional:          '<span class="badge blue">⚠️ Conditional</span>',
+  };
+  return m[status] || `<span class="badge gray">${status || '—'}</span>`;
+}
+
+// ── EXPOSE GLOBALS ────────────────────────────────────────────
+window.loginWithRoblox   = loginWithRoblox;
+window.signOut           = signOut;
+window.showPage          = showPage;
+window.openModal         = openModal;
+window.closeModal        = closeModal;
+window.markAllRead       = markAllRead;
+window.openNotif         = openNotif;
+window.viewApp           = viewApp;
+window.filterApps        = filterApps;
+window.filterRegistry    = filterRegistry;
+window.openActionModal   = openActionModal;
+window.onActionTypeChange= onActionTypeChange;
+window.submitAction      = submitAction;
+window.viewRegistryRecord= viewRegistryRecord;
+window.toggleStaff       = toggleStaff;
+window.toggleCitizen     = toggleCitizen;
+window.loadStaffApps     = loadStaffApps;
+window.loadRegistry      = loadRegistry;
+
+// ── BOOT ──────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', handleOAuthCallback);
+</script>
+</body>
+</html>
