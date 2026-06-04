@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Michigan DMV — Vehicle Services Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #003366;
+  --gold: #C5882A;
+  --light-gold: #F0C96B;
+  --cream: #FAF7F2;
+  --white: #ffffff;
+  --gray: #5a6270;
+  --light-gray: #eef0f3;
+  --dark: #1a1f2e;
+  --green: #1a7a4a;
+  --light-green: #e8f5ee;
+  --border: #e2e6ee;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--dark); }
+
+/* HEADER */
+.top-bar { background: var(--navy); color: #aec7e8; font-size: 0.78rem; padding: 6px 0; }
+.top-bar .inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; }
+.top-bar a { color: #aec7e8; text-decoration: none; }
+header { background: var(--white); border-bottom: 4px solid var(--gold); box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+.header-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 72px; }
+.logo-area { display: flex; align-items: center; gap: 14px; text-decoration: none; }
+.logo-seal { width: 44px; height: 44px; background: var(--navy); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--light-gold); font-weight: 900; font-size: 11px; text-align: center; line-height: 1.2; }
+.logo-text .dept { font-size: 0.75rem; color: var(--gray); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+.logo-text .name { font-size: 1.1rem; font-weight: 900; color: var(--navy); }
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.header-nav a { font-size: 0.85rem; font-weight: 600; color: var(--navy); text-decoration: none; padding: 6px 10px; border-radius: 4px; }
+.header-nav a:hover { background: #f4f7fb; }
+.mipass-login-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--navy);
+  color: white;
+  border: none;
+  border-radius: 7px;
+  padding: 9px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.mipass-login-btn:hover { background: #00234d; }
+.mipass-logo-mini {
+  width: 18px; height: 18px;
+  background: white;
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--navy);
+  font-size: 8px;
+  font-weight: 900;
+  transform: skew(-8deg);
+  flex-shrink: 0;
+}
+.mipass-logo-mini span { transform: skew(8deg); display: block; }
+
+/* USER BADGE (shown when logged in) */
+.user-badge {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  background: var(--light-green);
+  border: 1px solid #b0dfc0;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+}
+.user-badge .ub-name { font-weight: 800; color: var(--dark); }
+.user-badge .ub-sin  { font-size: 11px; color: var(--gray); font-family: monospace; }
+.user-badge .ub-out  { font-size: 11px; color: var(--gray); cursor: pointer; text-decoration: underline; margin-left: 4px; }
+
+/* HERO */
+.hero { background: linear-gradient(135deg, var(--navy) 0%, #001a3a 100%); color: white; padding: 44px 0 36px; }
+.hero-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+.hero-label { font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--light-gold); font-weight: 700; margin-bottom: 8px; }
+.hero h1 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 900; margin-bottom: 8px; }
+.hero p  { color: #a8bdd4; font-size: 0.9rem; max-width: 500px; line-height: 1.6; }
+
+/* MAIN */
+.main { max-width: 1100px; margin: 36px auto; padding: 0 24px; display: grid; grid-template-columns: 1fr 300px; gap: 28px; align-items: start; }
+
+/* LOGGED-OUT STATE */
+.login-prompt {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 48px 40px;
+  text-align: center;
+}
+.login-prompt .lp-icon { font-size: 2.8rem; margin-bottom: 14px; }
+.login-prompt h2 { font-size: 1.2rem; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
+.login-prompt p { font-size: 13px; color: var(--gray); line-height: 1.6; max-width: 380px; margin: 0 auto 24px; }
+.mipass-big-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--navy);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 13px 28px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, transform 0.1s;
+}
+.mipass-big-btn:hover { background: #00234d; transform: translateY(-1px); }
+.mipass-badge-big {
+  width: 22px; height: 22px;
+  background: white;
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--navy);
+  font-size: 9px;
+  font-weight: 900;
+  transform: skew(-8deg);
+  flex-shrink: 0;
+}
+.mipass-badge-big span { transform: skew(8deg); display: block; }
+.powered-by { font-size: 11px; color: var(--gray); margin-top: 12px; }
+.powered-by a { color: var(--navy); font-weight: 600; text-decoration: none; }
+
+/* LOGGED-IN STATE */
+.logged-in-content { display: none; }
+
+/* IDENTITY CARD */
+.identity-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 20px;
+}
+.identity-card .ic-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f0f2f6;
+}
+.identity-card .ic-title { font-size: 13px; font-weight: 800; color: var(--navy); display: flex; align-items: center; gap: 8px; }
+.ic-verified { display: inline-flex; align-items: center; gap: 5px; background: var(--light-green); border: 1px solid #b0dfc0; border-radius: 12px; padding: 3px 10px; font-size: 11px; font-weight: 700; color: var(--green); }
+.ic-verified::before { content: '●'; font-size: 7px; }
+.ic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.ic-field { display: flex; flex-direction: column; gap: 3px; }
+.ic-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray); }
+.ic-value { font-size: 14px; font-weight: 700; color: var(--dark); }
+.ic-value.mono { font-family: monospace; font-size: 13px; }
+.ic-field.full { grid-column: 1 / -1; }
+
+/* SERVICES GRID */
+.services-section h2 { font-size: 1rem; font-weight: 800; color: var(--navy); margin-bottom: 14px; }
+.services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.service-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.service-card:hover { border-color: var(--navy); box-shadow: 0 4px 16px rgba(0,51,102,0.1); transform: translateY(-1px); }
+.service-card .sc-icon { font-size: 1.6rem; margin-bottom: 8px; }
+.service-card .sc-title { font-size: 13px; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+.service-card .sc-desc { font-size: 11.5px; color: var(--gray); line-height: 1.5; }
+.service-card .sc-arrow { font-size: 11px; color: var(--gold); font-weight: 800; margin-top: 8px; }
+
+/* SIDEBAR */
+.sidebar { display: flex; flex-direction: column; gap: 16px; }
+.sidebar-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+.sidebar-card h3 { font-size: 13px; font-weight: 800; color: var(--navy); margin-bottom: 10px; }
+.sidebar-card p { font-size: 12px; color: var(--gray); line-height: 1.6; }
+.info-list { display: flex; flex-direction: column; gap: 9px; margin-top: 2px; }
+.info-item { display: flex; gap: 8px; font-size: 12px; color: var(--gray); line-height: 1.5; }
+.info-item .ii { flex-shrink: 0; }
+.info-item strong { color: var(--dark); display: block; font-size: 12px; }
+
+/* NOTICE */
+.mipass-notice {
+  background: #eef4ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 12px;
+  color: #1d4ed8;
+  line-height: 1.55;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.mipass-notice .mn-icon { flex-shrink: 0; font-size: 1rem; margin-top: 1px; }
+.mipass-notice a { color: #1d4ed8; font-weight: 700; }
+
+footer { background: var(--dark); color: #8a9ab0; padding: 36px 24px 20px; margin-top: 60px; }
+.footer-inner { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-start; gap: 40px; flex-wrap: wrap; }
+.footer-brand .fn { font-size: 1rem; color: white; font-weight: 700; margin-bottom: 4px; }
+.footer-brand p { font-size: 12px; color: #6a7a8a; max-width: 260px; line-height: 1.6; }
+.footer-bottom { border-top: 1px solid #2a3240; margin-top: 28px; padding-top: 16px; font-size: 11px; color: #4a5a6a; }
+
+@media (max-width: 800px) {
+  .main { grid-template-columns: 1fr; }
+  .ic-grid { grid-template-columns: 1fr; }
+  .services-grid { grid-template-columns: 1fr; }
+  .header-nav { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="inner">
+    <span>Official Michigan Department of State — Vehicle &amp; Driver Services</span>
+    <a href="#">Michigan.gov</a>
+  </div>
+</div>
+
+<header>
+  <div class="header-inner">
+    <a class="logo-area" href="#">
+      <div class="logo-seal">MI<br>SOS</div>
+      <div class="logo-text">
+        <div class="dept">Michigan Dept. of State</div>
+        <div class="name">Vehicle Services Portal</div>
+      </div>
+    </a>
+    <div class="header-actions">
+      <nav class="header-nav" style="display:flex;gap:4px;">
+        <a href="#">Renew Registration</a>
+        <a href="#">Title Transfer</a>
+        <a href="#">Driver Records</a>
+      </nav>
+      <!-- Logged-out button -->
+      <button class="mipass-login-btn" id="headerLoginBtn" onclick="goLogin()">
+        <div class="mipass-logo-mini"><span>MI</span></div>
+        Sign in with MiPASS
+      </button>
+      <!-- Logged-in badge -->
+      <div class="user-badge" id="headerUserBadge">
+        <div>
+          <div class="ub-name" id="badgeName"></div>
+          <div class="ub-sin"  id="badgeSin"></div>
+        </div>
+        <span class="ub-out" onclick="signOut()">Sign out</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-label">Vehicle &amp; Driver Services</div>
+    <h1>Michigan DMV Online Portal</h1>
+    <p>Renew your registration, transfer titles, order driving records, and more — all in one place.</p>
+  </div>
+</section>
+
+<div class="main">
+  <div>
+
+    <!-- LOGGED OUT -->
+    <div class="login-prompt" id="loginPrompt">
+      <div class="lp-icon">🔐</div>
+      <h2>Sign In to Access Your Services</h2>
+      <p>Use your MiPASS account to securely access Michigan DMV services. Your identity is verified instantly using the State Identity Registry.</p>
+      <button class="mipass-big-btn" onclick="goLogin()">
+        <div class="mipass-badge-big"><span>MI</span></div>
+        Sign In with MiPASS
+      </button>
+      <div class="powered-by">
+        Secured by <a href="https://miservices.github.io/mipass/" target="_blank">MiPASS</a> — Michigan State Identity Authentication
+      </div>
+    </div>
+
+    <!-- LOGGED IN -->
+    <div class="logged-in-content" id="loggedInContent">
+
+      <!-- Identity card -->
+      <div class="identity-card">
+        <div class="ic-header">
+          <div class="ic-title">🪪 Verified Identity</div>
+          <div class="ic-verified">MiPASS Authenticated</div>
+        </div>
+        <div class="ic-grid">
+          <div class="ic-field full">
+            <div class="ic-label">Full Name</div>
+            <div class="ic-value" id="icName">—</div>
+          </div>
+          <div class="ic-field">
+            <div class="ic-label">State ID Number (SIN)</div>
+            <div class="ic-value mono" id="icSin">—</div>
+          </div>
+          <div class="ic-field">
+            <div class="ic-label">Date of Birth</div>
+            <div class="ic-value" id="icDob">—</div>
+          </div>
+          <div class="ic-field">
+            <div class="ic-label">Roblox Username</div>
+            <div class="ic-value" id="icUser">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Services -->
+      <div class="services-section">
+        <h2>Available Services</h2>
+        <div class="services-grid">
+          <a class="service-card" href="#">
+            <div class="sc-icon">🚗</div>
+            <div class="sc-title">Renew Vehicle Registration</div>
+            <div class="sc-desc">Renew your plates and registration sticker online.</div>
+            <div class="sc-arrow">Access Service →</div>
+          </a>
+          <a class="service-card" href="#">
+            <div class="sc-icon">📄</div>
+            <div class="sc-title">Title Transfer</div>
+            <div class="sc-desc">Transfer a vehicle title after a sale or gift.</div>
+            <div class="sc-arrow">Access Service →</div>
+          </a>
+          <a class="service-card" href="#">
+            <div class="sc-icon">📋</div>
+            <div class="sc-title">Order Driving Record</div>
+            <div class="sc-desc">Request your official Michigan driving record.</div>
+            <div class="sc-arrow">Access Service →</div>
+          </a>
+          <a class="service-card" href="#">
+            <div class="sc-icon">🪪</div>
+            <div class="sc-title">Replace License / ID</div>
+            <div class="sc-desc">Report a lost or stolen driver's license or state ID.</div>
+            <div class="sc-arrow">Access Service →</div>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-card">
+      <h3>About MiPASS Sign-In</h3>
+      <div class="mipass-notice">
+        <span class="mn-icon">🔒</span>
+        <span>This portal uses <a href="https://miservices.github.io/mipass/" target="_blank">MiPASS</a> for secure identity verification. Only your name, SIN, and date of birth are shared.</span>
+      </div>
+    </div>
+    <div class="sidebar-card">
+      <h3>Need Help?</h3>
+      <div class="info-list">
+        <div class="info-item">
+          <span class="ii">📞</span>
+          <div><strong>Phone</strong>(517) 322-1460</div>
+        </div>
+        <div class="info-item">
+          <span class="ii">🕐</span>
+          <div><strong>Hours</strong>Mon–Fri, 8am–5pm</div>
+        </div>
+        <div class="info-item">
+          <span class="ii">🏛️</span>
+          <div><strong>In Person</strong>Find a branch office near you</div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-card">
+      <h3>Quick Links</h3>
+      <div class="info-list">
+        <div class="info-item"><span class="ii">🔍</span><div>Look up plate / VIN</div></div>
+        <div class="info-item"><span class="ii">📍</span><div>Find a Secretary of State office</div></div>
+        <div class="info-item"><span class="ii">📅</span><div>Schedule an appointment</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="fn">Michigan Dept. of State — Vehicle Services</div>
+      <p>Official online portal for Michigan vehicle and driver services. Not an official government website.</p>
+    </div>
+  </div>
+  <div class="footer-inner footer-bottom">
+    <span>This is not an official government website and does not represent any real government body.</span>
+  </div>
+</footer>
+
+<script>
+const MIPASS_LOGIN_URL = 'https://miservices.github.io/mipass/login/';
+const THIS_URL         = window.location.href.split('?')[0];
+const SITE_NAME        = 'Michigan DMV Vehicle Services Portal';
+
+// ── Build MiPASS login URL with redirect back here ──
+function goLogin() {
+  const url = MIPASS_LOGIN_URL
+    + '?redirect_uri=' + encodeURIComponent(THIS_URL)
+    + '&site_name='    + encodeURIComponent(SITE_NAME);
+  window.location.href = url;
+}
+
+// ── Read MiPASS callback params from URL ────────────
+function init() {
+  const params = new URLSearchParams(window.location.search);
+  const sin    = params.get('mipass_sin');
+  const name   = params.get('mipass_name');
+  const dob    = params.get('mipass_dob');
+  const user   = params.get('mipass_user');
+
+  if (sin && name) {
+    // Clean URL
+    window.history.replaceState({}, '', window.location.pathname);
+    setLoggedIn({ sin, name, dob, user });
+  }
+}
+
+function setLoggedIn(d) {
+  // Format DOB nicely
+  let dobDisplay = d.dob || '—';
+  try {
+    if (d.dob) dobDisplay = new Date(d.dob + 'T12:00:00')
+      .toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  } catch(e) {}
+
+  // Identity card
+  document.getElementById('icName').textContent = d.name;
+  document.getElementById('icSin').textContent  = d.sin;
+  document.getElementById('icDob').textContent  = dobDisplay;
+  document.getElementById('icUser').textContent = d.user || '—';
+
+  // Header badge
+  document.getElementById('badgeName').textContent = d.name;
+  document.getElementById('badgeSin').textContent  = 'SIN ' + d.sin;
+
+  // Swap UI
+  document.getElementById('loginPrompt').style.display      = 'none';
+  document.getElementById('loggedInContent').style.display  = 'block';
+  document.getElementById('headerLoginBtn').style.display   = 'none';
+  document.getElementById('headerUserBadge').style.display  = 'flex';
+}
+
+function signOut() {
+  window.location.href = window.location.pathname;
+}
+
+window.goLogin  = goLogin;
+window.signOut  = signOut;
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
