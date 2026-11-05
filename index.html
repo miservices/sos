@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Michigan Secretary of State</title>
+<link rel="icon" type="image/png" href="/sos/images/favicon.png">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -584,6 +585,31 @@
     .footer-grid { grid-template-columns: 1fr; }
     nav { display: none; }
   }
+
+  /* Icons (replace emoji) */
+  svg{display:block}
+  .quick-link .icon{color:var(--navy)}
+  .quick-link .icon svg{width:22px;height:22px}
+  .quick-link:hover .icon{color:var(--white)}
+  .card-icon{width:48px;height:48px;border-radius:12px;background:#e8f0f9;color:var(--navy);display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+  .card-icon svg{width:26px;height:26px}
+  .service-card:hover .card-icon{background:var(--navy);color:var(--white)}
+  .at-icon{width:42px;height:42px;border-radius:10px;background:#e8f0f9;color:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .at-icon svg{width:22px;height:22px}
+  .dropdown a .di{display:flex;align-items:center;justify-content:center;color:var(--navy)}
+  .dropdown a .di svg{width:17px;height:17px}
+  .nav-item > a .chevron{width:11px;height:11px;font-size:0}
+  .alert-bar .alert-icon{color:var(--gold);flex-shrink:0;margin-top:1px}
+  .alert-bar .alert-icon svg{width:22px;height:22px}
+  .nav-item:focus-within .dropdown{display:block}
+  .menu-btn{display:none;background:var(--navy);color:#fff;border:0;border-radius:6px;font:inherit;font-weight:700;font-size:.9rem;padding:9px 16px;cursor:pointer}
+  @media (max-width: 600px) {
+    .menu-btn{display:block}
+    nav.open{display:flex;flex-direction:column;align-items:stretch;position:absolute;top:100%;left:0;right:0;background:#fff;padding:10px 16px 16px;border-bottom:4px solid var(--gold);box-shadow:0 12px 24px rgba(0,0,0,.12);max-height:75vh;overflow:auto}
+    nav.open .dropdown{display:block;position:static;box-shadow:none;border:0;border-left:3px solid var(--gold);border-radius:0;margin:0 0 8px 8px;padding:2px 0;animation:none}
+    nav.open .nav-item > a .chevron{display:none}
+    nav.open .nav-cta{margin:8px 0 0;text-align:center;justify-content:center}
+  }
 </style>
 </head>
 <body>
@@ -594,7 +620,7 @@
     <span>This is not an official government website and does not represent any real government body or authority.</span>
     <div class="links">
       <a href="#">Michigan.gov</a>
-      <a href="/sos/contact/">Contact Us</a>
+      <a href="https://migovt.org/sos/contact/">Contact Us</a>
     </div>
   </div>
 </div>
@@ -608,59 +634,60 @@
         <div class="dept">Secretary of State</div>
       </div>
     </a>
-    <nav>
+    <nav id="mainNav">
       <div class="nav-item">
-        <a href="#">About <span class="chevron">▼</span></a>
+        <a href="#">About <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
         <div class="dropdown">
-          <a href="/sos/about/"><span class="di">ℹ️</span>About</a>
-          <a href="/sos/news/"><span class="di">📰</span>News & Press Releases</a>
-          <a href="/sos/careers/"><span class="di">💼</span>Careers</a>
+          <a href="https://migovt.org/sos/about/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></span>About</a>
+          <a href="https://migovt.org/sos/news/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h13v14H6a2 2 0 0 1-2-2zM17 9h3v8a2 2 0 0 1-2 2M7 9h7M7 13h7"/></svg></span>News & Press Releases</a>
+          <a href="https://migovt.org/sos/careers/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/></svg></span>Careers</a>
         </div>
       </div>
       <div class="nav-item">
-        <a href="#">Online Services<span class="chevron">▼</span></a>
+        <a href="#">Online Services<svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
         <div class="dropdown">
         <div class="dropdown-label">Citizenship</div>
-          <a href="/sos/citizenship/"><span class="di">🪪</span> Apply for Citizenship</a>
+          <a href="https://migovt.org/sos/citizenship/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.6-1.6 1.8-2.2 3-2.2s2.4.6 3 2.2M14.5 10h4M14.5 13.5h3"/></svg></span> Apply for Citizenship</a>
           <div class="dropdown-divider"></div>
           <div class="dropdown-label">SIN Services</div>
-          <a href="/sos/citizenship/"><span class="di">❓</span> What is a SIN?</a>
-          <a href="/sos/citizenship/"><span class="di">🔐</span> Manage your SIN</a>
+          <a href="https://migovt.org/sos/citizenship/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 1-1 1.7M12 17v.01"/></svg></span> What is a SIN?</a>
+          <a href="https://migovt.org/sos/citizenship/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span> Manage your SIN</a>
           <div class="dropdown-divider"></div>
           <div class="dropdown-label">Licenses &amp; IDs</div>
-          <a href="/sos/realid/"><span class="di">⭐</span> Get a REAL ID</a>
-          <a href="/sos/cdl/"><span class="di">🚛</span> CDL Licenses</a>
-          <a href="/sos/driving-records/"><span class="di">📄</span> Order Driving Record</a>
+          <a href="https://migovt.org/sos/realid/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg></span> Get a REAL ID</a>
+          <a href="https://migovt.org/sos/cdl/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h11v10H2zM13 9h5l3 3v4h-8z"/><circle cx="6.5" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg></span> CDL Licenses</a>
+          <a href="https://migovt.org/sos/driving-records/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg></span> Order Driving Record</a>
         </div>
       </div>
       <div class="nav-item">
-        <a href="#">Business<span class="chevron">▼</span></a>
+        <a href="#">Business<svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
         <div class="dropdown">
           <div class="dropdown-label">Entity Services</div>
-          <a href="/sos/business/file/new/"><span class="di">🏢</span> File a New Business</a>
-          <a href="/sos/business/file/report/"><span class="di">📝</span> Annual Report Filing</a>
-          <a href="/sos/business/search/"><span class="di">🔍</span> Business Entity Search</a>
+          <a href="https://migovt.org/sos/business/file/new/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V4h10v17M14 9h6v12M2 21h20M8 8h2M8 12h2M8 16h2"/></svg></span> File a New Business</a>
+          <a href="https://migovt.org/sos/business/file/report/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></svg></span> Annual Report Filing</a>
+          <a href="https://migovt.org/sos/business/search/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span> Business Entity Search</a>
           <div class="dropdown-divider"></div>
           <div class="dropdown-label">Notary</div>
-          <a href="/sos/notary/"><span class="di">✍️</span> Notary Public Commission</a>
+          <a href="https://migovt.org/sos/notary/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21c3 0 4-2 6-2s3 2 6 2M14 5l5 5-9 9H5v-5z"/></svg></span> Notary Public Commission</a>
         </div>
       </div>
       <div class="nav-item">
-        <a href="#">Elections <span class="chevron">▼</span></a>
+        <a href="#">Elections <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a>
         <div class="dropdown">
           <div class="dropdown-label">Voters</div>
-          <a href="/sos/vote/"><span class="di">🗳️</span> Register to Vote</a>
-          <a href="/sos/vote/absentee/"><span class="di">📬</span> Absentee Ballot</a>
-          <a href="/sos/vote/polling/"><span class="di">📍</span> Find My Polling Place</a>
-          <a href="/sos/vote/results/"><span class="di">📊</span> Election Results</a>
+          <a href="https://migovt.org/sos/vote/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14h16v6H4zM4 14l2-5h12l2 5"/><path d="M9 4h6v5H9z"/></svg></span> Register to Vote</a>
+          <a href="https://migovt.org/sos/vote/absentee/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="m3 8 9 6 9-6"/></svg></span> Absentee Ballot</a>
+          <a href="https://migovt.org/sos/vote/polling/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span> Find My Polling Place</a>
+          <a href="https://migovt.org/sos/vote/results/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span> Election Results</a>
           <div class="dropdown-divider"></div>
           <div class="dropdown-label">Candidates</div>
-          <a href="/sos/elections/canidates/finance/"><span class="di">💰</span> Campaign Finance</a>
-          <a href="/sos/elections/canidates/filing/"><span class="di">📋</span> Candidate Filing</a>
+          <a href="https://migovt.org/sos/elections/candidates/finance/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.2c-.5-.8-1.4-1.2-2.5-1.2-1.4 0-2.5.7-2.5 1.8s1 1.5 2.5 1.8 2.5.7 2.5 1.8-1.1 1.8-2.5 1.8c-1.1 0-2-.4-2.5-1.2M12 6v2M12 16v2"/></svg></span> Campaign Finance</a>
+          <a href="https://migovt.org/sos/elections/candidates/filing/"><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6v3H9z"/><path d="M7 5H5v16h14V5h-2M9 12h6M9 16h4"/></svg></span> Candidate Filing</a>
         </div>
       </div>
-      <a class="nav-cta" href="/sos/appointment/">Schedule Appointment</a>
+      <a class="nav-cta" href="https://migovt.org/sos/appointment/">Schedule Appointment</a>
     </nav>
+    <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mainNav">Menu</button>
   </div>
 </header>
 
@@ -680,29 +707,29 @@
 <!-- QUICK LINKS -->
 <div class="quick-links">
   <div class="inner">
-    <a class="quick-link" href="/sos/citizenship/">
-      <div class="icon">🪪</div>
+    <a class="quick-link" href="https://migovt.org/sos/citizenship/">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.6-1.6 1.8-2.2 3-2.2s2.4.6 3 2.2M14.5 10h4M14.5 13.5h3"/></svg></div>
       <div class="ql-text">
         <div class="ql-title">Apply for Citizenship</div>
         <div class="ql-sub">Apply or check eligibility</div>
       </div>
     </a>
-        <a class="quick-link" href="/sos/realid/">
-      <div class="icon">⭐</div>
+        <a class="quick-link" href="https://migovt.org/sos/realid/">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg></div>
       <div class="ql-text">
         <div class="ql-title">Get a REAL ID</div>
         <div class="ql-sub">Apply or upgrade license</div>
       </div>
     </a>
-    <a class="quick-link" href="/sos/vote/">
-      <div class="icon">🗳️</div>
+    <a class="quick-link" href="https://migovt.org/sos/vote/">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14h16v6H4zM4 14l2-5h12l2 5"/><path d="M9 4h6v5H9z"/></svg></div>
       <div class="ql-text">
         <div class="ql-title">Voter Registration</div>
         <div class="ql-sub">Register or update info</div>
       </div>
     </a>
-    <a class="quick-link" href="/sos/business/search/">
-      <div class="icon">🔎</div>
+    <a class="quick-link" href="https://migovt.org/sos/business/search/">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
       <div class="ql-text">
         <div class="ql-title">Search Businesses</div>
         <div class="ql-sub">Browse business listings</div>
@@ -715,34 +742,34 @@
 <!-- SERVICES -->
 <section class="services">
   <div class="alert-bar">
-    <div class="alert-icon">⚠️</div>
+    <div class="alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20z"/><path d="M12 10v5M12 17.5v.01"/></svg></div>
     <div class="alert-text">
-      <strong>Notice:</strong> REAL ID requirements go into effect May 7, 2025. A Michigan Enhanced Driver's License or REAL ID is required for domestic flights and federal buildings. <a class="alert-link" href="/sos/realid/">Learn more ></a>
+      <strong>Notice:</strong> REAL ID requirements go into effect May 7, 2025. A Michigan Enhanced Driver's License or REAL ID is required for domestic flights and federal buildings. <a class="alert-link" href="https://migovt.org/sos/realid/">Learn more →</a>
     </div>
   </div>
 
   <div class="section-header">
     <div class="section-title">Popular <span>Services</span></div>
-    <a class="section-link" href="#">View all services ></a>
+    <a class="section-link" href="#">View all services →</a>
   </div>
   <div class="services-grid">
-    <a class="service-card" href="/sos/license-and-id/">
-      <div class="card-icon">🪪</div>
+    <a class="service-card" href="https://migovt.org/sos/license-and-id/">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.6-1.6 1.8-2.2 3-2.2s2.4.6 3 2.2M14.5 10h4M14.5 13.5h3"/></svg></div>
       <h3>Driver's License & ID</h3>
       <p>Apply for, renew, or replace your Michigan Driver's License, Enhanced DL, REAL ID, or State ID.</p>
-      <div class="card-arrow">Get Started ></div>
+      <div class="card-arrow">Get Started →</div>
     </a>
-    <a class="service-card" href="/sos/business/file/">
-      <div class="card-icon">🏢</div>
+    <a class="service-card" href="https://migovt.org/sos/business/file/">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V4h10v17M14 9h6v12M2 21h20M8 8h2M8 12h2M8 16h2"/></svg></div>
       <h3>Business Filing</h3>
       <p>File, register, or manage your Michigan business entity — LLCs, corporations, nonprofits, and more.</p>
-      <div class="card-arrow">Get Started ></div>
+      <div class="card-arrow">Get Started →</div>
     </a>
-      <a class="service-card" href="/sos/cdl/">
-      <div class="card-icon">🚛</div>
+      <a class="service-card" href="https://migovt.org/sos/cdl/">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h11v10H2zM13 9h5l3 3v4h-8z"/><circle cx="6.5" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg></div>
       <h3>CDL Licenses</h3>
       <p>Apply for, renew, or update your Commercial Driver’s License and view testing requirements and eligibility.</p>
-      <div class="card-arrow">Get Started ></div>
+      <div class="card-arrow">Get Started →</div>
     </a>
   </div>
 </section>
@@ -755,35 +782,35 @@
     <p class="sub">Many services can be completed online, but some require an in-person visit. Select the service type below to find available times at a branch near you.</p>
     <div class="appt-types">
       <a class="appt-type" href="#">
-        <div class="at-icon">🪪</div>
+        <div class="at-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.6-1.6 1.8-2.2 3-2.2s2.4.6 3 2.2M14.5 10h4M14.5 13.5h3"/></svg></div>
         <div class="at-info">
           <div class="at-name">Driver's License / State ID</div>
           <div class="at-desc">New, renewal, replacement, or REAL ID upgrade</div>
         </div>
       </a>
       <a class="appt-type" href="#">
-        <div class="at-icon">🚗</div>
+        <div class="at-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16V12l2-5h12l2 5v4zM4 16v2M20 16v2"/><circle cx="8" cy="14" r="1"/><circle cx="16" cy="14" r="1"/></svg></div>
         <div class="at-info">
           <div class="at-name">Vehicle Title Transfer</div>
           <div class="at-desc">Transfer ownership or process a salvage title</div>
         </div>
       </a>
       <a class="appt-type" href="#">
-        <div class="at-icon">🌐</div>
+        <div class="at-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></div>
         <div class="at-info">
           <div class="at-name">Undocumented Individual DL</div>
           <div class="at-desc">Apply under Michigan's expanded eligibility</div>
         </div>
       </a>
       <a class="appt-type" href="#">
-        <div class="at-icon">📋</div>
+        <div class="at-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6v3H9z"/><path d="M7 5H5v16h14V5h-2M9 12h6M9 16h4"/></svg></div>
         <div class="at-info">
           <div class="at-name">Other Branch Services</div>
           <div class="at-desc">Notary, plates, records, and general inquiries</div>
         </div>
       </a>
     </div>
-    <a class="appt-btn" href="#">Find Appointment Times Near Me ></a>
+    <a class="appt-btn" href="#">Find Appointment Times Near Me →</a>
   </div>
 
   <!-- SIDEBAR -->
@@ -827,35 +854,35 @@
   <div class="footer-col">
     <h4>Services & Info</h4>
     <ul>
-      <li><a href="/sos/about/">About the Department</a></li>
-      <li><a href="/sos/news/">News & Press Releases</a></li>
-      <li><a href="/sos/careers/">Careers</a></li>
-      <li><a href="/sos/contact/">Contact Us</a></li>
-      <li><a href="/sos/citizenship/">Apply for Citizenship</a></li>
-      <li><a href="/sos/realid/">Get a REAL ID</a></li>
-      <li><a href="/sos/cdl/">CDL Licenses</a></li>
-      <li><a href="/sos/driving-records/">Driving Records</a></li>
+      <li><a href="https://migovt.org/sos/about/">About the Department</a></li>
+      <li><a href="https://migovt.org/sos/news/">News & Press Releases</a></li>
+      <li><a href="https://migovt.org/sos/careers/">Careers</a></li>
+      <li><a href="https://migovt.org/sos/contact/">Contact Us</a></li>
+      <li><a href="https://migovt.org/sos/citizenship/">Apply for Citizenship</a></li>
+      <li><a href="https://migovt.org/sos/realid/">Get a REAL ID</a></li>
+      <li><a href="https://migovt.org/sos/cdl/">CDL Licenses</a></li>
+      <li><a href="https://migovt.org/sos/driving-records/">Driving Records</a></li>
     </ul>
   </div>
 
   <div class="footer-col">
     <h4>Business</h4>
     <ul>
-      <li><a href="/sos/business/file/new/">File a Business</a></li>
-      <li><a href="/sos/business/file/report/">Annual Reports</a></li>
-      <li><a href="/sos/business/search/">Business Search</a></li>
-      <li><a href="/sos/notary/">Notary Services</a></li>
+      <li><a href="https://migovt.org/sos/business/file/new/">File a Business</a></li>
+      <li><a href="https://migovt.org/sos/business/file/report/">Annual Reports</a></li>
+      <li><a href="https://migovt.org/sos/business/search/">Business Search</a></li>
+      <li><a href="https://migovt.org/sos/notary/">Notary Services</a></li>
     </ul>
   </div>
 
   <div class="footer-col">
     <h4>Elections</h4>
     <ul>
-      <li><a href="/sos/vote/">Register to Vote</a></li>
-      <li><a href="/sos/vote/absentee/">Absentee Ballot</a></li>
-      <li><a href="/sos/vote/polling/">Polling Place Lookup</a></li>
-      <li><a href="/sos/vote/results/">Election Results</a></li>
-      <li><a href="/sos/elections/candidates/finance/">Campaign Finance</a></li>
+      <li><a href="https://migovt.org/sos/vote/">Register to Vote</a></li>
+      <li><a href="https://migovt.org/sos/vote/absentee/">Absentee Ballot</a></li>
+      <li><a href="https://migovt.org/sos/vote/polling/">Polling Place Lookup</a></li>
+      <li><a href="https://migovt.org/sos/vote/results/">Election Results</a></li>
+      <li><a href="https://migovt.org/sos/elections/candidates/finance/">Campaign Finance</a></li>
     </ul>
   </div>
     </div>
@@ -865,5 +892,11 @@
   </div>
 </footer>
 
+<script>
+document.getElementById('menuBtn').addEventListener('click', function(){
+  var n = document.getElementById('mainNav'), o = n.classList.toggle('open');
+  this.setAttribute('aria-expanded', o); this.textContent = o ? 'Close' : 'Menu';
+});
+</script>
 </body>
 </html>
