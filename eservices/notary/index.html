@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notarial Services | SOS e-Services | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+<style>
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}@media(max-width:760px){.two{grid-template-columns:1fr}}
+.fld select,.fld input,.fld textarea{width:100%}
+.chk{display:flex;gap:8px;align-items:flex-start;margin:10px 0;font-size:14px}.chk input{margin-top:3px;width:auto}
+.sec{border-top:1px solid var(--line);margin-top:16px;padding-top:14px}.sec>h3{margin:0 0 8px;font-size:16px;font-weight:800}.sec .sub{margin:0 0 8px}
+.nt{border:1px solid var(--line);border-radius:20px;background:#fff;overflow:hidden;margin-top:6px}
+.nt-hd{position:relative;background:linear-gradient(135deg,#07474e 0%,#0e7c86 75%,#13919b 100%);color:#fff;padding:20px 26px 22px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;overflow:hidden}
+.nt-hd:before{content:"";position:absolute;inset:0;background:repeating-radial-gradient(circle at 100% 0%,rgba(255,255,255,.07) 0 2px,transparent 2px 16px)}.nt-hd>*{position:relative}
+.nt-hd small{display:block;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;opacity:.85}.nt-hd h3{margin:6px 0 4px;font-size:27px;font-weight:800;letter-spacing:-.015em}.nt-hd p{margin:0;opacity:.92;font-size:15px}
+.nt-st{display:inline-block;margin-top:12px;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:800;background:#e3f4ea;color:#15602f}.nt-st.o{background:#ffe9dc;color:#b8501d}.nt-st.n{background:#eceff1;color:#4c6168}
+.nt-stamp{width:150px;height:150px;color:#fff;filter:drop-shadow(0 4px 10px rgba(0,0,0,.25))}
+@media(max-width:700px){.nt-hd{grid-template-columns:1fr}.nt-stamp{display:none}}
+.nt-id{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;border-bottom:1px solid var(--line)}@media(max-width:860px){.nt-id{grid-template-columns:1fr 1fr}}
+.nt-id>div{padding:16px 22px;border-left:1px solid var(--line)}.nt-id>div:first-child{border-left:0;background:var(--sky)}
+.nt-id small{display:block;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--muted);margin-bottom:5px}.nt-id b{display:block;font-size:17px;font-weight:800;line-height:1.25}.nt-id span{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.nt-id>div:first-child b{font:600 25px 'IBM Plex Mono',ui-monospace,monospace;color:#07474e;letter-spacing:.03em}
+.nt-ft{display:flex;gap:10px;flex-wrap:wrap;padding:16px 22px 20px}.nt .fx{border-top:1px solid var(--line);padding:18px 24px 22px;background:#fbfdfd}
+.nt>.alert{margin:14px 22px 0}
+</style>
+</head>
+<body>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header"></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="nav" data-page="notary"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading notarial services...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">Business and Legal</div><h1>Notarial Services</h1><p>Apply for a notary commission, renew it, or resign. Filings are reviewed by the Office of the Great Seal.</p></div>
+  <div class="stats" id="stats"></div>
+  <div class="pc mt"><h2>Your commission</h2><div id="mine"></div></div>
+  <div class="pc mt" id="apply-box" hidden><h2>Apply for a notary commission</h2>
+    <p class="sub" id="apply-sub"></p><div id="apply"></div></div>
+  <div class="pc mt"><h2>Your filings</h2><div class="rows" id="filings"></div></div>
+</div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
+<script type="module">
+import { submit } from "https://migovt.org/sos/eservices/assets/feedback.js";
+import { boot, el, $, cap, when, fileCase, myCases, getRecord, statusOf, db } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { FEE, TERM_YEARS, RENEW_DAYS, COUNTIES, CERTS, isoDay, daysBetween, plusYears, ageOn, standing } from "https://migovt.org/sos/eservices/assets/notary.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+const ctx = await boot({ page: "notary" });
+const pin = String(ctx.id.pin), today = isoDay(new Date());
+let n = null, cases = [], rec = null;
+try { const s = await getDoc(doc(db, "notaries", pin)); if (s.exists()) n = s.data(); } catch (e) { console.warn(e); }
+try { cases = (await myCases(pin, 100)).filter(r => /^notary\./.test(r.type)); } catch (e) { console.warn(e); }
+try { rec = await getRecord(pin); } catch (e) { console.warn(e); }
+const OPEN = ["open", "in-review"], pend = cases.find(r => OPEN.includes(r.status));
+const shortDay = iso => { const m = /^(\d{4})-(\d\d)-(\d\d)/.exec(iso || ""); return m ? new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Not set"; };
+const clean = s => String(s || "").replace(/\s+/g, " ").trim();
+const norm = s => clean(s).toLowerCase();
+const isoDob = v => { const s = String(v || ""); let m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s); if (m) return m[3] + "-" + m[1].padStart(2, "0") + "-" + m[2].padStart(2, "0"); m = /^(\d{4})-(\d\d)-(\d\d)/.exec(s); return m ? m[1] + "-" + m[2] + "-" + m[3] : ""; };
+const st = standing(n, today), commissioned = n && ["active", "suspended"].includes(String(n.status || "active")) && st.code !== "expired" ;
+
+$("stats").append(...[["Commission", st.label], ["Number", n ? n.number : "None"], ["Expires", n && st.code !== "resigned" ? shortDay(n.expiresAt) : "Not applicable"], ["Open filings", String(cases.filter(r => OPEN.includes(r.status)).length)]]
+  .map(([a, b]) => el("div", { class: "stat" }, el("span", { text: a }), el("b", { text: b }))));
+
+/* The round notary stamp, drawn as SVG. */
+function stamp(x) {
+  const ns = "http://www.w3.org/2000/svg", s = document.createElementNS(ns, "svg"); s.setAttribute("viewBox", "0 0 200 200"); s.setAttribute("class", "nt-stamp");
+  s.innerHTML = '<circle cx="100" cy="100" r="96" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="100" cy="100" r="88" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="100" cy="100" r="58" fill="none" stroke="currentColor" stroke-width="1.5"/>'
+    + '<path id="ta" d="M100 100 m-73 0 a73 73 0 1 1 146 0" fill="none"/><path id="tb" d="M100 100 m-81 0 a81 81 0 0 0 162 0" fill="none"/>'
+    + '<text font-size="12" font-weight="800" letter-spacing="3" fill="currentColor" font-family="Plus Jakarta Sans,sans-serif"><textPath href="#ta" startOffset="50%" text-anchor="middle">NOTARY PUBLIC \u00b7 STATE OF MICHIGAN</textPath></text>'
+    + '<text font-size="11" font-weight="700" letter-spacing="2" fill="currentColor" font-family="Plus Jakarta Sans,sans-serif"><textPath href="#tb" startOffset="50%" text-anchor="middle">' + String(x.county || "").toUpperCase() + ' COUNTY</textPath></text>'
+    + '<text x="100" y="92" text-anchor="middle" font-size="22" font-weight="800" fill="currentColor" font-family="IBM Plex Mono,monospace">' + String(x.number || "") + '</text>'
+    + '<text x="100" y="112" text-anchor="middle" font-size="9" font-weight="700" letter-spacing="1.5" fill="currentColor" font-family="Plus Jakarta Sans,sans-serif">COMMISSION NO.</text>'
+    + '<text x="100" y="132" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" font-family="Plus Jakarta Sans,sans-serif">EXPIRES ' + shortDay(x.expiresAt).toUpperCase() + '</text>';
+  return s;
+}
+
+/* One form for applying and renewing. */
+function form(mode) {
+  const wrap = el("div", { class: mode === "apply" ? "" : "fx" }), msg = el("span", { class: "empty" });
+  const f = (l, c, h) => el("div", { class: "fld" }, el("label", { text: l }), c, h || "");
+  const sec = (t, sub, ...k) => el("div", { class: "sec" }, el("h3", { text: t }), sub ? el("p", { class: "sub", text: sub }) : "", ...k);
+  const inp = (v, o = {}) => el("input", { autocomplete: "off", value: v || "", ...o });
+  const A = (n && n.address) || {};
+  const county = el("select", {}, el("option", { value: "", text: "Choose a county" }), COUNTIES.map(c => el("option", { value: c, text: c + " County" }))); county.value = n ? n.county || "" : "";
+  const street = inp(A.street, { maxlength: "100" }), city = inp(A.city, { maxlength: "60" }), zip = inp(A.zip, { maxlength: "10", inputmode: "numeric" }), state = inp("MI", { disabled: "" });
+  const certs = CERTS.map(([k, t]) => { const c = el("input", { type: "checkbox" }); return { k, c, row: el("label", { class: "chk" }, c, t) }; });
+  const sig = inp("", { maxlength: "80", placeholder: "Type your full legal name" });
+  const go = el("button", { class: "btn2", type: "button", text: mode === "apply" ? "Submit application" : "Request renewal" });
+  const cancel = el("button", { class: "btn2 s", type: "button", text: "Cancel" }); cancel.addEventListener("click", () => wrap.remove());
+  wrap.append(
+    sec("Where you live", "Your commission is for the county you live in. Your address is used for your stamp and records.", f("County of residence", county), f("Street address", street), el("div", { class: "two" }, f("City", city), el("div", { class: "two" }, f("State", state), f("ZIP code", zip)))),
+    sec("Oath and certification", "", ...certs.map(c => c.row)),
+    sec("Electronic signature", "Typing your name is your signature. It is dated today.", el("div", { class: "two" }, f("Signature", sig), f("Date signed", inp(shortDay(today), { disabled: "" })))),
+    el("div", { class: "alert" }, "Fee: $" + FEE.toFixed(2) + ". It is charged only if the Office approves your " + (mode === "apply" ? "application. Your commission lasts " + TERM_YEARS + " years." : "renewal. Your commission is extended " + TERM_YEARS + " years.")),
+    el("div", { class: "mt" }, go, " ", ...(mode === "apply" ? [] : [cancel]), " ", msg));
+  const check = () => {
+    if (!county.value) return "Choose your county of residence.";
+    if (clean(street.value).length < 3 || clean(city.value).length < 2) return "Enter your full street address.";
+    if (!/^\d{5}(-\d{4})?$/.test(zip.value.trim())) return "Enter a 5 digit ZIP code.";
+    if (certs.some(c => !c.c.checked)) return "Tick every box in the oath.";
+    const me = norm(ctx.id.name || ""); if (norm(sig.value).split(" ").length < 2 || (me && norm(sig.value) !== me)) return "Sign with your full legal name" + (ctx.id.name ? ", exactly as " + ctx.id.name : "") + ".";
+    return "";
+  };
+  go.addEventListener("click", async () => {
+    const bad = check(); if (bad) { msg.textContent = " " + bad; return; }
+    go.disabled = true; msg.textContent = "";
+    const d = { county: county.value, address: { street: clean(street.value), city: clean(city.value), state: "MI", zip: zip.value.trim() }, certified: CERTS.map(c => c[0]), signature: { name: clean(sig.value), date: today }, fee: FEE.toFixed(2) };
+    const ok = await submit({ working: mode === "apply" ? "Submitting your application" : "Submitting your renewal",
+      work: () => fileCase(ctx, mode === "apply" ? "notary.commission" : "notary.renewal", mode === "apply" ? "Notary commission: " + county.value + " County" : "Notary renewal: " + (n && n.number), mode === "apply" ? d : { ...d, number: n.number }, "elections"),
+      done: r => ({ title: mode === "apply" ? "Application submitted" : "Renewal submitted", body: "Your " + (mode === "apply" ? "notary commission application" : "renewal") + " is with the Office of the Great Seal.", ref: r && r.id,
+        next: ["The Office reviews it. You will get a notice when it is decided.", "$" + FEE.toFixed(2) + " is charged only if it is approved.", "Do not notarize anything until your commission is active."] }) });
+    if (!ok) go.disabled = false;
+  });
+  return wrap;
+}
+
+/* ---- your commission ---- */
+const box = $("mine");
+if (!n) box.append(el("div", { class: "empty", text: "You do not have a notary commission." }));
+else {
+  const card = el("div", { class: "nt" }), acts = el("div", { class: "nt-ft" });
+  const left = st.left;
+  card.append(el("div", { class: "nt-hd" }, el("div", {}, el("small", { text: "Notary public \u00b7 State of Michigan" }), el("h3", { text: n.name || ctx.id.name }), el("p", { text: (n.county || "") + " County" }), el("span", { class: "nt-st " + st.cls, text: st.label })), stamp(n)),
+    el("div", { class: "nt-id" }, ...[["Commission no.", n.number, ""], ["Issued", shortDay(n.issuedAt), ""], ["Expires", st.code === "resigned" ? "Not applicable" : shortDay(n.expiresAt), st.code === "active" ? left + " days left" : st.code === "expired" ? Math.abs(left) + " days ago" : ""], ["County", (n.county || "Not set") + " County", ""]]
+      .map(([k, v, s]) => el("div", {}, el("small", { text: k }), el("b", { text: v }), s ? el("span", { text: s }) : ""))));
+  if (st.code === "suspended") card.append(el("div", { class: "alert warn" }, el("b", { text: "Your commission is suspended. " }), "You cannot notarize until the Office lifts the suspension."));
+  if (st.code === "revoked") card.append(el("div", { class: "alert warn" }, el("b", { text: "Your commission was revoked. " }), "You can apply for a new commission once the Office allows it."));
+  if (st.code === "expired") card.append(el("div", { class: "alert warn" }, el("b", { text: "Your commission has expired. " }), "You cannot notarize. Apply for a new commission below."));
+  if (pend) card.append(el("div", { class: "alert" }, "A filing is already under review: " + pend.title + "."));
+  const addBtn = (label, primary, fn) => { const x = el("button", { class: primary ? "btn2" : "btn2 s", type: "button", text: label }); x.addEventListener("click", fn); acts.append(x); };
+  if (!pend && ["active", "suspended"].includes(st.code)) {
+    if (st.code === "active" && left <= RENEW_DAYS) addBtn("Renew commission", true, () => { card.querySelectorAll(".fx").forEach(x => x.remove()); card.append(form("renew")); });
+    addBtn("Resign commission", false, () => {
+      card.querySelectorAll(".fx").forEach(x => x.remove());
+      const sure = el("input", { type: "checkbox" }), go = el("button", { class: "btn2", type: "button", text: "Request resignation" }), msg = el("span", { class: "empty" });
+      card.append(el("div", { class: "fx" }, el("div", { class: "alert warn" }, "Resigning ends your commission. You can no longer notarize. You can apply again later."), el("label", { class: "chk" }, sure, "I want to resign my notary commission."), go, " ", msg));
+      go.addEventListener("click", async () => { if (!sure.checked) { msg.textContent = " Tick the box to confirm."; return; } go.disabled = true;
+        const ok = await submit({ working: "Submitting your resignation", work: () => fileCase(ctx, "notary.resignation", "Notary resignation: " + n.number, { number: n.number, fee: "0.00" }, "elections"),
+          done: r => ({ title: "Resignation submitted", body: "Your commission stays active until the Office approves it.", ref: r && r.id, next: ["The Office reviews it and you will get a notice.", "There is no fee."] }) });
+        if (!ok) go.disabled = false; });
+    });
+  }
+  if (acts.children.length) card.append(acts);
+  box.append(card);
+}
+
+/* ---- apply ---- */
+const canApply = !pend && (!n || ["expired", "resigned"].includes(st.code));
+if (canApply) {
+  $("apply-box").hidden = false;
+  const dob = isoDob((rec && rec.dob) || ctx.id.dob), citizen = ["Citizen", "Resident"].includes(statusOf(rec));
+  $("apply-sub").textContent = "You have to be at least 18 and a citizen or resident of Michigan. The fee is $" + FEE.toFixed(2) + ", charged only if you are approved. A commission lasts " + TERM_YEARS + " years.";
+  if (!citizen) $("apply").append(el("div", { class: "alert warn" }, el("b", { text: "You are not eligible yet. " }), "Only citizens and residents can be notaries. See ", el("a", { href: "../identification/", text: "Identification" }), " for your status."));
+  else if (dob && ageOn(dob) < 18) $("apply").append(el("div", { class: "alert warn" }, el("b", { text: "You are not eligible yet. " }), "A notary has to be at least 18 years old."));
+  else $("apply").append(form("apply"));
+}
+
+/* ---- filings ---- */
+const fl = $("filings");
+if (!cases.length) fl.append(el("div", { class: "empty", text: "You have not filed anything yet." }));
+cases.forEach(r => { const act = OPEN.includes(r.status), res = r.result || "";
+  fl.append(el("div", {}, el("div", {}, el("b", { text: r.title }), el("small", { text: "Filed " + when(r.createdAt) })), el("div", { class: "r" }, el("span", { class: "pill " + (res === "approved" ? "g" : act ? "o" : "n"), text: act ? (r.status === "open" ? "Submitted" : "Under review") : cap(res || r.status) })))); });
+</script>
+</body>
+</html>

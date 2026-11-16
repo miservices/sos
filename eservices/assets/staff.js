@@ -18,6 +18,7 @@
      audit/{id}   { actorPin, actorName, role, bureau, action, target, detail, at } */
 import { boot, db, E, $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, logActivity, logAccess, charge, list, money, getRecord, setRecordStatus, applyNameToRecord, applyNameToMiGOVT, applyNameToCourts, statusOf, STATUSES, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { submit } from "https://migovt.org/sos/eservices/assets/feedback.js";
+import { notaryNumber, plusYears, TERM_YEARS as NOTARY_TERM } from "https://migovt.org/sos/eservices/assets/notary.js";
 import { TYPES as BIZ_TYPES, plusYear, bizNumber } from "https://migovt.org/sos/eservices/assets/business.js";
 import { doc, getDoc, getDocs, addDoc, updateDoc, setDoc, collection, query, where, limit, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 export { $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, E, db, list, money, getRecord, setRecordStatus, applyNameToRecord, applyNameToMiGOVT, applyNameToCourts, statusOf, STATUSES, recordDate };
@@ -85,7 +86,7 @@ export const CASE_TYPES = {
   "insurer.license": ["Insurance license", "lara"], "professional.license": ["Professional license application", "lara"], "professional.renewal": ["Professional license renewal", "lara"],
   "record.copy": ["Certified record request", "lara"], "vital.request": ["Vital record request", "lara"],
   "voter.registration": ["Voter registration", "elections"], "candidate.filing": ["Candidate filing", "elections"], "finance.report": ["Campaign finance report", "elections"],
-  "business.registration": ["Business registration", "lara"], "business.annual-report": ["Business annual report", "lara"], "business.amendment": ["Business amendment", "lara"], "business.dissolution": ["Business dissolution", "lara"], "business.reinstatement": ["Business reinstatement", "lara"], "notary.commission": ["Notary commission", "elections"],
+  "business.registration": ["Business registration", "lara"], "business.annual-report": ["Business annual report", "lara"], "business.amendment": ["Business amendment", "lara"], "business.dissolution": ["Business dissolution", "lara"], "business.reinstatement": ["Business reinstatement", "lara"], "notary.commission": ["Notary commission", "elections"], "notary.renewal": ["Notary renewal", "elections"], "notary.resignation": ["Notary resignation", "elections"],
   "appeal": ["Administrative appeal", "hearings"]
 };
 export const typeLabel = t => (CASE_TYPES[t] || [cap(String(t).replace(/\./g, " "))])[0];
@@ -185,8 +186,8 @@ async function applyElectionCase(ctx, r) {
 }
 
 /* Turns a case's detail into readable rows. Nested lists and objects (business owners, address, agent, signature) are written out, never shown as [object Object]. */
-const DETAIL_LABELS = { typeKey: "Business type key", typeLabel: "Business type", tradeName: "Trade name (DBA)", businessId: "Business record", oldName: "Previous name", certified: "Certifications", fee: "Fee", late: "Days late" };
-const CERT_TEXT = { accurate: "Information is accurate and complete", authorized: "Business is authorized to operate under applicable law", submitter: "Applicant is authorized to submit", notify: "Agrees to notify the Department of material changes" };
+const DETAIL_LABELS = { county: "County of residence", number: "Commission number", typeKey: "Business type key", typeLabel: "Business type", tradeName: "Trade name (DBA)", businessId: "Business record", oldName: "Previous name", certified: "Certifications", fee: "Fee", late: "Days late" };
+const CERT_TEXT = { eligible: "At least 18 and a citizen or resident of Michigan", duties: "Will faithfully perform the duties of a notary public", discipline: "Understands the commission can be suspended or revoked", accurate: "Information is accurate and complete", authorized: "Business is authorized to operate under applicable law", submitter: "Applicant is authorized to submit", notify: "Agrees to notify the Department of material changes" };
 function detailValue(k, v) {
   if (v === null || v === undefined || v === "") return "";
   if (k === "fee") { const n = parseFloat(String(v).replace(/[^0-9.]/g, "")); return isNaN(n) ? String(v) : "$" + n.toFixed(2); }
@@ -212,6 +213,31 @@ function detailGroups(r) {
   if (!(r.type && r.type.startsWith("business."))) return [["Details", rows]];
   const used = new Set(), out = BIZ_GROUPS.map(([t, ks]) => [t, rows.filter(x => ks.includes(x[2]) && used.add(x[2]))]).filter(([, g]) => g.length);
   const rest = rows.filter(x => !used.has(x[2]) && x[2] !== "businessId"); if (rest.length) out.push(["Other", rest]); return out;
+}
+
+/* Approving a notary filing creates or updates the commission at notaries/{pin}. */
+async function applyNotaryCase(ctx, r) {
+  const d = r.detail || {}, now = new Date().toISOString(), day = now.slice(0, 10), by = { updatedBy: ctx.id.pin, updatedAt: serverTimestamp() }, pin = String(r.pin);
+  const ref = doc(db, "notaries", pin), snap = await getDoc(ref), cur = snap.exists() ? snap.data() : null;
+  const fee = parseFloat(String(d.fee || "").replace(/[^0-9.]/g, ""));
+  const bill = async desc => { desc = desc.slice(0, 120); if (fee > 0) { const prior = await list("transactions", r.pin, 100).catch(() => []); if (!prior.some(t => t.desc === desc)) await charge(r.pin, desc, fee); } };
+  if (r.type === "notary.commission") {
+    if (cur && cur.status === "active" && cur.expiresAt >= day) return "This person already holds an active commission (" + cur.number + ").";
+    if (!d.county || !d.address) return "This application has no county or address, so no commission was created.";
+    let num = ""; for (let i = 0; i < 10 && !num; i++) { const x = notaryNumber(); if ((await getDocs(query(collection(db, "notaries"), where("number", "==", x), limit(1)))).empty) num = x; }
+    if (!num) return "A commission number could not be generated. Approve it again.";
+    await setDoc(ref, { pin, name: r.name || "", number: num, county: d.county, address: d.address, status: "active", issuedAt: day, expiresAt: plusYears(day, NOTARY_TERM), signature: { name: (d.signature && d.signature.name) || "", signedAt: now }, caseId: r.id, ...by });
+    await audit(ctx, "notary.commission", r.pin, num + ", " + d.county + " County"); await logActivity(r.pin, "notary.commissioned", "Notary commission issued: " + num, AGENCY); await bill("Notary commission: " + num); return "";
+  }
+  if (!cur) return "This person has no notary commission, so nothing was updated.";
+  if (r.type === "notary.renewal") {
+    const from = cur.expiresAt && cur.expiresAt > day ? cur.expiresAt : day;
+    await updateDoc(ref, { county: d.county || cur.county, address: d.address || cur.address, status: "active", expiresAt: plusYears(from, NOTARY_TERM), renewedAt: now, ...by });
+    await audit(ctx, "notary.renew", r.pin, cur.number); await logActivity(r.pin, "notary.renewed", "Notary commission renewed: " + cur.number, AGENCY); await bill("Notary renewal: " + cur.number);
+  } else if (r.type === "notary.resignation") {
+    await updateDoc(ref, { status: "resigned", resignedAt: now, ...by }); await audit(ctx, "notary.resign", r.pin, cur.number); await logActivity(r.pin, "notary.resigned", "Notary commission resigned: " + cur.number, AGENCY);
+  }
+  return "";
 }
 
 /* Approving a business filing creates or updates the business record at businesses/{id}. Fees are charged once. */
@@ -340,6 +366,9 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
     }
     if (result === "approved" && r.result !== "approved" && /^business\.(registration|annual-report|amendment|dissolution|reinstatement)$/.test(r.type)) {
       try { const w = await applyBusinessCase(ctx, r); if (w) warns.push(w); } catch (e) { console.error(e); warns.push("The business record could not be saved. Check the Firestore rules for businesses."); }
+    }
+    if (result === "approved" && r.result !== "approved" && /^notary\.(commission|renewal|resignation)$/.test(r.type)) {
+      try { const w = await applyNotaryCase(ctx, r); if (w) warns.push(w); } catch (e) { console.error(e); warns.push("The notary record could not be saved. Check the Firestore rules for notaries."); }
     }
     if (result === "approved" && r.result !== "approved" && r.type === "candidate.filing") {
       try { const w = await applyElectionCase(ctx, r); if (w) warns.push(w); } catch (e) { console.error(e); warns.push("The election record could not be saved. Check the Firestore rules for voters and candidates."); }

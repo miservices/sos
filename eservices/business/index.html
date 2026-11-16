@@ -101,7 +101,7 @@ function form(mode, b) {
   const A = (b && b.address) || {}, street = inp(A.street, { maxlength: "100" }), city = inp(A.city, { maxlength: "60" }), zip = inp(A.zip, { maxlength: "10", inputmode: "numeric" });
   const state = inp("MI", { disabled: "" }), site = inp(b && b.website, { maxlength: "120", placeholder: "Optional, for example https://example.com" }), disc = inp(b && b.discord, { maxlength: "120", placeholder: "Optional, a discord.gg invite link" });
   const hint = el("small", { class: "empty" }), fee = el("div", { class: "alert" }), tot = el("small", { class: "empty" });
-  if (b) typeSel.value = b.type;
+  typeSel.value = b ? b.type : "llc";
   const typeKey = () => mode === "register" ? typeSel.value : b.type;
 
   /* owners */
@@ -110,12 +110,14 @@ function form(mode, b) {
     const r = { name: inp(o.name, { maxlength: "80" }), dob: inp(isoDob(o.dob), { type: "date" }), pin: inp(o.pin, { inputmode: "numeric", maxlength: "20" }), pct: inp(o.percent, { inputmode: "decimal", maxlength: "6", placeholder: "0" }) };
     const rm = el("button", { class: "btn2 s", type: "button", text: "Remove" });
     r.box = el("div", { class: "own" }, el("div", { class: "hd" }, el("b", { text: "Owner" }), rm), el("div", { class: "four" }, f("Full legal name", r.name), f("Date of birth", r.dob), f("Personal identification number", r.pin), f("Ownership %", r.pct)));
-    rm.addEventListener("click", () => { if (rows.length <= 1) return; rows.splice(rows.indexOf(r), 1); r.box.remove(); numberRows(); });
+    rm.addEventListener("click", () => { if (rows.length <= 1) return; rows.splice(rows.indexOf(r), 1); r.box.remove(); numberRows(); if (typeof syncAdd === "function") syncAdd(); });
     r.pct.addEventListener("input", total); rows.push(r); ownBox.append(r.box); numberRows(); total();
   };
   const numberRows = () => rows.forEach((r, i) => { r.box.querySelector("b").textContent = "Owner " + (i + 1); r.box.querySelector("button").hidden = rows.length <= 1; });
   const total = () => { const t = rows.reduce((n, r) => n + (parseFloat(r.pct.value) || 0), 0); tot.textContent = "Total ownership: " + (Math.round(t * 1000) / 1000) + "%" + (Math.abs(t - 100) < 0.0005 ? "" : " (must equal 100%)"); };
-  const addBtn = el("button", { class: "btn2 s", type: "button", text: "Add another owner" }); addBtn.addEventListener("click", () => { if (rows.length < TYPES[typeKey()].max) addOwner(); });
+  const addBtn = el("button", { class: "btn2 s", type: "button", text: "Add another owner" }), ownNote = el("small", { class: "empty" });
+  const syncAdd = () => { const T = TYPES[typeKey()], full = rows.length >= T.max; addBtn.disabled = full; ownNote.textContent = full ? (T.max === 1 ? " A " + T.t.toLowerCase() + " has one owner. Choose another business type to add more." : " This business type allows up to " + T.max + " owners.") : ""; };
+  addBtn.addEventListener("click", () => { if (rows.length < TYPES[typeKey()].max) { addOwner(); syncAdd(); } });
   const O = b ? ownersOf(b) : [{ name: ctx.id.name || "", dob: ctx.id.dob || "", pin, percent: "100" }]; O.forEach(addOwner);
 
   /* registered agent */
@@ -134,7 +136,7 @@ function form(mode, b) {
     else if (mode === "report") fee.textContent = "Annual report fee: " + money(T.reportFee) + (st && st.late > 0 ? " plus a " + money(LATE_FEE) + " late fee (" + st.late + " days late)." : ". Your next report will be due " + longDay(plusYear(b.dueDate)) + ".");
     else if (mode === "reinstate") fee.textContent = "To reinstate, you pay the missed report fee (" + money(T.reportFee) + ") plus a " + money(LATE_FEE) + " late fee. Your business returns to Active and the next report is due one year after approval.";
     else fee.textContent = "There is no fee to amend your details.";
-    while (rows.length > T.max) { const r = rows.pop(); r.box.remove(); } numberRows(); total();
+    while (rows.length > T.max) { const r = rows.pop(); r.box.remove(); } numberRows(); total(); syncAdd();
   };
   typeSel.addEventListener("change", refresh);
   const go = el("button", { class: "btn2", type: "button", text: { register: "Submit registration", amend: "Submit amendment", report: "File annual report", reinstate: "Request reinstatement" }[mode] });
@@ -144,7 +146,7 @@ function form(mode, b) {
     sec("Business information", "", ...(mode === "register" ? [f("Business type", typeSel)] : []), el("div", { class: "two" }, f("Business name", name, hint), f("Trade name (DBA)", trade)), f("Business description", desc, descN), f("Industry", ind)),
     sec("Business address", "The principal business address has to be in Michigan.", f("Street address", street), el("div", { class: "two" }, f("City", city), el("div", { class: "two" }, f("State", state), f("ZIP code", zip))),
       el("div", { class: "two" }, f("Business website", site), f("Business Discord server", disc))),
-    sec("Owner information", "List every owner. Ownership has to add up to 100%. Each person is checked against their vital record by PIN and date of birth.", ownBox, el("div", { class: "mt" }, addBtn, " ", tot)),
+    sec("Owner information", "List every owner. Ownership has to add up to 100%. Each person is checked against their vital record by PIN and date of birth.", ownBox, el("div", { class: "mt" }, addBtn, " ", tot, ownNote)),
     sec("Registered agent", "The person who receives legal papers for the business. It can be an owner.", el("div", { class: "mt" }, same), el("div", { class: "two" }, f("Full legal name", aName), el("div", { class: "two" }, f("Date of birth", aDob), f("Personal identification number", aPin)))),
     sec("Certification", "", ...(mode === "report" ? [el("label", { class: "chk" }, operating, "The business is still operating.")] : []), ...certs.map(c => c.row)),
     sec("Electronic signature", "Typing your name here is your signature. It is dated today.", el("div", { class: "two" }, f("Signature", sig), f("Date signed", inp(longDay(today), { disabled: "" })))), fee,
