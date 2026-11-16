@@ -17,8 +17,7 @@
                   Public portal pages create these (status "open"); staff work them here.
      audit/{id}   { actorPin, actorName, role, bureau, action, target, detail, at } */
 import { boot, db, E, $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, logActivity, logAccess, list, money } from "https://migovt.org/sos/eservices/assets/shared.js";
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getFirestore, doc, getDocs, addDoc, updateDoc, collection, query, where, limit, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { doc, getDoc, getDocs, addDoc, updateDoc, collection, query, where, limit, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 export { $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, E, db, list, money };
 
 /* ---------- bureaus and roles ---------- */
@@ -28,11 +27,10 @@ const ROLE_BUREAU = { "licensing-officer": "lara", "records-officer": "lara", "e
 export const RANK = { "system-administrator": 95, "secretary-of-state": 100, "deputy-secretary-of-state": 90, "bureau-director": 80, "deputy-bureau-director": 70, "division-director": 60, "deputy-division-director": 50, "licensing-officer": 30, "records-officer": 30, "elections-officer": 30, "hearing-officer": 30 };
 /* These roles see every bureau. Everyone else sees only their own. */
 const ALL_BUREAUS = ["system-administrator", "secretary-of-state", "deputy-secretary-of-state"];
-const NOT_SYSADMIN = STAFF_ROLES.filter(r => r !== "system-administrator");
 const CAPS = {
-  "queue.decide": NOT_SYSADMIN,                    // change a case's status, assign it, add notes
-  "cases.open": NOT_SYSADMIN,                      // open a case for a person
-  "notices.send": NOT_SYSADMIN,                    // send a notice to one person
+  "queue.decide": STAFF_ROLES,                    // change a case's status, assign it, add notes
+  "cases.open": STAFF_ROLES,                      // open a case for a person
+  "notices.send": STAFF_ROLES,                    // send a notice to one person
   "notices.global": ["system-administrator", "secretary-of-state", "deputy-secretary-of-state", "bureau-director"], // notice to everyone
   "accounts.manage": ALL_BUREAUS.slice(),          // open the account administration page, edit bureau, division, special permissions
   "accounts.roles": ["system-administrator"],      // change a role
@@ -196,25 +194,21 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
 }
 
 /* ---------- people (MiGOVT accounts) ---------- */
-const MIGOVT = { apiKey: "AIzaSyCWJBf_xxGj8JWbfwzzEHmtdzMmiLTGTas", authDomain: "mipass-77b56.firebaseapp.com", projectId: "mipass-77b56", storageBucket: "mipass-77b56.firebasestorage.app", messagingSenderId: "326401354685", appId: "1:326401354685:web:dee9e48de3975a72d600d4" };
-let mdb = null;
-const migovt = () => mdb || (mdb = getFirestore(initializeApp(MIGOVT, "migovt")));
-const shape = (d, id) => ({ pin: String(d.pin || id || ""), name: d.name || [d.firstName, d.middleName, d.lastName].filter(Boolean).join(" "), dob: d.dateOfBirth || "", roblox: d.robloxUsername || "", discord: d.discordUsername || "", email: d.email || "" });
-const cache = new Map();
+const shape = (d) => ({ pin: String(d.pin || ""), name: d.name || [d.firstName, d.middleName, d.lastName].filter(Boolean).join(" "), dob: d.dateOfBirth || "", roblox: d.robloxUsername || "", discord: d.discordUsername || "", email: d.email || "" });
+/* People are the SOS accounts (their MiGOVT details were copied over at sign-in), so only people who have signed in to e-Services can be found. */
 export async function getPerson(pin) {
-  pin = String(pin);
-  if (cache.has(pin)) return cache.get(pin);
-  const s = await getDocs(query(collection(migovt(), "mipass"), where("pin", "==", pin), limit(1)));
-  const p = s.empty ? null : shape(s.docs[0].data(), s.docs[0].id);
-  cache.set(pin, p); return p;
+  const s = await getDoc(doc(db, "accounts", String(pin)));
+  return s.exists() ? shape(s.data()) : null;
 }
 /* Search by PIN (digits) or by the start of a name. */
 export async function searchPeople(text) {
   const q = text.trim(); if (!q) return [];
-  const col = collection(migovt(), "mipass"), out = new Map();
-  const add = s => s.docs.forEach(d => { const p = shape(d.data(), d.id); if (p.pin) out.set(p.pin, p); });
-  if (/^\d{4,20}$/.test(q)) add(await getDocs(query(col, where("pin", "==", q), limit(5))));
-  else for (const v of new Set([q, q.replace(/\b\w/g, c => c.toUpperCase()), q.toLowerCase()])) add(await getDocs(query(col, where("name", ">=", v), where("name", "<=", v + ""), limit(10))));
+  if (/^\d{4,20}$/.test(q)) { const p = await getPerson(q); return p ? [p] : []; }
+  const col = collection(db, "accounts"), out = new Map();
+  for (const v of new Set([q, q.replace(/\b\w/g, c => c.toUpperCase()), q.toLowerCase()])) {
+    const s = await getDocs(query(col, where("name", ">=", v), where("name", "<=", v + "\uf8ff"), limit(10)));
+    s.docs.forEach(d => { const p = shape(d.data()); if (p.pin) out.set(p.pin, p); });
+  }
   return [...out.values()];
 }
 
@@ -222,7 +216,7 @@ export async function searchPeople(text) {
 export async function listStaff() {
   const s = await getDocs(query(collection(db, "accounts"), where("role", "!=", "basic"), limit(300)));
   const rows = s.docs.map(d => d.data());
-  await Promise.all(rows.map(async r => { try { r.person = await getPerson(r.pin); } catch { r.person = null; } }));
+  rows.forEach(r => { r.person = shape(r); });
   return rows.sort((a, b) => (RANK[b.role] || 0) - (RANK[a.role] || 0));
 }
 export async function getAccount(pin) {
