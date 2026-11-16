@@ -10,11 +10,32 @@
 <style>
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}@media(max-width:760px){.two{grid-template-columns:1fr}}
 .fld select,.fld input,.fld textarea{width:100%}
-.bz{border:1px solid var(--line);border-radius:16px;padding:16px 18px;background:#fff;margin-top:12px}
-.bz h3{margin:0 0 2px;font-size:17px;font-weight:800}.bz .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
-.bz dl{display:grid;grid-template-columns:150px 1fr;gap:4px 12px;margin:10px 0}.bz dt{color:var(--muted,#5b6f74);font-size:13px}.bz dd{margin:0;font-weight:600;word-break:break-word}
-@media(max-width:600px){.bz dl{grid-template-columns:1fr}}
-.bz .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.bz{border:1px solid var(--line);border-radius:20px;background:#fff;margin-top:16px;overflow:hidden;box-shadow:0 1px 0 rgba(16,39,43,.03)}
+.bz-hd{position:relative;background:linear-gradient(135deg,#07474e 0%,#0e7c86 75%,#13919b 100%);color:#fff;padding:20px 26px 22px;overflow:hidden}
+.bz-hd:before{content:"";position:absolute;inset:0;background:repeating-radial-gradient(circle at 100% 0%,rgba(255,255,255,.07) 0 2px,transparent 2px 16px)}
+.bz-hd>*{position:relative}
+.bz-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
+.bz-org{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;opacity:.85}
+.bz-st{border-radius:999px;padding:5px 14px;font-size:13px;font-weight:800;background:#e3f4ea;color:#15602f}.bz-st.o{background:#ffe9dc;color:#b8501d}.bz-st.n{background:#eceff1;color:#4c6168}
+.bz-hd h3{margin:0;font-size:27px;font-weight:800;letter-spacing:-.015em;line-height:1.15}
+.bz-sub{margin-top:6px;font-size:15px;opacity:.92}.bz-sub b{font-weight:700}
+.bz-id{display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr;border-bottom:1px solid var(--line)}
+@media(max-width:860px){.bz-id{grid-template-columns:1fr 1fr}}
+.bz-id>div{padding:16px 22px;border-left:1px solid var(--line)}.bz-id>div:first-child{border-left:0;background:var(--sky)}
+.bz-id small{display:block;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--muted);margin-bottom:5px}
+.bz-id b{display:block;font-size:17px;font-weight:800;line-height:1.25}.bz-id span{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.bz-id>div:first-child b{font:600 25px 'IBM Plex Mono',ui-monospace,monospace;color:#07474e;letter-spacing:.03em}
+.bz-body{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;padding:18px 22px 6px}
+@media(max-width:860px){.bz-body{grid-template-columns:1fr}}
+.bz-box{border:1px solid var(--line);border-radius:16px;padding:16px 18px}.bz-box.full{grid-column:1/-1}
+.bz-box h4{margin:0 0 10px;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--teal2,#0a5d65);display:flex;align-items:center;gap:10px}.bz-box h4:after{content:"";flex:1;height:1px;background:var(--line)}
+.bz-box p{margin:3px 0;font-size:15px;line-height:1.5}.bz-box a{color:var(--teal2,#0a5d65);font-weight:600;word-break:break-all}.bz-box .mut{color:var(--muted);font-size:13px}
+.bz-own{display:grid;grid-template-columns:1fr auto;gap:2px 16px;align-items:center;padding:9px 0;border-top:1px solid #edf3f4}.bz-own:first-of-type{border-top:0}
+.bz-own b{font-size:15px}.bz-own small{color:var(--muted);font-size:12.5px;grid-column:1}.bz-own .pc2{grid-column:2;grid-row:1/3;display:flex;align-items:center;gap:10px}
+.bz-own i{display:block;width:120px;height:8px;border-radius:9px;background:#e4eeef;position:relative;overflow:hidden}.bz-own i:after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--w);background:linear-gradient(90deg,#07474e,#0e7c86)}.bz-own .pc2 b{width:46px;text-align:right}
+.bz>.alert{margin:6px 22px 0}
+.bz-ft{display:flex;gap:10px;flex-wrap:wrap;padding:16px 22px 20px}
+.bz .fx{margin:0;padding:18px 24px 22px;border-top:1px solid var(--line);background:#fbfdfd}
 .fx{border-top:1px dashed var(--line);margin-top:12px;padding-top:12px}
 .sec{border-top:1px solid var(--line);margin-top:16px;padding-top:14px}.sec>h3{margin:0 0 8px;font-size:16px;font-weight:800}.sec .sub{margin:0 0 8px}
 .own{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px;background:#f8fbfb}.own .four{display:grid;grid-template-columns:2fr 1.2fr 1.2fr .8fr;gap:10px}@media(max-width:860px){.own .four{grid-template-columns:1fr 1fr}}
@@ -47,7 +68,7 @@
 <script type="module">
 import { submit } from "https://migovt.org/sos/eservices/assets/feedback.js";
 import { boot, el, $, cap, when, fileCase, myCases, getRecord, db } from "https://migovt.org/sos/eservices/assets/shared.js";
-import { TYPES, INDUSTRIES, CERTS, LATE_FEE, EARLY_DAYS, money, isoDay, plusYear, nameProblem, sameName, standing, isoDob, zipOk, fullNameOk, siteNorm, discordNorm } from "https://migovt.org/sos/eservices/assets/business.js";
+import { TYPES, INDUSTRIES, CERTS, LATE_FEE, EARLY_DAYS, money, isoDay, plusYear, daysBetween, nameProblem, sameName, standing, isoDob, zipOk, fullNameOk, siteNorm, discordNorm } from "https://migovt.org/sos/eservices/assets/business.js";
 import { getDocs, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 const ctx = await boot({ page: "business" });
 const pin = String(ctx.id.pin), today = isoDay(new Date());
@@ -56,6 +77,7 @@ try { mine = (await getDocs(query(collection(db, "businesses"), where("access", 
 try { cases = (await myCases(pin, 100)).filter(r => /^business\./.test(r.type)); } catch (e) { console.warn(e); }
 const OPEN = ["open", "in-review"], openFor = id => cases.find(r => OPEN.includes(r.status) && r.detail && r.detail.businessId === id);
 const longDay = iso => { const m = /^(\d{4})-(\d\d)-(\d\d)/.exec(iso || ""); return m ? new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "Not set"; };
+const shortDay = iso => { const m = /^(\d{4})-(\d\d)-(\d\d)/.exec(iso || ""); return m ? new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Not set"; };
 const clean = s => String(s || "").replace(/\s+/g, " ").trim();
 const norm = s => clean(s).toLowerCase();
 const ownersOf = b => Array.isArray(b.ownerDetails) && b.ownerDetails.length ? b.ownerDetails : (b.owners || []).map(p => ({ name: "", dob: "", pin: p, percent: "" }));
@@ -73,7 +95,8 @@ function form(mode, b) {
   const locked = mode === "report" || mode === "reinstate";
   const typeSel = el("select", {}, Object.entries(TYPES).map(([k, t]) => el("option", { value: k, text: t.t + " (" + money(t.fee) + ")" })));
   const name = inp(b && b.name, { maxlength: "80" }), trade = inp(b && b.tradeName, { maxlength: "80", placeholder: "Optional" });
-  const desc = el("textarea", { rows: "2", maxlength: "300", placeholder: "What the business does." }); desc.value = b ? (b.description || "") : "";
+  const desc = el("textarea", { rows: "3", maxlength: "500", placeholder: "What the business does." }); desc.value = b ? (b.description || "") : "";
+  const descN = el("small", { class: "empty" }); const cnt = () => { descN.textContent = desc.value.length + " of 500 characters"; }; desc.addEventListener("input", cnt); cnt();
   const ind = el("select", {}, el("option", { value: "", text: "Choose an industry" }), INDUSTRIES.map(x => el("option", { value: x, text: x }))); ind.value = b ? (b.industry || "") : "";
   const A = (b && b.address) || {}, street = inp(A.street, { maxlength: "100" }), city = inp(A.city, { maxlength: "60" }), zip = inp(A.zip, { maxlength: "10", inputmode: "numeric" });
   const state = inp("MI", { disabled: "" }), site = inp(b && b.website, { maxlength: "120", placeholder: "Optional, for example https://example.com" }), disc = inp(b && b.discord, { maxlength: "120", placeholder: "Optional, a discord.gg invite link" });
@@ -118,7 +141,7 @@ function form(mode, b) {
   const cancel = el("button", { class: "btn2 s", type: "button", text: "Cancel" }); cancel.addEventListener("click", () => wrap.remove());
   if (locked) { name.disabled = true; typeSel.disabled = true; }
   wrap.append(
-    sec("Business information", "", ...(mode === "register" ? [f("Business type", typeSel)] : []), el("div", { class: "two" }, f("Business name", name, hint), f("Trade name (DBA)", trade)), f("Business description", desc), f("Industry", ind)),
+    sec("Business information", "", ...(mode === "register" ? [f("Business type", typeSel)] : []), el("div", { class: "two" }, f("Business name", name, hint), f("Trade name (DBA)", trade)), f("Business description", desc, descN), f("Industry", ind)),
     sec("Business address", "The principal business address has to be in Michigan.", f("Street address", street), el("div", { class: "two" }, f("City", city), el("div", { class: "two" }, f("State", state), f("ZIP code", zip))),
       el("div", { class: "two" }, f("Business website", site), f("Business Discord server", disc))),
     sec("Owner information", "List every owner. Ownership has to add up to 100%. Each person is checked against their vital record by PIN and date of birth.", ownBox, el("div", { class: "mt" }, addBtn, " ", tot)),
@@ -171,7 +194,7 @@ function form(mode, b) {
     try {
       const bad = await check(); if (bad) { msg.textContent = " " + bad; go.disabled = false; return; }
       const key = typeKey(), T = TYPES[key], nm = clean(name.value);
-      const base = { name: nm, tradeName: clean(trade.value), typeKey: key, typeLabel: T.t, description: clean(desc.value).slice(0, 300), industry: ind.value,
+      const base = { name: nm, tradeName: clean(trade.value), typeKey: key, typeLabel: T.t, description: clean(desc.value).slice(0, 500), industry: ind.value,
         address: { street: clean(street.value), city: clean(city.value), state: "MI", zip: zip.value.trim() }, website: siteNorm(site.value) || "", discord: discordNorm(disc.value) || "",
         owners: rows.map(r => ({ name: clean(r.name.value), dob: r.dob.value, pin: r.pin.value.trim(), percent: String(parseFloat(r.pct.value)) })),
         agent: { name: clean(aName.value), dob: aDob.value, pin: aPin.value.trim() }, certified: CERTS.map(c => c[0]), signature: { name: clean(sig.value), date: today } };
@@ -198,7 +221,6 @@ const box = $("mine");
 if (!mine.length) box.append(el("div", { class: "empty", text: "You do not own a registered business yet. Register one below." }));
 mine.sort((a, b) => String(a.name).localeCompare(String(b.name))).forEach(b => {
   const T = TYPES[b.type] || { t: b.typeLabel || b.type, report: false }, st = standing(b), pend = openFor(b.id), dis = st.code === "dissolved";
-  const row = (k, v) => [el("dt", { text: k }), el("dd", { text: v })];
   const card = el("div", { class: "bz" }), acts = el("div", { class: "acts" });
   const add = (label, mode, primary) => { const x = el("button", { class: primary ? "btn2" : "btn2 s", type: "button", text: label }); x.addEventListener("click", () => { card.querySelectorAll(".fx").forEach(n => n.remove()); card.append(form(mode, b)); }); acts.append(x); };
   if (!dis && !pend) {
@@ -207,18 +229,26 @@ mine.sort((a, b) => String(a.name).localeCompare(String(b.name))).forEach(b => {
       add("Amend details", "amend", false); }
     if (st.code !== "admin-dissolved") { const d = el("button", { class: "btn2 s", type: "button", text: "Dissolve" }); d.addEventListener("click", () => dissolve(b, card)); acts.append(d); }
   }
-  const A = b.address || {}, ag = b.agent && typeof b.agent === "object" ? b.agent : { name: "", pin: b.agent || "" };
-  card.append(el("div", { class: "top" }, el("div", {}, el("h3", { text: b.name }), el("small", { text: T.t + (b.tradeName ? " | doing business as " + b.tradeName : "") })), el("span", { class: "pill " + st.cls, text: st.label })),
-    el("dl", {}, ...row("Business ID", b.businessNumber || "Not assigned"), ...row("Approved", longDay(b.approvedAt || b.registeredAt)),
-      ...(T.report ? row("Expires", longDay(b.expiresAt || b.dueDate) + (st.late > 0 ? " (" + st.late + " days late)" : "")) : row("Expires", "Does not expire")),
-      ...row("Industry", b.industry || "Not set"), ...(A.street ? row("Address", A.street + ", " + A.city + ", " + (A.state || "MI") + " " + A.zip) : []),
-      ...(b.website ? row("Website", b.website) : []), ...(b.discord ? row("Discord", b.discord) : []),
-      ...row("Owners", ownersOf(b).map(o => (o.name ? o.name + " (PIN " + o.pin + ")" : "PIN " + o.pin) + (o.percent ? ", " + o.percent + "%" : "")).join("; ")),
-      ...row("Registered agent", (ag.name ? ag.name + " " : "") + "(PIN " + (ag.pin || "") + ")"), ...(b.description ? row("Description", b.description) : [])));
+  const A = b.address || {}, ag = b.agent && typeof b.agent === "object" ? b.agent : { name: "", pin: b.agent || "" }, own = ownersOf(b);
+  const left = T.report && b.dueDate ? daysBetween(today, b.dueDate) : null;
+  const expSub = !T.report ? "No expiration" : st.late > 0 ? st.late + " days late" : left === 0 ? "Due today" : left + " days left";
+  const link = u => /^https?:\/\//.test(u) ? el("a", { href: u, target: "_blank", rel: "noopener", text: u.replace(/^https?:\/\//, "").replace(/\/$/, "") }) : u;
+  const tile = (k, v, sub) => el("div", {}, el("small", { text: k }), el("b", { text: v }), sub ? el("span", { text: sub }) : "");
+  card.append(
+    el("div", { class: "bz-hd" }, el("div", { class: "bz-top" }, el("span", { class: "bz-org", text: "Registered business" }), el("span", { class: "bz-st " + st.cls, text: st.label })), el("h3", { text: b.name }),
+      el("div", { class: "bz-sub" }, T.t, b.tradeName ? [" \u00b7 doing business as ", el("b", { text: b.tradeName })] : "")),
+    el("div", { class: "bz-id" }, tile("Business ID", b.businessNumber || "Not assigned"), tile("Approved", shortDay(b.approvedAt || b.registeredAt)), tile("Expires", T.report ? shortDay(b.expiresAt || b.dueDate) : "Never", expSub), tile("Industry", b.industry || "Not set")),
+    el("div", { class: "bz-body" },
+      el("div", { class: "bz-box" }, el("h4", { text: "Business address" }), A.street ? el("p", {}, A.street, el("br"), A.city + ", " + (A.state || "MI") + " " + A.zip) : el("p", { class: "mut", text: "No address on file." }),
+        ...(b.website ? [el("p", {}, link(b.website))] : []), ...(b.discord ? [el("p", {}, link(b.discord))] : [])),
+      el("div", { class: "bz-box" }, el("h4", { text: "Registered agent" }), el("p", {}, el("b", { text: ag.name || "Not on file" })), el("p", { class: "mut", text: "PIN " + (ag.pin || "") + (ag.dob ? " \u00b7 born " + longDay(ag.dob) : "") })),
+      el("div", { class: "bz-box full" }, el("h4", { text: "Owners" }), ...own.map(o => el("div", { class: "bz-own" }, el("b", { text: o.name || "PIN " + o.pin }), el("small", { text: "PIN " + o.pin }),
+        o.percent ? el("div", { class: "pc2" }, el("i", { style: "--w:" + Math.min(100, parseFloat(o.percent) || 0) + "%" }), el("b", { text: o.percent + "%" })) : ""))),
+      ...(b.description ? [el("div", { class: "bz-box full" }, el("h4", { text: "About the business" }), el("p", { text: b.description }))] : [])));
   if (st.code === "past-due") card.append(el("div", { class: "alert warn" }, el("b", { text: "Your annual report is past due. " }), "File it by " + longDay(isoDay(new Date(new Date(b.dueDate + "T00:00:00").getTime() + 30 * 864e5))) + " or the business will be administratively dissolved."));
   if (st.code === "admin-dissolved") card.append(el("div", { class: "alert warn" }, el("b", { text: "This business was administratively dissolved. " }), "Its good standing is lost and its name can be registered by someone else. Request reinstatement to restore it."));
   if (pend) card.append(el("div", { class: "alert" }, "A filing is already under review: " + pend.title + "."));
-  card.append(acts); box.append(card);
+  acts.className = "bz-ft"; card.append(acts); box.append(card);
 });
 function dissolve(b, card) {
   card.querySelectorAll(".fx").forEach(n => n.remove());
