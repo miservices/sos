@@ -34,7 +34,17 @@ export const ROLE_LABELS = {
 };
 /* Every role except "basic" is Department of State staff and can open the staff portal at /sos/eservices/staff/home/. */
 export const STAFF_ROLES = Object.keys(ROLE_LABELS).filter(r => r !== "basic");
-export const PERM_LABELS = { dealer: "Licensed dealer", insurer: "Licensed insurer", "records-access": "Records access" };
+export const PERM_LABELS = {
+  dealer: "Licensed dealer", insurer: "Licensed insurer", "records-access": "Records access",
+  /* Endorsing professional license applicants. "pro-endorse" is the base ability and is needed with at least one of the others. Staff can do all of it. */
+  "pro-endorse": "Endorse professional license applicants (base)",
+  "pro-endorse:medical": "Endorse: Medical, all classifications",
+  "pro-endorse:medical:physician": "Endorse: Medical, Physician",
+  "pro-endorse:medical:paramedic": "Endorse: Medical, Paramedic",
+  "pro-endorse:medical:aemt": "Endorse: Medical, Advanced EMT",
+  "pro-endorse:medical:emt": "Endorse: Medical, EMT",
+  "pro-endorse:bail-bond": "Endorse: Bail Bond Agent"
+};
 
 /* ---------- small helpers ---------- */
 export const $ = id => document.getElementById(id);
