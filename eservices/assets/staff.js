@@ -16,9 +16,9 @@
      cases/{id}   { pin, name?, type, title, detail{}, status, bureau, assignee?, assigneeName?, notes[], createdAt, updatedAt, updatedBy? }
                   Public portal pages create these (status "open"); staff work them here.
      audit/{id}   { actorPin, actorName, role, bureau, action, target, detail, at } */
-import { boot, db, E, $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, logActivity, logAccess, charge, list, money, getRecord, setRecordStatus, applyNameToRecord, statusOf, STATUSES, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { boot, db, E, $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, logActivity, logAccess, charge, list, money, getRecord, setRecordStatus, applyNameToRecord, applyNameToMiGOVT, statusOf, STATUSES, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { doc, getDoc, getDocs, addDoc, updateDoc, collection, query, where, limit, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-export { $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, E, db, list, money, getRecord, setRecordStatus, applyNameToRecord, statusOf, STATUSES, recordDate };
+export { $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, E, db, list, money, getRecord, setRecordStatus, applyNameToRecord, applyNameToMiGOVT, statusOf, STATUSES, recordDate };
 
 /* ---------- bureaus and roles ---------- */
 export const BUREAUS = { lara: "Licensing and Regulatory Affairs", elections: "Elections", hearings: "Administrative Hearings and Appeals" };
@@ -163,14 +163,20 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
     if (nn) up.notes = arrayUnion(nn);
     await updateDoc(doc(db, "cases", r.id), up);
     /* An approved name change is applied to the person's account. */
-    let warn = "";
+    const warns = [];
     if (result === "approved" && r.result !== "approved" && r.type === "name.change" && r.detail && r.detail.first && r.detail.last) {
       /* The vital record gets the new name and keeps the old one in previousNames. */
       try {
         const ok = await applyNameToRecord(r.pin, { first: r.detail.first, middle: r.detail.middle || "", last: r.detail.last });
         if (ok) await audit(ctx, "name.record", r.pin, "Vital record name changed to " + (r.detail.to || ""));
-        else warn = "This person has no vital record, so only their SOS account name was changed.";
-      } catch (e) { console.error(e); warn = "The SOS account name was changed, but the vital record could not be updated. Check the records Firestore rules."; }
+        else warns.push("This person has no vital record.");
+      } catch (e) { console.error(e); warns.push("The vital record could not be updated. Check the records Firestore rules."); }
+      /* The MiGOVT account keeps the same name. */
+      try {
+        const ok = await applyNameToMiGOVT(r.pin, { first: r.detail.first, middle: r.detail.middle || "", last: r.detail.last });
+        if (ok) await audit(ctx, "name.migovt", r.pin, "MiGOVT account name changed to " + (r.detail.to || ""));
+        else warns.push("No MiGOVT account was found for this PIN.");
+      } catch (e) { console.error(e); warns.push("The MiGOVT account could not be updated. Check the MiGOVT Firestore rules."); }
       await updateDoc(doc(db, "accounts", r.pin), { name: r.detail.to || [r.detail.first, r.detail.middle, r.detail.last].filter(Boolean).join(" "), firstName: r.detail.first, middleName: r.detail.middle || "", lastName: r.detail.last, updatedBy: ctx.id.pin, updatedAt: serverTimestamp() });
       await logActivity(r.pin, "account.name", "Your name was changed to " + (r.detail.to || ""), AGENCY);
       const fee = parseFloat(String(r.detail.fee || "").replace(/[^0-9.]/g, ""));
@@ -180,7 +186,7 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
     if (before !== after) { await audit(ctx, "case.status", r.pin, typeLabel(r.type) + ": " + before + " to " + after); await logActivity(r.pin, "case.status", typeLabel(r.type) + ": " + after, AGENCY); }
     else if (nn) await audit(ctx, "case.note", r.pin, typeLabel(r.type));
     if (up.assignee !== undefined && up.assignee) await audit(ctx, "case.assign", r.pin, typeLabel(r.type) + ": assigned to " + (ctx.id.name || ctx.id.pin));
-    r._warn = warn;
+    r._warn = warns.length ? "The SOS account name was changed, but: " + warns.join(" ") : "";
     Object.assign(r, { status, result, assignee: up.assignee ?? r.assignee, assigneeName: up.assigneeName ?? r.assigneeName, notes: nn ? [...(Array.isArray(r.notes) ? r.notes : []), nn] : r.notes, updatedAt: Date.now() });
   }
 

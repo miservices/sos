@@ -175,6 +175,18 @@ export async function applyNameToRecord(pin, parts) {
     previousNames: arrayUnion({ first: cur.firstName || "", middle: cur.middleName || "", last: cur.lastName || "", until: now }), updatedAt: now });
   return true;
 }
+/* The MiGOVT account (project mipass-77b56, collection "mipass", looked up by pin). An approved name change is written back here too,
+   so the person's name is the same everywhere. Returns false when no MiGOVT account has that pin. */
+const MIGOVT = { apiKey: "AIzaSyCWJBf_xxGj8JWbfwzzEHmtdzMmiLTGTas", authDomain: "mipass-77b56.firebaseapp.com", projectId: "mipass-77b56",
+  storageBucket: "mipass-77b56.firebasestorage.app", messagingSenderId: "326401354685", appId: "1:326401354685:web:dee9e48de3975a72d600d4" };
+let _mdb = null;
+const migovtDb = () => _mdb || (_mdb = getFirestore(initializeApp(MIGOVT, "migovt")));
+export async function applyNameToMiGOVT(pin, parts) {
+  const q = await getDocs(query(collection(migovtDb(), "mipass"), where("pin", "==", String(pin)), limit(1)));
+  if (q.empty) return false;
+  await updateDoc(q.docs[0].ref, { name: [parts.first, parts.middle, parts.last].filter(Boolean).join(" "), firstName: parts.first, middleName: parts.middle || "", lastName: parts.last });
+  return true;
+}
 /* "07/17/1971" or "1971-07-17" to "July 17, 1971". */
 export function recordDate(v) {
   const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(v || "")) || (() => { const i = /^(\d{4})-(\d\d)-(\d\d)/.exec(String(v || "")); return i ? [0, i[2], i[3], i[1]] : null; })();
