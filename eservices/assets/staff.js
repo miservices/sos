@@ -87,10 +87,24 @@ export const CASE_TYPES = {
   "appeal": ["Administrative appeal", "hearings"]
 };
 export const typeLabel = t => (CASE_TYPES[t] || [cap(String(t).replace(/\./g, " "))])[0];
-export const STATUS = { open: "Open", "in-review": "In review", approved: "Approved", denied: "Denied", closed: "Closed", scheduled: "Scheduled", decided: "Decided" };
-export const statusesFor = bureau => bureau === "hearings" ? ["open", "in-review", "scheduled", "decided", "closed"] : ["open", "in-review", "approved", "denied", "closed"];
+/* A case has a STATUS (where it is in the process) and a RESULT (the decision, once there is one).
+   status: open | in-review | scheduled (hearings) | closed.   result: "" while pending, else one of RESULTS.
+   Older cases stored the decision in status (approved/denied/decided). fix() converts those when they are loaded. */
+export const STATUS = { open: "Open", "in-review": "In review", scheduled: "Scheduled", closed: "Closed" };
+export const RESULT = { approved: "Approved", denied: "Denied", withdrawn: "Withdrawn", upheld: "Upheld", overturned: "Overturned", dismissed: "Dismissed" };
+export const statusesFor = bureau => bureau === "hearings" ? ["open", "in-review", "scheduled", "closed"] : ["open", "in-review", "closed"];
+export const resultsFor = bureau => bureau === "hearings" ? ["upheld", "overturned", "dismissed", "withdrawn"] : ["approved", "denied", "withdrawn"];
 const ACTIVE = ["open", "in-review", "scheduled"];
-const statusClass = s => ACTIVE.includes(s) ? (s === "open" ? "o" : "") : (s === "approved" || s === "decided" ? "g" : "n");
+const fix = d => {
+  const r = { ...d };
+  if (r.status === "approved" || r.status === "denied") { r.result = r.result || r.status; r.status = "closed"; }
+  else if (r.status === "decided") { r.result = r.result || "upheld"; r.status = "closed"; }
+  r.result = r.result || "";
+  return r;
+};
+/* "Closed: Approved", "In review", and so on. */
+export const stateText = r => (STATUS[r.status] || cap(String(r.status))) + (r.result ? ": " + (RESULT[r.result] || cap(r.result)) : "");
+const statusClass = r => r.result === "approved" || r.result === "upheld" ? "g" : r.status === "open" ? "o" : ACTIVE.includes(r.status) ? "" : "n";
 
 /* bureau: limit to one bureau. prefixes: only case types that start with one of these ("license.", "id."). */
 export async function loadCases(ctx, { bureau, prefixes } = {}) {
@@ -118,28 +132,82 @@ export async function openCase(ctx, { pin, name, type, title, detail }) {
   return ref;
 }
 
-/* Draw a filterable case table with a detail panel. rows come from loadCases(). */
+/* Draw a filterable case table with quick actions and a detail panel. rows come from loadCases(). */
 export function renderQueue(root, ctx, rows, { emptyText } = {}) {
   const state = { filter: "active", text: "" };
   const bar = el("div", { class: "bar" });
-  const sel = el("select", { "aria-label": "Status" }, [["active", "Active"], ["all", "All"], ...Object.keys(STATUS).map(k => [k, STATUS[k]])].map(([v, t]) => el("option", { value: v, text: t })));
+  const FILTERS = [["active", "Active"], ["mine", "Assigned to me"], ["unassigned", "Unassigned"], ["all", "All"], ...Object.keys(STATUS).map(k => ["s:" + k, "Status: " + STATUS[k]]), ...Object.keys(RESULT).map(k => ["r:" + k, "Result: " + RESULT[k]])];
+  const sel = el("select", { "aria-label": "Show" }, FILTERS.map(([v, t]) => el("option", { value: v, text: t })));
   const txt = el("input", { type: "search", placeholder: "Filter by PIN, name, or title", "aria-label": "Filter" });
   bar.append(sel, txt);
   const wrap = el("div", { class: "tw" }), panel = el("div", { class: "mt" });
   root.replaceChildren(bar, wrap, panel);
+  const mineOf = r => r.assignee === ctx.id.pin;
+  const canWorkOn = r => ctx.can("queue.decide") && ctx.deskOk(r.bureau);
+  const match = r => {
+    const f = state.filter;
+    if (f === "all") return true;
+    if (f === "active") return ACTIVE.includes(r.status);
+    if (f === "mine") return mineOf(r) && ACTIVE.includes(r.status);
+    if (f === "unassigned") return !r.assignee && ACTIVE.includes(r.status);
+    if (f.startsWith("s:")) return r.status === f.slice(2);
+    return r.result === f.slice(2);
+  };
+
+  /* One place that changes a case. Any action assigns the case to you unless it is already yours (pass take:false to leave it alone). */
+  async function act(r, { status, result, note, take = true, release = false }) {
+    const up = { status, result, updatedAt: serverTimestamp(), updatedBy: ctx.id.pin };
+    if (take && !mineOf(r)) { up.assignee = ctx.id.pin; up.assigneeName = ctx.id.name || ""; }
+    if (!take && release && mineOf(r)) { up.assignee = ""; up.assigneeName = ""; }
+    const nt = (note || "").trim(), nn = nt ? { by: ctx.id.pin, name: ctx.id.name || "Staff", text: nt.slice(0, 600), at: Date.now() } : null;
+    if (nn) up.notes = arrayUnion(nn);
+    await updateDoc(doc(db, "cases", r.id), up);
+    /* An approved name change is applied to the person's account. */
+    if (result === "approved" && r.result !== "approved" && r.type === "name.change" && r.detail && r.detail.first && r.detail.last) {
+      await updateDoc(doc(db, "accounts", r.pin), { name: r.detail.to || [r.detail.first, r.detail.middle, r.detail.last].filter(Boolean).join(" "), firstName: r.detail.first, middleName: r.detail.middle || "", lastName: r.detail.last, updatedBy: ctx.id.pin, updatedAt: serverTimestamp() });
+      await logActivity(r.pin, "account.name", "Your name was changed to " + (r.detail.to || ""), AGENCY);
+    }
+    const before = stateText(r), after = stateText({ status, result });
+    if (before !== after) { await audit(ctx, "case.status", r.pin, typeLabel(r.type) + ": " + before + " to " + after); await logActivity(r.pin, "case.status", typeLabel(r.type) + ": " + after, AGENCY); }
+    else if (nn) await audit(ctx, "case.note", r.pin, typeLabel(r.type));
+    if (up.assignee !== undefined && up.assignee) await audit(ctx, "case.assign", r.pin, typeLabel(r.type) + ": assigned to " + (ctx.id.name || ctx.id.pin));
+    Object.assign(r, { status, result, assignee: up.assignee ?? r.assignee, assigneeName: up.assigneeName ?? r.assigneeName, notes: nn ? [...(Array.isArray(r.notes) ? r.notes : []), nn] : r.notes, updatedAt: Date.now() });
+  }
+
+  /* The buttons that make sense for this case right now. */
+  function actionsFor(r) {
+    const h = r.bureau === "hearings", a = [];
+    if (!ACTIVE.includes(r.status)) return [["Reopen", { status: "in-review", result: "" }]];
+    if (r.status === "open") a.push(["Start review", { status: "in-review", result: "" }]);
+    else if (!mineOf(r)) a.push(["Take case", { status: r.status, result: "" }]);
+    if (h) { if (r.status !== "scheduled") a.push(["Schedule", { status: "scheduled", result: "" }]); a.push(["Uphold", { status: "closed", result: "upheld", ok: 1 }], ["Overturn", { status: "closed", result: "overturned", ok: 1 }], ["Dismiss", { status: "closed", result: "dismissed", ok: 1 }]); }
+    else a.push(["Approve", { status: "closed", result: "approved", ok: 1 }], ["Deny", { status: "closed", result: "denied", ok: 1 }]);
+    return a;
+  }
 
   function draw() {
     const q = state.text.toLowerCase();
-    const list = rows.filter(r => (state.filter === "all" || (state.filter === "active" ? ACTIVE.includes(r.status) : r.status === state.filter)) && (!q || (r.pin + " " + (r.name || "") + " " + (r.title || "") + " " + typeLabel(r.type)).toLowerCase().includes(q)));
-    if (!list.length) { wrap.replaceChildren(el("div", { class: "empty", text: emptyText || "No cases match." })); return; }
-    const t = el("table", { class: "tbl" }, el("tr", {}, ["Case", "Person", "Status", "Assigned", "Updated"].map(h => el("th", { text: h }))));
+    const list = rows.filter(r => match(r) && (!q || (r.pin + " " + (r.name || "") + " " + (r.title || "") + " " + typeLabel(r.type)).toLowerCase().includes(q)));
+    if (!list.length) { wrap.replaceChildren(el("div", { class: "empty", text: emptyText && !rows.length ? emptyText : "No cases match." })); return; }
+    const t = el("table", { class: "tbl" }, el("tr", {}, ["Case", "Person", "Status", "Assigned", "Updated", "Quick actions"].map(h => el("th", { text: h }))));
     list.forEach(r => {
+      const qa = el("td", { class: "qa" });
+      if (canWorkOn(r)) actionsFor(r).slice(0, 3).forEach(([label, v]) => {
+        const b = el("button", { class: "btn2 s", type: "button", text: label });
+        b.addEventListener("click", async e => {
+          e.stopPropagation();
+          if (v.ok && !confirm(label + " this case for " + (r.name || "PIN " + r.pin) + "?")) return;
+          b.disabled = true;
+          try { await act(r, v); draw(); if (panel.firstChild) detail(r); } catch (err) { console.error(err); b.disabled = false; b.textContent = "Failed"; }
+        });
+        qa.append(b);
+      });
       const tr = el("tr", { class: "row", tabindex: "0" },
         el("td", {}, el("b", { text: typeLabel(r.type) }), el("br"), r.title || ""),
         el("td", {}, r.name || "PIN " + r.pin, el("br"), el("small", { class: "empty", text: "PIN " + r.pin })),
-        el("td", {}, el("span", { class: "pill " + statusClass(r.status), text: STATUS[r.status] || cap(r.status) })),
-        el("td", { text: r.assigneeName || "Unassigned" }),
-        el("td", { text: when(r.updatedAt) }));
+        el("td", {}, el("span", { class: "pill " + statusClass(r), text: stateText(r) })),
+        el("td", { text: mineOf(r) ? "You" : r.assigneeName || "Unassigned" }),
+        el("td", { text: when(r.updatedAt) }), qa);
       const open = () => detail(r); tr.addEventListener("click", open); tr.addEventListener("keydown", e => { if (e.key === "Enter") open(); });
       t.append(tr);
     });
@@ -147,9 +215,10 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
   }
 
   function detail(r) {
-    const canWork = ctx.can("queue.decide") && ctx.deskOk(r.bureau);
+    const canWork = canWorkOn(r);
     const box = el("div", { class: "pc detail" }, el("h3", { text: typeLabel(r.type) + ": " + (r.title || "") }),
-      el("p", { class: "sub", text: (r.name || "PIN " + r.pin) + " | Opened " + when(r.createdAt) + " | " + (BUREAUS[r.bureau] || "") }));
+      el("p", { class: "sub", text: (r.name || "PIN " + r.pin) + " | Opened " + when(r.createdAt) + " | " + (BUREAUS[r.bureau] || "") + " | " + (mineOf(r) ? "Assigned to you" : r.assigneeName ? "Assigned to " + r.assigneeName : "Unassigned") }),
+      el("p", {}, el("span", { class: "pill " + statusClass(r), text: stateText(r) })));
     const det = r.detail && typeof r.detail === "object" ? Object.entries(r.detail) : [];
     if (det.length) { const kv = el("div", { class: "kv2" }); det.forEach(([k, v]) => kv.append(el("div", {}, el("span", { text: cap(k) }), el("b", { text: String(v) })))); box.append(kv); }
     box.append(el("h4", { class: "grp-h", text: "Notes" }));
@@ -157,42 +226,38 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
     if (!notes.length) box.append(el("div", { class: "empty", text: "No notes yet." }));
     notes.forEach(n => box.append(el("div", { class: "notice" }, el("b", { text: n.name || "Staff" }), el("span", { text: n.text }), el("small", { class: "empty", text: " " + when(n.at) }))));
     if (canWork) {
-      const st = el("select", { id: "cs" }, statusesFor(r.bureau).map(s => el("option", { value: s, text: STATUS[s] }))); st.value = r.status;
-      const note = el("textarea", { rows: "3", placeholder: "Add a note (optional)", "aria-label": "Note" });
-      const assign = el("input", { type: "checkbox", id: "ca" }); assign.checked = r.assignee === ctx.id.pin;
+      const note = el("textarea", { rows: "3", placeholder: "Add a note (optional). It is saved with whichever button you press.", "aria-label": "Note" });
       const msg = el("div", { class: "empty" });
-      const save = el("button", { class: "btn2", type: "button", text: "Save changes" });
-      save.addEventListener("click", async () => {
-        save.disabled = true; msg.textContent = "Saving...";
-        try {
-          const up = { status: st.value, updatedAt: serverTimestamp(), updatedBy: ctx.id.pin };
-          if (assign.checked && r.assignee !== ctx.id.pin) { up.assignee = ctx.id.pin; up.assigneeName = ctx.id.name || ""; }
-          if (!assign.checked && r.assignee === ctx.id.pin) { up.assignee = ""; up.assigneeName = ""; }
-          const nt = note.value.trim(); const nn = nt ? { by: ctx.id.pin, name: ctx.id.name || "Staff", text: nt.slice(0, 600), at: Date.now() } : null;
-          if (nn) up.notes = arrayUnion(nn);
-          await updateDoc(doc(db, "cases", r.id), up);
-          /* An approved name change is applied to the person's account. */
-          if (st.value === "approved" && r.type === "name.change" && r.detail && r.detail.first && r.detail.last) {
-            await updateDoc(doc(db, "accounts", r.pin), { name: r.detail.to || [r.detail.first, r.detail.middle, r.detail.last].filter(Boolean).join(" "), firstName: r.detail.first, middleName: r.detail.middle || "", lastName: r.detail.last, updatedBy: ctx.id.pin, updatedAt: serverTimestamp() });
-            await logActivity(r.pin, "account.name", "Your name was changed to " + (r.detail.to || ""), AGENCY);
-          }
-          if (st.value !== r.status) { await audit(ctx, "case.status", r.pin, typeLabel(r.type) + ": " + (STATUS[r.status] || r.status) + " to " + STATUS[st.value]); await logActivity(r.pin, "case.status", typeLabel(r.type) + ": " + STATUS[st.value], AGENCY); }
-          else if (nn) await audit(ctx, "case.note", r.pin, typeLabel(r.type));
-          Object.assign(r, { status: st.value, assignee: up.assignee ?? r.assignee, assigneeName: up.assigneeName ?? r.assigneeName, notes: nn ? [...notes, nn] : notes, updatedAt: Date.now() });
-          draw(); detail(r);
-        } catch (e) { console.error(e); msg.textContent = "Could not save. Check the Firestore rules."; save.disabled = false; }
-      });
+      const run = async (label, v, btn) => {
+        if (v.ok && !confirm(label + " this case for " + (r.name || "PIN " + r.pin) + "?")) return;
+        box.querySelectorAll("button").forEach(b => b.disabled = true); msg.textContent = "Saving...";
+        try { await act(r, { ...v, note: note.value }); draw(); detail(r); }
+        catch (e) { console.error(e); msg.textContent = "Could not save. Check the Firestore rules."; box.querySelectorAll("button").forEach(b => b.disabled = false); }
+      };
+      const qa = el("div", { class: "bar" });
+      actionsFor(r).forEach(([label, v]) => { const b = el("button", { class: "btn2" + (v.ok ? "" : " s"), type: "button", text: label }); b.addEventListener("click", () => run(label, v, b)); qa.append(b); });
+      const st = el("select", { id: "cs" }, statusesFor(r.bureau).map(s => el("option", { value: s, text: STATUS[s] }))); st.value = r.status;
+      const rs = el("select", { id: "cr" }, [el("option", { value: "", text: "No result yet" }), ...resultsFor(r.bureau).map(x => el("option", { value: x, text: RESULT[x] }))]); rs.value = r.result || "";
+      if (r.result && !resultsFor(r.bureau).includes(r.result)) rs.append(el("option", { value: r.result, text: RESULT[r.result] || cap(r.result) })), rs.value = r.result;
+      /* A result only makes sense on a closed case, and a closed case needs one. */
+      st.addEventListener("change", () => { if (st.value !== "closed") rs.value = ""; else if (!rs.value) rs.value = resultsFor(r.bureau)[0]; });
+      rs.addEventListener("change", () => { if (rs.value) st.value = "closed"; });
+      const mine = el("input", { type: "checkbox", id: "ca" }); mine.checked = true;
+      const save = el("button", { class: "btn2 s", type: "button", text: "Save changes" });
+      save.addEventListener("click", () => { if (st.value === "closed" && !rs.value) { msg.textContent = "Pick a result to close this case."; return; } run("Save", { status: st.value, result: rs.value, take: mine.checked, release: !mine.checked }, save); });
       box.append(el("h4", { class: "grp-h", text: "Work this case" }),
-        el("div", { class: "fld" }, el("label", { for: "cs", text: "Status" }), st),
         el("div", { class: "fld" }, el("label", { text: "Note" }), note),
-        el("div", { class: "fld" }, el("label", { for: "ca" }, assign, " Assign to me")),
+        el("div", { class: "fld" }, el("label", { text: "Quick actions" }), qa),
+        el("p", { class: "empty", text: "Any action assigns this case to you" + (r.assignee && !mineOf(r) ? " (it is currently with " + (r.assigneeName || "someone else") + ")" : "") + "." }),
+        el("h4", { class: "grp-h", text: "Set manually" }),
+        el("div", { class: "bar" }, el("div", { class: "fld" }, el("label", { for: "cs", text: "Status" }), st), el("div", { class: "fld" }, el("label", { for: "cr", text: "Result" }), rs)),
+        el("div", { class: "fld" }, el("label", { for: "ca" }, mine, " Assign to me")),
         save, msg);
     } else box.append(el("div", { class: "empty mt", text: "You can view this case but not change it." }));
-    const close = el("button", { class: "btn2 s mt", type: "button", text: "Close" }); close.addEventListener("click", () => panel.replaceChildren());
+    const close = el("button", { class: "btn2 s mt", type: "button", text: "Close panel" }); close.addEventListener("click", () => panel.replaceChildren());
     box.append(el("p", {}, close));
     panel.replaceChildren(box); box.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
-
   sel.addEventListener("change", () => { state.filter = sel.value; draw(); });
   txt.addEventListener("input", () => { state.text = txt.value.trim(); draw(); });
   draw();
