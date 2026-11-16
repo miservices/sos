@@ -16,9 +16,9 @@
      cases/{id}   { pin, name?, type, title, detail{}, status, bureau, assignee?, assigneeName?, notes[], createdAt, updatedAt, updatedBy? }
                   Public portal pages create these (status "open"); staff work them here.
      audit/{id}   { actorPin, actorName, role, bureau, action, target, detail, at } */
-import { boot, db, E, $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, logActivity, logAccess, charge, list, money, getRecord, setRecordStatus, statusOf, STATUSES, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { boot, db, E, $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, logActivity, logAccess, charge, list, money, getRecord, setRecordStatus, applyNameToRecord, statusOf, STATUSES, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { doc, getDoc, getDocs, addDoc, updateDoc, collection, query, where, limit, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-export { $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, E, db, list, money, getRecord, setRecordStatus, statusOf, STATUSES, recordDate };
+export { $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, E, db, list, money, getRecord, setRecordStatus, applyNameToRecord, statusOf, STATUSES, recordDate };
 
 /* ---------- bureaus and roles ---------- */
 export const BUREAUS = { lara: "Licensing and Regulatory Affairs", elections: "Elections", hearings: "Administrative Hearings and Appeals" };
@@ -163,7 +163,14 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
     if (nn) up.notes = arrayUnion(nn);
     await updateDoc(doc(db, "cases", r.id), up);
     /* An approved name change is applied to the person's account. */
+    let warn = "";
     if (result === "approved" && r.result !== "approved" && r.type === "name.change" && r.detail && r.detail.first && r.detail.last) {
+      /* The vital record gets the new name and keeps the old one in previousNames. */
+      try {
+        const ok = await applyNameToRecord(r.pin, { first: r.detail.first, middle: r.detail.middle || "", last: r.detail.last });
+        if (ok) await audit(ctx, "name.record", r.pin, "Vital record name changed to " + (r.detail.to || ""));
+        else warn = "This person has no vital record, so only their SOS account name was changed.";
+      } catch (e) { console.error(e); warn = "The SOS account name was changed, but the vital record could not be updated. Check the records Firestore rules."; }
       await updateDoc(doc(db, "accounts", r.pin), { name: r.detail.to || [r.detail.first, r.detail.middle, r.detail.last].filter(Boolean).join(" "), firstName: r.detail.first, middleName: r.detail.middle || "", lastName: r.detail.last, updatedBy: ctx.id.pin, updatedAt: serverTimestamp() });
       await logActivity(r.pin, "account.name", "Your name was changed to " + (r.detail.to || ""), AGENCY);
       const fee = parseFloat(String(r.detail.fee || "").replace(/[^0-9.]/g, ""));
@@ -173,6 +180,7 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
     if (before !== after) { await audit(ctx, "case.status", r.pin, typeLabel(r.type) + ": " + before + " to " + after); await logActivity(r.pin, "case.status", typeLabel(r.type) + ": " + after, AGENCY); }
     else if (nn) await audit(ctx, "case.note", r.pin, typeLabel(r.type));
     if (up.assignee !== undefined && up.assignee) await audit(ctx, "case.assign", r.pin, typeLabel(r.type) + ": assigned to " + (ctx.id.name || ctx.id.pin));
+    r._warn = warn;
     Object.assign(r, { status, result, assignee: up.assignee ?? r.assignee, assigneeName: up.assigneeName ?? r.assigneeName, notes: nn ? [...(Array.isArray(r.notes) ? r.notes : []), nn] : r.notes, updatedAt: Date.now() });
   }
 
@@ -200,7 +208,7 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
           e.stopPropagation();
           if (v.ok && !confirm(label + " this case for " + (r.name || "PIN " + r.pin) + "?")) return;
           b.disabled = true;
-          try { await act(r, v); draw(); if (panel.firstChild) detail(r); } catch (err) { console.error(err); b.disabled = false; b.textContent = "Failed"; }
+          try { await act(r, v); if (r._warn) alert(r._warn); draw(); if (panel.firstChild) detail(r); } catch (err) { console.error(err); b.disabled = false; b.textContent = "Failed"; }
         });
         qa.append(b);
       });
@@ -221,6 +229,7 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
     const box = el("div", { class: "pc detail" }, el("h3", { text: typeLabel(r.type) + ": " + (r.title || "") }),
       el("p", { class: "sub", text: (r.name || "PIN " + r.pin) + " | Opened " + when(r.createdAt) + " | " + (BUREAUS[r.bureau] || "") + " | " + (mineOf(r) ? "Assigned to you" : r.assigneeName ? "Assigned to " + r.assigneeName : "Unassigned") }),
       el("p", {}, el("span", { class: "pill " + statusClass(r), text: stateText(r) })));
+    if (r._warn) box.append(el("div", { class: "alert", text: r._warn }));
     const det = r.detail && typeof r.detail === "object" ? Object.entries(r.detail) : [];
     if (det.length) { const kv = el("div", { class: "kv2" }); det.forEach(([k, v]) => kv.append(el("div", {}, el("span", { text: cap(k) }), el("b", { text: String(v) })))); box.append(kv); }
     box.append(el("h4", { class: "grp-h", text: "Notes" }));

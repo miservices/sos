@@ -17,7 +17,7 @@
      transactions/{id}   { pin, desc, amount, status, at }                                           fees
      notices/{id}        { pin ("*" = everyone), title, body, level, at, read }                      official notices (created by staff in the console) */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, getDocs, query, where, limit, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, getDocs, query, where, limit, serverTimestamp, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 export const B = "https://migovt.org/sos/", E = B + "eservices/";
 const FB = { apiKey: "AIzaSyCzMDtySiPOXM5J15ePmjyUZRn_Zcyz2w0", authDomain: "misos-f7956.firebaseapp.com", projectId: "misos-f7956",
@@ -160,6 +160,20 @@ export async function getRecord(pin) {
 export async function setRecordStatus(pin, status) {
   if (!STATUSES.includes(status)) throw new Error("Unknown status");
   await updateDoc(doc(recDb(), "persons", String(pin)), { status, updatedAt: new Date().toISOString() });
+}
+/* Names on the vital record. previousNames = [{ first, middle, last, until }] in order, oldest first, so previousNames[0] is the birth name.
+   An approved name change writes the new name onto the record and appends the name it replaced. Returns false when there is no record. */
+export const nameOf = n => [n.first ?? n.firstName, n.middle ?? n.middleName, n.last ?? n.lastName].filter(Boolean).join(" ");
+export const previousNamesOf = r => (r && Array.isArray(r.previousNames)) ? r.previousNames : [];
+/* The name recorded at birth: the oldest previous name if the person has changed it, otherwise the current name. */
+export const birthNameOf = r => { const p = previousNamesOf(r); return p.length ? nameOf(p[0]) : nameOf(r || {}); };
+export async function applyNameToRecord(pin, parts) {
+  const ref = doc(recDb(), "persons", String(pin)), snap = await getDoc(ref);
+  if (!snap.exists()) return false;
+  const cur = snap.data(), now = new Date().toISOString();
+  await updateDoc(ref, { firstName: parts.first, middleName: parts.middle || "", lastName: parts.last,
+    previousNames: arrayUnion({ first: cur.firstName || "", middle: cur.middleName || "", last: cur.lastName || "", until: now }), updatedAt: now });
+  return true;
 }
 /* "07/17/1971" or "1971-07-17" to "July 17, 1971". */
 export function recordDate(v) {

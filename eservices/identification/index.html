@@ -48,6 +48,8 @@
     <button class="btn2" id="nsub" type="button">Submit application</button> <span class="empty" id="nmsg"></span>
     <h3 class="grp-h">Your name change applications</h3>
     <div class="rows" id="nhist"></div>
+    <h3 class="grp-h">Names on your vital record</h3>
+    <div class="rows" id="nprev"></div>
   </div>
 
   <div class="pc mt" id="cards"><h2>Identification cards</h2>
@@ -67,7 +69,7 @@
 </div>
 <script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
 <script type="module">
-import { boot, el, $, cap, when, money, longDate, list, fileCase, myCases, getRecord, statusOf, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { boot, el, $, cap, when, money, longDate, list, fileCase, myCases, getRecord, birthNameOf, previousNamesOf, nameOf, statusOf, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { showCertificate } from "https://migovt.org/sos/eservices/assets/certificate.js";
 
 /* Name change fees */
@@ -139,9 +141,17 @@ $("nsub").addEventListener("click", async () => {
   } catch (e) { console.error(e); msg.textContent = " Could not submit the application. Try again."; }
   if (!outstanding) $("nsub").disabled = false;
 });
+function drawPrev() {
+  const box = $("nprev"); box.replaceChildren();
+  if (!record) { box.append(el("div", { class: "empty", text: "No vital record is on file for you yet." })); return; }
+  const prev = previousNamesOf(record);
+  prev.forEach((n, i) => box.append(el("div", {}, el("div", {}, el("b", { text: nameOf(n) }), el("small", { text: (i === 0 ? "Name at birth" : "Former name") + " | Used until " + when(Date.parse(n.until) || n.until) })))));
+  box.append(el("div", {}, el("div", {}, el("b", { text: nameOf(record) }), el("small", { text: prev.length ? "Current name" : "Current name (never changed)" }))));
+}
 async function drawHistory() {
   const box = $("nhist"); box.replaceChildren();
   try {
+    drawPrev();
     const rows = (await checkOutstanding()).slice(0, 8); lockForm();
     if (!rows.length) { box.append(el("div", { class: "empty", text: "No applications yet." })); return; }
     rows.forEach(r => box.append(el("div", {}, el("div", {}, el("b", { text: (r.detail && r.detail.from ? r.detail.from + " to " + r.detail.to : r.title) }), el("small", { text: "Filed " + when(r.createdAt) + (r.detail && r.detail.fee ? " | Fee " + r.detail.fee : "") })), el("div", { class: "r" }, el("span", { class: "pill " + (approved(r) ? "g" : ACTIVE_ST.includes(r.status) ? "o" : "n"), text: stateOf(r) })))));
@@ -163,10 +173,10 @@ function drawVital() {
     bc.append(el("span", { class: "pill n", text: "Not available" })); cs.append(el("span", { class: "pill n", text: "Not available" })); return;
   }
   const place = [record.cityOfBirth, record.stateOfBirth].filter(Boolean).join(", ");
-  $("bc-d").textContent = "Shows the name recorded at birth: " + fullName(record) + ", born " + recordDate(record.dob) + (place ? " in " + place : "") + ".";
+  $("bc-d").textContent = "Shows the name recorded at birth: " + birthNameOf(record) + ", born " + recordDate(record.dob) + (place ? " in " + place : "") + ".";
   const b = el("button", { class: "btn2", type: "button", text: "View and print PDF" });
   b.addEventListener("click", () => showCertificate({
-    kind: "birth", title: "Certificate of Live Birth", name: fullName(record), number: certNo("BC", ctx.id.pin),
+    kind: "birth", title: "Certificate of Live Birth", name: birthNameOf(record), number: certNo("BC", ctx.id.pin),
     statement: "was born on " + recordDate(record.dob) + (record.birthTime ? " at " + record.birthTime : "") + (record.cityOfBirth ? " in " + record.cityOfBirth + (record.countyOfBirth ? ", " + record.countyOfBirth + " County" : "") + (record.stateOfBirth ? ", " + record.stateOfBirth : "") : "") + ", as recorded in the vital records of the State of Michigan.",
     fields: [["Date of birth", recordDate(record.dob)], ["Time of birth", record.birthTime || "Not recorded"], ["City of birth", record.cityOfBirth || "Not recorded"], ["County of birth", record.countyOfBirth || "Not recorded"], ["State of birth", record.stateOfBirth || "Not recorded"], ["File number", ctx.id.pin]]
   }));
