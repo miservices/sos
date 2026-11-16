@@ -15,26 +15,61 @@
 <main class="pmain">
 <div id="p-load" class="pload">Loading...</div>
 <div id="p-body" hidden>
-  <div class="ph"><div class="eb">Bureau desk</div><h1>Elections Desk</h1><p>Elections, the Office of the Great Seal, and public filings. Part of the Bureau of Elections.</p></div>
+  <div class="ph"><div class="eb">Bureau desk</div><h1>Elections Desk</h1><p>Voter registration, candidates, campaign finance, and the Office of the Great Seal. Part of the Bureau of Elections.</p></div>
   <div class="stats" id="stats"></div>
-  <div class="g2 mt"><div class="pc"><h2>What this desk handles</h2><ul><li>Voter registrations</li><li>Candidate filings and campaign finance reports</li><li>Business registrations (Office of the Great Seal)</li><li>Notary commissions (Office of the Great Seal)</li></ul></div><div class="pc"><h2>Desk tools</h2><div class="stack"><a class="btn2 s" href="https://migovt.org/sos/eservices/staff/lookup/">Person Lookup</a><a class="btn2 s" href="https://migovt.org/sos/eservices/staff/notices/">Send a notice</a></div></div></div>
+  <div class="g2 mt">
+    <div class="pc"><h2>Election calendar</h2><div class="rows" id="cal"></div><p class="sub mt">Every general election runs on this calendar: one year terms, Election Day 21 days before the term begins, and online voting from 30 to 10 days before it.</p></div>
+    <div class="pc"><h2>What this desk handles</h2><ul><li>Voter registrations. Approving one registers the person to vote.</li><li>Candidate filings. Approving one certifies the candidate for that office and lists them on Candidate Services.</li><li>Campaign finance reports</li><li>Business registrations (Office of the Great Seal)</li><li>Notary commissions (Office of the Great Seal)</li></ul></div>
+  </div>
+  <div class="pc mt"><h2>Certified candidates</h2><p class="sub" id="cand-sub"></p><div class="tw" id="cand"></div></div>
   <div class="pc mt"><h2>Cases</h2><div id="q"></div></div>
 </div>
 </main>
 </div>
 <script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
 <script type="module">
-import { bootStaff, $, el, cap, when, BUREAUS, ROLE_LABELS, loadCases, caseStats, renderQueue } from "https://migovt.org/sos/eservices/assets/staff.js";
+import { bootStaff, $, el, cap, when, loadCases, caseStats, renderQueue, audit, db, AGENCY } from "https://migovt.org/sos/eservices/assets/staff.js";
+import { logActivity } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { cycle, fmtDay, OFFICES, LEVELS, officeOf } from "https://migovt.org/sos/eservices/assets/elections.js";
+import { getDocs, updateDoc, doc, collection, query, where, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 const ctx = await bootStaff({ page: "elections", desk: "elections" });
+const C = cycle();
+const stat = (a, b) => el("div", { class: "stat" }, el("span", { text: a }), el("b", { text: b }));
+const phase = C.phase === "open" ? "Online voting is open" : C.phase === "upcoming" ? "Online voting opens in " + Math.max(0, C.daysToOpen) + " days" : "Online voting has closed";
+$("cal").append(...[["Term", fmtDay(C.termStart) + " to " + fmtDay(C.termEnd)], ["Online voting", fmtDay(C.onlineOpen) + " to " + fmtDay(C.onlineClose)], ["Election Day", fmtDay(C.electionDay)], ["Runoff", "Online " + fmtDay(C.runoffOnlineOpen) + " to " + fmtDay(C.runoffOnlineClose) + ", in person " + fmtDay(C.runoffDay)], ["Right now", phase]]
+  .map(([a, b]) => el("div", {}, el("div", {}, el("b", { text: a })), el("div", { class: "r", text: b }))));
+let voters = "0";
+try { voters = String((await getDocs(query(collection(db, "voters"), where("status", "==", "active"), limit(1000)))).size); } catch (e) { console.warn(e); voters = "?"; }
+let cands = [];
 try {
   const rows = await loadCases(ctx, { bureau: "elections", prefixes: ["voter.", "candidate.", "finance.", "business.", "notary."] });
   const st = caseStats(rows);
-  $("stats").append(
-    el("div", { class: "stat" }, el("span", { text: "Open" }), el("b", { text: String(st.open) })),
-    el("div", { class: "stat" }, el("span", { text: "In review" }), el("b", { text: String(st.review) })),
-    el("div", { class: "stat" }, el("span", { text: "Closed" }), el("b", { text: String(st.done) })));
+  $("stats").append(stat("Open", String(st.open)), stat("In review", String(st.review)), stat("Closed", String(st.done)), stat("Registered voters", voters));
   renderQueue($("q"), ctx, rows, { emptyText: "No cases at this desk yet." });
 } catch (e) { console.error(e); $("q").replaceChildren(el("div", { class: "empty", text: "We could not load cases right now." })); }
+
+/* ---- certified candidates for the coming term: withdraw, disqualify or reinstate ---- */
+async function drawCands() {
+  $("cand-sub").textContent = "Term beginning " + fmtDay(C.termStart) + ".";
+  try { cands = (await getDocs(query(collection(db, "candidates"), where("termYear", "==", C.termYear), limit(300)))).docs.map(d => ({ id: d.id, ...d.data() })); }
+  catch (e) { console.error(e); $("cand").replaceChildren(el("div", { class: "empty", text: "Could not load candidates. Check the Firestore rules for candidates." })); return; }
+  $("stats").querySelectorAll(".stat.cc").forEach(x => x.remove()); const s = stat("Certified candidates", String(cands.filter(c => c.status === "certified").length)); s.classList.add("cc"); $("stats").append(s);
+  if (!cands.length) { $("cand").replaceChildren(el("div", { class: "empty", text: "No candidates have been certified for this term." })); return; }
+  const order = k => OFFICES.findIndex(o => o.k === k);
+  const tb = el("table", { class: "tbl" }, el("tr", {}, ["Candidate", "Office", "Level", "Status", ""].map(h => el("th", { text: h }))));
+  cands.sort((a, b) => order(a.officeKey) - order(b.officeKey) || String(a.name).localeCompare(String(b.name))).forEach(c => {
+    const td = el("td"), set = async (status, label) => {
+      if (!confirm(label + ": " + (c.name || c.pin) + " for " + c.office + "?")) return;
+      try { await updateDoc(doc(db, "candidates", c.id), { status, updatedBy: ctx.id.pin, updatedAt: serverTimestamp() });
+        await audit(ctx, "candidate." + status, c.pin, c.office + " " + c.termYear); await logActivity(c.pin, "candidate." + status, "Your candidacy for " + c.office + " is now " + status, AGENCY); await drawCands(); }
+      catch (e) { console.error(e); alert("Could not save. Check the Firestore rules for candidates."); }
+    };
+    (c.status === "certified" ? [["withdrawn", "Withdraw"], ["disqualified", "Disqualify"]] : [["certified", "Reinstate"]]).forEach(([st, t]) => { const b = el("button", { class: "btn2 s", type: "button", text: t }); b.addEventListener("click", () => set(st, t)); td.append(b, " "); });
+    tb.append(el("tr", {}, el("td", {}, el("b", { text: c.name || "PIN " + c.pin }), el("br"), el("small", { text: "PIN " + c.pin })), el("td", { text: c.office || "" }), el("td", { text: LEVELS[c.level] || "" }), el("td", {}, el("span", { class: "pill " + (c.status === "certified" ? "g" : "o"), text: cap(c.status) })), td));
+  });
+  $("cand").replaceChildren(tb);
+}
+await drawCands();
 </script>
 </body>
 </html>

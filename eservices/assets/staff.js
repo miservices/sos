@@ -150,13 +150,13 @@ async function applyProfessionalCase(ctx, r) {
   const tm = v => v && v.toMillis ? v.toMillis() : typeof v === "string" ? (Date.parse(v) || 0) : (+v || 0);
   if (r.type === "professional.renewal") {
     if (!snap.exists()) return "No license record exists for this person, so there was nothing to renew. Approve a new application instead.";
-    const from = new Date(Math.max(tm(snap.data().expiresAt), now.getTime())); from.setFullYear(from.getFullYear() + 2);
+    const from = new Date(Math.max(tm(snap.data().expiresAt), now.getTime())); from.setFullYear(from.getFullYear() + 1);
     const up = { expiresAt: from.toISOString(), renewedAt: now.toISOString(), updatedBy: ctx.id.pin, updatedAt: serverTimestamp() };
     if (["expired", "inactive"].includes(String(snap.data().status || "").toLowerCase())) up.status = "active";
     await updateDoc(ref, up);
   } else {
     if (snap.exists() && !["expired", "inactive"].includes(String(snap.data().status || "").toLowerCase())) return "This person already holds this license, so no new record was created.";
-    const exp = new Date(now); exp.setFullYear(exp.getFullYear() + 2);
+    const exp = new Date(now); exp.setFullYear(exp.getFullYear() + 1);
     const num = snap.exists() && snap.data().number ? snap.data().number : PRO_PREFIX[k] + "-" + String(Math.floor(100000 + Math.random() * 900000));
     const med = k.startsWith("medical-");
     await setDoc(ref, { pin: String(r.pin), name: r.name || "", type: med ? "medical" : k, ...(med ? { classification: k.replace("medical-", "") } : {}), number: num, status: "active",
@@ -166,6 +166,27 @@ async function applyProfessionalCase(ctx, r) {
   const what = r.detail.license || k;
   await audit(ctx, r.type === "professional.renewal" ? "pro.renew" : "pro.issue", r.pin, what);
   await logActivity(r.pin, r.type === "professional.renewal" ? "license.renewed" : "license.issued", (r.type === "professional.renewal" ? "Renewed: " : "Issued: ") + what, AGENCY);
+  return "";
+}
+
+/* Approving a voter registration registers the person; approving a candidate filing certifies them for that office. */
+async function applyElectionCase(ctx, r) {
+  if (r.type === "voter.registration") {
+    const ref = doc(db, "voters", String(r.pin)), snap = await getDoc(ref);
+    if (snap.exists() && snap.data().status === "active") return "This person is already registered, so nothing changed.";
+    await setDoc(ref, { pin: String(r.pin), name: r.name || "", status: "active", registeredAt: snap.exists() && snap.data().registeredAt ? snap.data().registeredAt : new Date().toISOString(), updatedBy: ctx.id.pin, updatedAt: serverTimestamp() });
+    await audit(ctx, "voter.register", r.pin, "Registered to vote");
+    await logActivity(r.pin, "voter.registered", "You are registered to vote", AGENCY);
+    return "";
+  }
+  const d = r.detail || {}; if (!d.officeKey || !d.termYear) return "This filing has no office or election year, so the candidate was not certified.";
+  const id = d.termYear + "_" + r.pin + "_" + d.officeKey, ref = doc(db, "candidates", id), snap = await getDoc(ref);
+  if (snap.exists() && snap.data().status === "certified") return "This person is already certified for that office.";
+  const c = { pin: String(r.pin), name: r.name || "", officeKey: d.officeKey, office: d.office || d.officeKey, level: d.level || "", termYear: Number(d.termYear), status: "certified", certifiedAt: new Date().toISOString(), updatedBy: ctx.id.pin, updatedAt: serverTimestamp() };
+  if (d.runningMate) c.runningMate = String(d.runningMate).slice(0, 20);
+  await setDoc(ref, c);
+  await audit(ctx, "candidate.certify", r.pin, (d.office || d.officeKey) + " " + d.termYear);
+  await logActivity(r.pin, "candidate.certified", "Certified as a candidate for " + (d.office || d.officeKey) + " (" + d.termYear + ")", AGENCY);
   return "";
 }
 
@@ -246,6 +267,9 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
     }
     if (result === "approved" && r.result !== "approved" && (r.type === "professional.license" || r.type === "professional.renewal")) {
       try { const w = await applyProfessionalCase(ctx, r); if (w) warns.push(w); } catch (e) { console.error(e); warns.push("The license record could not be saved. Check the Firestore rules for professionalLicenses."); }
+    }
+    if (result === "approved" && r.result !== "approved" && (r.type === "voter.registration" || r.type === "candidate.filing")) {
+      try { const w = await applyElectionCase(ctx, r); if (w) warns.push(w); } catch (e) { console.error(e); warns.push("The election record could not be saved. Check the Firestore rules for voters and candidates."); }
     }
     const before = stateText(r), after = stateText({ status, result });
     if (before !== after) { await audit(ctx, "case.status", r.pin, typeLabel(r.type) + ": " + before + " to " + after); await logActivity(r.pin, "case.status", typeLabel(r.type) + ": " + after, AGENCY); }

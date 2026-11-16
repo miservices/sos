@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Candidate Services | SOS e-Services | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+<style>
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:760px){.two{grid-template-columns:1fr}}
+.fld select,.fld input,.fld textarea{width:100%}
+.off{border:1px solid var(--line);border-radius:16px;padding:14px 18px;background:#fff;margin-top:10px}
+.off h3{margin:0 0 6px;font-size:16px;font-weight:800}.off ul{margin:6px 0 0;padding-left:18px}
+</style>
+</head>
+<body>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header"></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="nav" data-page="candidate-services"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading candidate services...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">Elections</div><h1>Candidate Services</h1><p>File to run for state, county, or city office, see who is certified, and submit campaign finance reports.</p></div>
+  <div class="stats" id="stats"></div>
+
+  <div class="pc mt"><h2>File as a candidate</h2>
+    <p class="sub" id="f-sub"></p>
+    <div id="f-block">
+      <div class="two"><div class="fld"><label for="f-off">Office</label><select id="f-off"></select></div>
+      <div class="fld" id="f-mate-w" hidden><label for="f-mate">Lieutenant Governor running mate (PIN)</label><input id="f-mate" inputmode="numeric" maxlength="20" autocomplete="off"></div></div>
+      <div id="f-info" class="alert"></div>
+      <div class="fld mt"><label for="f-stmt">Candidate statement (optional)</label><textarea id="f-stmt" rows="3" maxlength="500" placeholder="Why you are running."></textarea></div>
+      <button class="btn2" id="f-go" type="button">File to run</button> <span class="empty" id="f-msg"></span>
+    </div>
+  </div>
+
+  <div class="pc mt"><h2>Certified candidates</h2><p class="sub" id="cc-sub"></p><div id="cc"></div></div>
+
+  <div class="pc mt"><h2>Campaign finance report</h2>
+    <p class="sub">Candidates submit a report of money raised and spent. The Bureau of Elections reviews each one.</p>
+    <div id="fin-block"></div>
+  </div>
+
+  <div class="pc mt"><h2>Offices on the ballot</h2><div id="offices"></div></div>
+  <div class="pc mt"><h2>Your filings and reports</h2><div class="rows" id="mine"></div></div>
+</div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
+<script type="module">
+import { boot, el, $, cap, when, money, fileCase, myCases, db } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { cycle, fmtDay, LEVELS, OFFICES, officeOf } from "https://migovt.org/sos/eservices/assets/elections.js";
+import { doc, getDoc, getDocs, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+const ctx = await boot({ page: "candidate-services" });
+const C = cycle(), pin = String(ctx.id.pin);
+let voter = null, certified = [], cases = [];
+try { const s = await getDoc(doc(db, "voters", pin)); voter = s.exists() ? s.data() : null; } catch (e) { console.warn(e); }
+try { certified = (await getDocs(query(collection(db, "candidates"), where("termYear", "==", C.termYear), limit(300)))).docs.map(d => ({ id: d.id, ...d.data() })); } catch (e) { console.warn(e); }
+try { cases = (await myCases(pin, 100)).filter(r => /^(candidate|finance)\./.test(r.type)); } catch (e) { console.warn(e); }
+const registered = voter && voter.status === "active";
+const myCert = certified.filter(c => c.pin === pin && c.status === "certified");
+const OPEN = ["open", "in-review"], termCases = cases.filter(r => r.type === "candidate.filing" && r.detail && Number(r.detail.termYear) === C.termYear);
+
+$("stats").append(...[["Election term", String(C.termYear)], ["Your filings", String(termCases.filter(r => OPEN.includes(r.status)).length + myCert.length)], ["Certified candidates", String(certified.filter(c => c.status === "certified").length)], ["Reports filed", String(cases.filter(r => r.type === "finance.report").length)]]
+  .map(([a, b]) => el("div", { class: "stat" }, el("span", { text: a }), el("b", { text: b }))));
+
+/* ---- file as a candidate ---- */
+$("f-sub").textContent = "Filing is for the general election held " + fmtDay(C.electionDay) + ", for the term beginning " + fmtDay(C.termStart) + ". You must be a registered voter. The Bureau of Elections reviews each filing and certifies the candidate.";
+if (!registered) { $("f-block").replaceChildren(el("div", { class: "alert warn" }, el("b", { text: "Register to vote first" }), "Only registered voters can file as candidates. Register on the ", el("a", { href: "../voting/", text: "Voting Services" }), " page.")); }
+else {
+  const taken = new Set([...myCert.map(c => c.officeKey), ...termCases.filter(r => OPEN.includes(r.status)).map(r => r.detail.officeKey)]);
+  const sel = $("f-off"); Object.entries(LEVELS).forEach(([lk, lt]) => { const g = el("optgroup", { label: lt }); OFFICES.filter(o => o.level === lk).forEach(o => g.append(el("option", { value: o.k, text: o.t + (o.seats > 1 ? " (" + o.seats + " seats)" : "") + (taken.has(o.k) ? " - already filed" : "") }))); sel.append(g); });
+  const info = () => { const o = officeOf(sel.value); $("f-mate-w").hidden = o.k !== "governor"; $("f-info").textContent = o.seats > 1 ? o.seats + " seats are filled by ranked preference voting. The top scorer becomes " + o.head + "." : o.note || "One seat, filled by the candidate with the most votes."; };
+  sel.addEventListener("change", info); info();
+  $("f-go").addEventListener("click", async () => {
+    const o = officeOf(sel.value), m = $("f-msg"), mate = $("f-mate").value.trim(), stmt = $("f-stmt").value.trim().slice(0, 500);
+    if (taken.has(o.k)) { m.textContent = " You already have a filing for this office."; return; }
+    if (o.k === "governor" && !/^\d{4,20}$/.test(mate)) { m.textContent = " Enter your running mate's PIN."; return; }
+    $("f-go").disabled = true; m.textContent = " Filing...";
+    try {
+      const d = { officeKey: o.k, office: o.t, level: o.level, termYear: C.termYear }; if (mate && o.k === "governor") d.runningMate = mate; if (stmt) d.statement = stmt;
+      await fileCase(ctx, "candidate.filing", "Candidate filing: " + o.t + " (" + C.termYear + ")", d, "elections");
+      m.textContent = " Filed. The Bureau of Elections will review it."; setTimeout(() => location.reload(), 900);
+    } catch (e) { console.error(e); m.textContent = " Could not file."; $("f-go").disabled = false; }
+  });
+}
+
+/* ---- certified candidates ---- */
+$("cc-sub").textContent = "Candidates certified for the " + C.termYear + " term.";
+const cc = $("cc"), live = certified.filter(c => c.status === "certified");
+if (!live.length) cc.append(el("div", { class: "empty", text: "No candidates have been certified yet." }));
+OFFICES.forEach(o => { const l = live.filter(c => c.officeKey === o.k).sort((a, b) => String(a.name).localeCompare(String(b.name))); if (!l.length) return;
+  cc.append(el("div", { class: "off" }, el("h3", { text: o.t + " (" + LEVELS[o.level] + ")" }), el("ul", {}, l.map(c => el("li", { text: c.name || "PIN " + c.pin }))))); });
+
+/* ---- campaign finance report ---- */
+const fb = $("fin-block");
+if (!myCert.length && !termCases.length) fb.append(el("div", { class: "empty", text: "File as a candidate first. Reports are submitted by candidates." }));
+else {
+  const who = myCert.length ? myCert : termCases.map(r => ({ officeKey: r.detail.officeKey, office: r.detail.office }));
+  const off = el("select", { id: "r-off" }, who.map(c => el("option", { value: c.officeKey, text: c.office || (officeOf(c.officeKey) || {}).t }))), per = el("select", { id: "r-per" }, ["Pre-election report", "Post-election report", "Quarterly report", "Final report"].map(t => el("option", { value: t, text: t })));
+  const raised = el("input", { id: "r-in", inputmode: "decimal", placeholder: "0.00" }), spent = el("input", { id: "r-out", inputmode: "decimal", placeholder: "0.00" }), notes = el("textarea", { rows: "2", maxlength: "400", placeholder: "Major donors or expenses (optional)" });
+  const go = el("button", { class: "btn2", type: "button", text: "Submit report" }), out = el("span", { class: "empty" });
+  go.addEventListener("click", async () => {
+    const a = parseFloat(raised.value.replace(/[^0-9.]/g, "")), b = parseFloat(spent.value.replace(/[^0-9.]/g, ""));
+    if (!(a >= 0) || !(b >= 0)) { out.textContent = " Enter amounts raised and spent."; return; }
+    go.disabled = true; out.textContent = " Submitting...";
+    try { const o = officeOf(off.value); await fileCase(ctx, "finance.report", per.value + ": " + (o ? o.t : off.value), { officeKey: off.value, office: o ? o.t : off.value, period: per.value, raised: a.toFixed(2), spent: b.toFixed(2), notes: notes.value.trim().slice(0, 400), termYear: C.termYear }, "elections");
+      out.textContent = " Submitted."; setTimeout(() => location.reload(), 900); } catch (e) { console.error(e); out.textContent = " Could not submit."; go.disabled = false; }
+  });
+  const f = (l, c) => el("div", { class: "fld" }, el("label", { text: l }), c);
+  fb.append(el("div", { class: "two" }, f("Campaign", off), f("Report", per)), el("div", { class: "two" }, f("Total raised ($)", raised), f("Total spent ($)", spent)), f("Notes", notes), go, out);
+}
+
+/* ---- offices ---- */
+Object.entries(LEVELS).forEach(([lk, lt]) => { $("offices").append(el("h3", { class: "grp-h", text: lt }), ...OFFICES.filter(o => o.level === lk).map(o => el("div", { class: "off" }, el("h3", { text: o.t }), el("small", { text: (o.seats > 1 ? o.seats + " seats, ranked preference voting. Top scorer becomes " + o.head + "." : "1 seat.") })))); });
+
+/* ---- your filings ---- */
+const mine = $("mine");
+if (!cases.length) mine.append(el("div", { class: "empty", text: "You have not filed anything." }));
+cases.forEach(r => { const act = OPEN.includes(r.status), res = r.result || ""; mine.append(el("div", {}, el("div", {}, el("b", { text: r.title }), el("small", { text: "Filed " + when(r.createdAt) })), el("div", { class: "r" }, el("span", { class: "pill " + (res === "approved" ? "g" : act ? "o" : "n"), text: act ? (r.status === "open" ? "Submitted" : "Under review") : cap(res || r.status) })))); });
+</script>
+</body>
+</html>

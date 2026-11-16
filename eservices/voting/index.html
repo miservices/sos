@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voting Services | SOS e-Services | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+<style>
+.cal{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.cal>div{border:1px solid var(--line);border-radius:16px;padding:16px 18px;background:#fff}
+.cal span{display:block;font-size:12.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.07em}
+.cal b{display:block;font-size:19px;font-weight:800;margin:4px 0}.cal small{color:var(--muted);font-size:13.5px}
+.cal .now{border-color:var(--teal);box-shadow:0 0 0 2px var(--sky)}
+.line{position:relative;height:10px;border-radius:999px;background:#e9f1f3;margin:26px 8px 36px}
+.line i{position:absolute;top:0;height:100%;background:var(--teal);border-radius:999px}
+.line em{position:absolute;top:-4px;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:var(--accent,#ff7a3d);border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+.line s{position:absolute;top:18px;transform:translateX(-50%);font-size:12px;text-decoration:none;color:var(--muted);white-space:nowrap;font-weight:600}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 16px}
+.tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 18px;font:inherit;font-weight:700;cursor:pointer;color:var(--teal2)}
+.tabs button[aria-selected=true]{background:var(--teal);color:#fff;border-color:var(--teal)}
+.race{border:1px solid var(--line);border-radius:16px;padding:16px 20px;background:#fff;margin-top:12px}
+.race h3{margin:0 0 4px;font-size:17px;font-weight:800}.race p{margin:6px 0 0;color:var(--text,#223)}
+.race .tag{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.race .tie{font-size:13.5px;color:var(--muted);margin-top:8px;font-weight:600}
+.tbl2{width:100%;border-collapse:collapse;font-size:.92rem}.tbl2 th,.tbl2 td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+.tbl2 th{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.checks2{display:grid;gap:8px;margin:8px 0 14px}.checks2 div{display:flex;gap:10px;align-items:center}
+</style>
+</head>
+<body>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header"></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="nav" data-page="voting"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading voting services...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">Elections</div><h1>Voting in Michigan</h1><p>How elections work, when they happen, and what is on your ballot, from the state to your county and city.</p></div>
+  <div class="stats" id="stats"></div>
+
+  <div class="pc mt" id="register"><h2>Your voter registration</h2><div id="reg"></div></div>
+
+  <div class="pc mt"><h2>Michigan's election calendar</h2>
+    <p class="sub">Every general election in Michigan, state, county, and city, runs on the same calendar.</p>
+    <div class="cal">
+      <div><span>Term length</span><b>January 1 to December 31</b><small>Every office filled in a general election serves a one-year term.</small></div>
+      <div id="c-eday"><span>Election Day</span><b></b><small>21 days before the term begins. In practice, around December 11 of the prior year.</small></div>
+      <div id="c-online"><span>Online voting window</span><b></b><small>30 to 10 days before the term begins. Available through the Secretary of State's online system for the state election, and a Secretary of State approved system for county and city elections.</small></div>
+    </div>
+    <h3 class="grp-h" id="c-title"></h3>
+    <div class="line" id="line"></div>
+  </div>
+
+  <div class="pc mt"><h2>Ranked preference voting</h2>
+    <p class="sub">Four races fill more than one seat at once. For those, instead of picking a single candidate, you rank as many as you would like, up to the number of open seats.</p>
+    <div class="g2">
+      <div><h3 class="grp-h" style="margin-top:0">How the scoring works</h3><p>Your top choice gets the highest number of points for that race, your second choice the next highest, and so on. Points are awarded per ballot and added up across every voter. The winners are whoever earns the highest total preference score, not whoever gets the most first choice votes.</p></div>
+      <div><h3 class="grp-h" style="margin-top:0">You do not have to rank every seat</h3><p>You do not have to rank every open seat. But the point values themselves do not change based on how many candidates you rank. If you only rank your top choice, that candidate still receives the full top point value from your ballot.</p></div>
+    </div>
+    <div class="tw mt"><table class="tbl2" id="rank"></table></div>
+  </div>
+
+  <div class="pc mt"><h2>Ties, runoffs and head positions</h2>
+    <p class="sub">Most ties are settled by voters in a runoff. A handful of specific ties are settled by the state's newly elected leadership instead.</p>
+    <div class="g2">
+      <div><h3 class="grp-h" style="margin-top:0">Runoff elections</h3><p>If a race ends in a tie, a runoff election is held to settle it.</p><div class="rows"><div><div><b>Online voting</b></div><div class="r" id="ro-online"></div></div><div><div><b>In-person Election Day</b></div><div class="r" id="ro-day"></div></div></div></div>
+      <div><h3 class="grp-h" style="margin-top:0">The exception: head positions</h3><p>A tie for the top preference score in the Legislature, Judiciary, Board of Commissioners, or City Council race is not sent to a runoff, because that tie determines who becomes Speaker of the Legislature, Chief Justice, Chairperson, or President of the Council.</p><p>Those specific ties are broken by the newly elected Governor, except for a City Council President tie, which is broken by the newly elected Mayor.</p></div>
+    </div>
+  </div>
+
+  <div class="pc mt"><h2>Special elections</h2>
+    <p class="sub">General elections happen on a fixed yearly cycle, but seats sometimes come open in between.</p>
+    <div class="g2">
+      <div><h3 class="grp-h" style="margin-top:0">Filling a vacancy</h3><p>When a seat becomes vacant outside the regular election cycle, a special election is held to fill the remainder of the term. It follows the same basic structure as a general election, a period of online voting followed by an in-person Election Day, on a timeline set by the Secretary of State for state offices, or by the County Clerk for county and city offices.</p></div>
+      <div><h3 class="grp-h" style="margin-top:0">The Governor's office</h3><p>The one exception is the Governor's office: if it becomes vacant, the Lieutenant Governor succeeds to the office directly, without a special election.</p></div>
+    </div>
+  </div>
+
+  <div class="pc mt" id="ballot"><h2>What is on the ballot</h2>
+    <p class="sub">Choose a level of government to see what voters decide.</p>
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div id="bal"></div>
+  </div>
+
+  <div class="pc mt"><h2>Your voting requests</h2><div class="rows" id="mine"></div></div>
+</div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
+<script type="module">
+import { boot, el, $, cap, when, ms, fileCase, myCases, getRecord, statusOf, db } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { cycle, fmtDay, fmtShort, LEVELS, OFFICES } from "https://migovt.org/sos/eservices/assets/elections.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+const ctx = await boot({ page: "voting" });
+const C = cycle();
+
+/* ---- voter registration ---- */
+let voter = null, rec = null, cases = [];
+try { const s = await getDoc(doc(db, "voters", String(ctx.id.pin))); voter = s.exists() ? s.data() : null; } catch (e) { console.warn("voters", e); }
+try { rec = await getRecord(ctx.id.pin); } catch (e) { console.warn("record", e); }
+try { cases = (await myCases(ctx.id.pin, 100)).filter(r => /^voter\./.test(r.type)); } catch (e) { console.warn("cases", e); }
+const citizen = statusOf(rec) === "Citizen", pending = cases.find(r => r.type === "voter.registration" && ["open", "in-review"].includes(r.status));
+const registered = voter && voter.status === "active";
+
+$("stats").append(
+  ...[["Registration", registered ? "Registered" : pending ? "Under review" : "Not registered"],
+      ["Next Election Day", fmtShort(C.electionDay) + ", " + C.electionDay.getFullYear()],
+      ["Online voting", C.phase === "open" ? "Open now" : C.phase === "upcoming" ? "Opens " + fmtShort(C.onlineOpen) : "Closed"],
+      [C.phase === "upcoming" || C.phase === "open" ? "Days to Election Day" : "Next term begins", C.phase === "closed" ? fmtShort(C.termStart) : String(Math.max(0, C.daysToElection))]]
+    .map(([a, b]) => el("div", { class: "stat" }, el("span", { text: a }), el("b", { text: b }))));
+
+const reg = $("reg");
+if (registered) {
+  reg.append(el("div", { class: "alert ok" }, el("b", { text: "You are registered to vote" }), "Registered " + (voter.registeredAt ? fmtDay(new Date(voter.registeredAt)) : "") + ". Your registration applies to every state, county, and city election."));
+} else if (pending) {
+  reg.append(el("div", { class: "alert" }, el("b", { text: "Your registration is under review" }), "Filed " + when(pending.createdAt) + ". The Bureau of Elections will review it."));
+} else {
+  const rows = el("div", { class: "checks2" });
+  [["Michigan citizen", citizen, citizen ? "Your vital record shows you as a citizen." : "Your vital record does not show citizenship. Visit Identification to see your status."]].forEach(([t, ok, why]) => rows.append(el("div", {}, el("span", { class: "pill " + (ok ? "g" : "o"), text: ok ? "Met" : "Not met" }), el("div", {}, el("b", { text: t }), el("small", { text: why })))));
+  const b = el("button", { class: "btn2", type: "button", text: "Register to vote" }), out = el("span", { class: "empty" });
+  b.disabled = !citizen;
+  b.addEventListener("click", async () => {
+    b.disabled = true; out.textContent = " Submitting...";
+    try { await fileCase(ctx, "voter.registration", "Voter registration", { county: "Genesee", city: "Flint" }, "elections"); out.textContent = " Submitted. The Bureau of Elections will review it."; setTimeout(() => location.reload(), 900); }
+    catch (e) { console.error(e); out.textContent = " Could not submit your registration."; b.disabled = false; }
+  });
+  reg.append(el("p", { class: "sub", text: "You are not registered to vote. Registration is reviewed by the Bureau of Elections." }), rows, b, out);
+}
+
+/* ---- calendar ---- */
+const online = fmtShort(C.onlineOpen) + " to " + fmtShort(C.onlineClose) + ", " + C.onlineClose.getFullYear();
+$("c-eday").querySelector("b").textContent = fmtDay(C.electionDay); $("c-online").querySelector("b").textContent = online;
+if (C.phase === "open") $("c-online").classList.add("now"); else if (C.phase === "upcoming") $("c-eday").classList.add("now");
+$("c-title").textContent = "The cycle at a glance: term beginning " + fmtDay(C.termStart);
+const span = C.termStart - new Date(C.termStart.getFullYear() - 1, 11, 1), pos = d => Math.max(0, Math.min(100, (d - new Date(C.termStart.getFullYear() - 1, 11, 1)) / span * 100));
+$("line").append(el("i", { style: "left:" + pos(C.onlineOpen) + "%;width:" + (pos(C.onlineClose) - pos(C.onlineOpen)) + "%" }),
+  el("em", { style: "left:" + pos(C.electionDay) + "%" }),
+  el("s", { style: "left:" + pos(C.onlineOpen) + "%", text: "Online opens " + fmtShort(C.onlineOpen) }), el("s", { style: "left:" + pos(C.electionDay) + "%;top:-28px", text: "Election Day " + fmtShort(C.electionDay) }),
+  el("s", { style: "left:" + pos(C.onlineClose) + "%;top:30px", text: "Online closes " + fmtShort(C.onlineClose) }), el("s", { style: "left:99%;top:-28px", text: "Term begins " + fmtShort(C.termStart) }));
+$("ro-online").textContent = fmtShort(C.runoffOnlineOpen) + " to " + fmtShort(C.runoffOnlineClose) + ", " + C.termYear; $("ro-day").textContent = fmtShort(C.runoffDay) + ", " + C.termYear;
+
+/* ---- ranked table ---- */
+const RK = OFFICES.filter(o => o.ranked), lvl = { legislature: "Legislature", judiciary: "Judiciary", "county-commissioner": "Board of Commissioners", "city-council": "City Council" };
+const pts = n => n <= 5 ? Array.from({ length: n }, (_, i) => n - i).join(", ") : n + ", " + (n - 1) + ", " + (n - 2) + " ... 1";
+$("rank").append(el("tr", {}, ["Race", "Seats", "You may rank up to", "Points (1st to last)", "Top scorer becomes"].map(h => el("th", { text: h }))),
+  ...RK.map(o => el("tr", {}, el("td", {}, el("b", { text: lvl[o.k] })), el("td", { text: String(o.seats) }), el("td", { text: o.seats + " candidates" }), el("td", { text: pts(o.seats) }), el("td", { text: o.head }))));
+
+/* ---- ballot tabs ---- */
+function ballot(level) {
+  const box = el("div"), intro = { state: ["General State Election", "Held on the calendar above. Four things appear on the state ballot."], county: ["General County Election", "Genesee County's ballot fills the Board of Commissioners and four countywide offices."], city: ["City of Flint General Election", "Flint's ballot fills the Mayor's office and the City Council."] }[level];
+  box.append(el("h3", { text: intro[0] }), el("p", { class: "sub", text: intro[1] }));
+  const DESC = {
+    "county-clerk": "Maintains the county's official records, including property records and District Court records, and administers elections at the county level and for every municipality within the county. The Clerk also serves as Clerk of the Court for the County District Court, Genesee County's only trial-level court.",
+    "county-treasurer": "The county's chief financial officer, responsible for collecting property taxes and managing county funds.",
+    "sheriff": "The county's elected chief law enforcement officer, overseeing the Sheriff's Office.",
+    "county-prosecutor": "The county's chief criminal law enforcement attorney, responsible for charging and prosecuting criminal cases within the county.",
+    "mayor": "Flint's elected chief executive."
+  };
+  OFFICES.filter(o => o.level === level).forEach(o => {
+    const r = el("div", { class: "race" }), n = o.seats;
+    if (o.ranked) {
+      const what = { legislature: "12 Legislators", judiciary: "7 Justices", "county-commissioner": "5 Commissioners", "city-council": "3 Council Members" }[o.k];
+      const body = { legislature: "Elected by ranked preference voting. Rank up to 12 candidates, with each ballot's top choice worth 12 points down to 1. The candidate with the highest total preference score becomes Speaker of the Legislature; the other 11 winners serve as members.",
+        judiciary: "1 Chief Justice and 6 Associate Justices, elected by ranked preference voting. Rank up to 7 candidates, with each ballot's top choice worth 7 points down to 1. The candidate with the highest total preference score becomes Chief Justice; the other 6 winners serve as Associate Justices.",
+        "county-commissioner": "Elected by ranked preference voting. Rank up to 5 candidates, with each ballot's top choice worth 5 points down to 1. The candidate with the highest total preference score becomes Chairperson of the Board; the other 4 winners serve as members.",
+        "city-council": "Elected by ranked preference voting. Rank up to 3 candidates, with each ballot's top choice worth 3 points, second 2, and third 1. The candidate with the highest total preference score becomes President of the Council; the other 2 winners serve as members." }[o.k];
+      r.append(el("div", { class: "tag" }, el("span", { class: "pill", text: n + " seats" })), el("h3", { text: what }), el("p", { text: body }), el("div", { class: "tie", text: "Tie for " + o.head.replace("Speaker of the Legislature", "Speaker").replace("Chairperson of the Board", "Chairperson").replace("President of the Council", "President") + ", broken by " + o.tie }));
+    } else r.append(el("h3", { text: o.k === "governor" ? "Governor and Lieutenant Governor" : o.t }), el("p", { text: o.note || DESC[o.k] || "" }));
+    box.append(r);
+  });
+  if (level === "state") box.append(el("div", { class: "race" }, el("h3", { text: "Questions and Issues" }), el("p", { text: "Statewide ballot questions and issues are also put directly to voters. Unless a specific question says otherwise, it is decided by a simple majority, though some questions require a two thirds supermajority to pass." })));
+  else box.append(el("div", { class: "race" }, el("h3", { text: "Ties, runoffs and vacancies" }), el("p", { text: level === "county" ? "Same rules as the state election: a tie in any of these races goes to a runoff, except a tie for Chairperson of the Board of Commissioners, which the newly elected Governor breaks. A vacancy in any of these offices is filled by a special election on the same two part structure described above." : "Same rules as the state and county elections: a tie for Mayor or for a non-President Council seat goes to a runoff. A vacancy in either office is filled by a special election on the same two part structure described above." })));
+  return box;
+}
+const tabs = $("tabs"); let cur = "state";
+const show = k => { cur = k; [...tabs.children].forEach(b => b.setAttribute("aria-selected", String(b.dataset.k === k))); $("bal").replaceChildren(ballot(k)); };
+Object.entries(LEVELS).forEach(([k, t]) => { const b = el("button", { type: "button", role: "tab", text: t }); b.dataset.k = k; b.addEventListener("click", () => show(k)); tabs.append(b); });
+show("state");
+
+/* ---- your requests ---- */
+const mine = $("mine");
+if (!cases.length) mine.append(el("div", { class: "empty", text: "You have not made any voting requests." }));
+cases.forEach(r => { const act = ["open", "in-review"].includes(r.status), res = r.result || ""; mine.append(el("div", {}, el("div", {}, el("b", { text: r.title }), el("small", { text: "Filed " + when(r.createdAt) })), el("div", { class: "r" }, el("span", { class: "pill " + (res === "approved" ? "g" : act ? "o" : "n"), text: act ? (r.status === "open" ? "Submitted" : "Under review") : cap(res || r.status) })))); });
+</script>
+</body>
+</html>
