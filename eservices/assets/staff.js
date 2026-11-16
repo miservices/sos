@@ -166,6 +166,9 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
     const warns = [];
     if (result === "approved" && r.result !== "approved" && r.type === "name.change" && r.detail && r.detail.first && r.detail.last) {
       const parts = { first: r.detail.first, middle: r.detail.middle || "", last: r.detail.last };
+      /* The name being replaced and the date of birth, read from the vital record before it changes (they go on the MC 53 filed with the courts). */
+      const before0 = await getRecord(r.pin).catch(() => null);
+      const info = { fromParts: before0 && (before0.firstName || before0.lastName) ? { first: before0.firstName || "", middle: before0.middleName || "", last: before0.lastName || "" } : null, dob: (before0 && before0.dob) || (r.detail.dob || ""), by: ctx.id.name || "Department of State" };
       /* The vital record gets the new name and keeps the old one in previousNames. */
       try {
         const ok = await applyNameToRecord(r.pin, parts);
@@ -178,10 +181,11 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
         if (ok) await audit(ctx, "name.migovt", r.pin, "MiGOVT account name changed to " + (r.detail.to || ""));
         else warns.push("No MiGOVT account was found for this PIN.");
       } catch (e) { console.error(e); warns.push("The MiGOVT account could not be updated. Check the MiGOVT Firestore rules."); }
-      /* The courts portal: the person's account and State Bar entry, and their name on every case. The old name is kept as an a/k/a. */
+      /* The courts portal: the person's account and State Bar entry, and their name on every case (the old name is kept as an a/k/a). An MC 53 is filed on each case they are a party to. */
       try {
-        const o = await applyNameToCourts(r.pin, parts, r.detail.from);
-        if (o.accounts || o.bar || o.cases) await audit(ctx, "name.courts", r.pin, "Courts portal: " + o.accounts + " account, " + o.bar + " bar entry, " + o.cases + " case(s) updated to " + (r.detail.to || ""));
+        const o = await applyNameToCourts(r.pin, parts, r.detail.from, info);
+        if (o.accounts || o.bar || o.cases) await audit(ctx, "name.courts", r.pin, "Courts portal: " + o.accounts + " account, " + o.bar + " bar entry, " + o.cases + " case(s) updated, " + o.notices + " MC 53 filed, to " + (r.detail.to || ""));
+        if (o.noticeFailed) warns.push(o.noticeFailed + " MC 53 notice(s) could not be filed on the courts' cases. Check the courts Storage rules.");
       } catch (e) { console.error(e); warns.push("The courts portal could not be updated. Check the courts Firestore rules."); }
       await updateDoc(doc(db, "accounts", r.pin), { name: r.detail.to || [r.detail.first, r.detail.middle, r.detail.last].filter(Boolean).join(" "), firstName: r.detail.first, middleName: r.detail.middle || "", lastName: r.detail.last, updatedBy: ctx.id.pin, updatedAt: serverTimestamp() });
       await logActivity(r.pin, "account.name", "Your name was changed to " + (r.detail.to || ""), AGENCY);

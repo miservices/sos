@@ -17,7 +17,7 @@
      transactions/{id}   { pin, desc, amount, status, at }                                           fees
      notices/{id}        { pin ("*" = everyone), title, body, level, at, read }                      official notices (created by staff in the console) */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, getDocs, query, where, limit, serverTimestamp, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, getDocs, query, where, limit, serverTimestamp, increment, arrayUnion, runTransaction } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 export const B = "https://migovt.org/sos/", E = B + "eservices/";
 const FB = { apiKey: "AIzaSyCzMDtySiPOXM5J15ePmjyUZRn_Zcyz2w0", authDomain: "misos-f7956.firebaseapp.com", projectId: "misos-f7956",
@@ -193,11 +193,14 @@ export async function applyNameToMiGOVT(pin, parts) {
      sbm/{bar number} the State Bar registry entry for an attorney (found by pin): same
      cases, mscCases  every party with this pin gets the new name and the old name(s) added to aliases (shown as "a/k/a"),
                       every attorney entry with the person's bar number gets the new name, and a judge or magistrate's name on a case is updated.
+                      On every case where the person is a party, an MC 53 (Notice of Legal Name Change) is filed on the docket.
    Case history (docket events, filings, documents) is never rewritten: what was signed under the old name stays as it was. */
 const COURTS = { apiKey: "AIzaSyA8sUFIq81cs6uQvqduardpGJ4R2DxO8NQ", authDomain: "micourt-dada6.firebaseapp.com", projectId: "micourt-dada6",
   storageBucket: "micourt-dada6.firebasestorage.app", messagingSenderId: "1013564619997", appId: "1:1013564619997:web:8f259dab457915758f6f34" };
 let _cdb = null;
-const courtsDb = () => _cdb || (_cdb = getFirestore(initializeApp(COURTS, "courts")));
+let _capp = null;
+const courtsApp = () => _capp || (_capp = initializeApp(COURTS, "courts"));
+const courtsDb = () => _cdb || (_cdb = getFirestore(courtsApp()));
 const lcn = s => String(s || "").replace(/\s+/g, " ").trim().toLowerCase();
 const uniqNames = a => { const seen = new Set(), out = []; for (const n of a) { const t = String(n || "").replace(/\s+/g, " ").trim(), k = t.toLowerCase(); if (t && !seen.has(k)) { seen.add(k); out.push(t); } } return out; };
 /* What a name change does to one case record. Returns the fields to write, or null when the case is not affected.
@@ -231,12 +234,38 @@ export function renameInCase(c, who) {
   }
   return Object.keys(patch).length ? patch : null;
 }
+const usDate = d => String(d.getMonth() + 1).padStart(2, "0") + "/" + String(d.getDate()).padStart(2, "0") + "/" + d.getFullYear();
+const dobText = v => { const t = String(v || ""), m = /^(\d{4})-(\d\d)-(\d\d)/.exec(t); return m ? m[2] + "/" + m[3] + "/" + m[1] : t; };
+const side = r => /defendant|respondent|appellee/i.test(r || "") ? 1 : /plaintiff|petitioner|prosecut|appellant|applicant|complainant|claimant/i.test(r || "") ? 0 : null;
+/* The MC 53 (Notice of Legal Name Change) as a saved form (.md), in the same format the court's Document Drafting uses. */
+function mc53Md(c, caseId, o) {
+  const ps = Array.isArray(c.parties) ? c.parties.filter(p => p && p.name) : [], nm = p => { const a = (Array.isArray(p.aliases) ? p.aliases : []).filter(Boolean); return a.length ? p.name + ", a/k/a " + a.join(", a/k/a ") : p.name; };
+  const pl = ps.filter(p => side(p.role) === 0), df = ps.filter(p => side(p.role) === 1);
+  const cap = (pl[0] && df[0]) ? pl[0].name + " v. " + df[0].name : (pl[0] || df[0] || {}).name || "";
+  const L = (k, v) => "- " + k + ": " + String(v == null ? "" : v).replace(/\n/g, " ");
+  const blk = (k, v) => "\n### " + k + "\n\n```text\n" + (v || "") + "\n```";
+  const f = o.fromParts, n = o.parts;
+  return ["---\nform: MC 53\ntitle: Notice of Legal Name Change\n---\n\n# MC 53\n",
+    ["## Case\n", L("Judge", typeof c.judge === "string" ? c.judge : ""), L("Case No.", caseId), L("Plaintiff/Petitioner name", pl.map(nm).join(", ")), L("Defendant/Respondent name", df.map(nm).join(", ")), L("In the matter of", c.caseTitleOverride || cap), blk("Plaintiff/Petitioner address", ""), blk("Defendant/Respondent address", "")].join("\n") + "\n",
+    ["## Former legal name\n", L("Former first name", f.first), L("Former middle name", f.middle), L("Former last name", f.last)].join("\n") + "\n",
+    ["## Current legal name\n", L("Current first name", n.first), L("Current middle name", n.middle), L("Current last name", n.last), L("Date of birth", o.dob), L("Personal identification number", o.pin)].join("\n") + "\n",
+    ["## Certification\n", L("Authorized representative", o.by), L("Date", usDate(new Date())), L("Signature", o.by)].join("\n") + "\n"].join("\n");
+}
+/* Save the MC 53 with the court's filed documents and return the link to open it. Needs the Storage rule for MC 53 uploads. */
+async function saveMc53(caseId, md, who) {
+  const st = await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-storage.js");
+  const path = "filingUploads/" + caseId + "/" + Date.now() + "-MC53_" + String(who).replace(/[^A-Za-z0-9]+/g, "_").slice(0, 40) + ".md";
+  await st.uploadBytes(st.ref(st.getStorage(courtsApp()), path), new Blob([md], { type: "text/markdown" }), { contentType: "text/markdown" });
+  return "https://migovt.org/courts/documents/#/" + path.split("/").map(encodeURIComponent).join("/");
+}
 /* parts = { first, middle, last }; fromName = the name the person had when they applied.
-   Returns { accounts, bar, cases } (how many records were changed). Throws if the courts Firestore refuses a write. */
-export async function applyNameToCourts(pin, parts, fromName) {
+   info = { fromParts: { first, middle, last } (the name being replaced), dob, by (who files it) }.
+   Returns { accounts, bar, cases, notices, noticeFailed } (records changed, MC 53s filed, MC 53s that could not be filed).
+   Throws if the courts Firestore refuses a write. */
+export async function applyNameToCourts(pin, parts, fromName, info = {}) {
   pin = String(pin);
   const db2 = courtsDb(), newName = [parts.first, parts.middle, parts.last].filter(Boolean).join(" "), when = new Date().toISOString();
-  const out = { accounts: 0, bar: 0, cases: 0 }, olds = [fromName], bars = new Set(); let judge = false;
+  const out = { accounts: 0, bar: 0, cases: 0, notices: 0, noticeFailed: 0 }, olds = [fromName], bars = new Set(); let judge = false;
   /* the portal account(s) */
   const accts = new Map();
   for (const f of ["mipassPin", "pin"]) {
@@ -264,13 +293,32 @@ export async function applyNameToCourts(pin, parts, fromName) {
     const a = d.data(); if (a.name === newName) continue;
     await updateDoc(d.ref, { name: newName, previousNames: arrayUnion({ name: a.name || fromName || "", until: when }) }); out.bar++;
   }
-  /* the cases */
+  /* the cases: change the name, and where the person is a party, file the MC 53 on the docket */
   const who = { pin, newName, oldNames, bars: [...bars], judge };
+  const by = info.by || "Department of State", dob = dobText(info.dob);
+  const fp = info.fromParts || (() => { const w = String(fromName || "").trim().split(/\s+/); return { first: w[0] || "", middle: w.length > 2 ? w.slice(1, -1).join(" ") : "", last: w.length > 1 ? w[w.length - 1] : "" }; })();
   for (const col of ["cases", "mscCases"]) {
     const s = await getDocs(collection(db2, col));
     for (const d of s.docs) {
-      const patch = renameInCase(d.data(), who);
-      if (patch) { await updateDoc(d.ref, patch); out.cases++; }
+      const first = renameInCase(d.data(), who); if (!first) continue;
+      const cid = d.data().caseId || d.id, litigant = Array.isArray(d.data().parties) && d.data().parties.some(p => p && String(p.pin || "") === pin);
+      let link = null;
+      if (litigant && info.file !== false) {
+        try {
+          const after = { ...d.data(), ...first };
+          link = await saveMc53(cid, mc53Md(after, cid, { fromParts: fp, parts, dob, pin, by }), newName);
+        } catch (e) { console.warn("Could not save the MC 53 for " + cid, e); out.noticeFailed++; }
+      }
+      await runTransaction(db2, async tx => {
+        const sn = await tx.get(d.ref); if (!sn.exists()) return;
+        const cur = sn.data(), patch = renameInCase(cur, who); if (!patch) return;
+        if (link) {
+          const ev = cur.events || [], no = ev.reduce((m, e) => Math.max(m, e.eventNumber || 0), 0) + 1;
+          patch.events = [...ev, { eventNumber: no, sealed: false, type: "filing", date: when, description: "Notice of legal name change (MC 53) filed by " + by + ".", docName: "Notice of Legal Name Change (MC 53)", documentLink: link, filedBy: by, role: "Department of State", enteredBy: by, judge: cur.judge || null }];
+          patch["dates.lastUpdated"] = when; out.notices++;
+        }
+        tx.update(d.ref, patch); out.cases++;
+      });
     }
   }
   return out;
