@@ -16,9 +16,9 @@
      cases/{id}   { pin, name?, type, title, detail{}, status, bureau, assignee?, assigneeName?, notes[], createdAt, updatedAt, updatedBy? }
                   Public portal pages create these (status "open"); staff work them here.
      audit/{id}   { actorPin, actorName, role, bureau, action, target, detail, at } */
-import { boot, db, E, $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, logActivity, logAccess, list, money } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { boot, db, E, $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, logActivity, logAccess, list, money, getRecord, setRecordStatus, statusOf, STATUSES, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { doc, getDoc, getDocs, addDoc, updateDoc, collection, query, where, limit, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-export { $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, E, db, list, money };
+export { $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, E, db, list, money, getRecord, setRecordStatus, statusOf, STATUSES, recordDate };
 
 /* ---------- bureaus and roles ---------- */
 export const BUREAUS = { lara: "Licensing and Regulatory Affairs", elections: "Elections", hearings: "Administrative Hearings and Appeals" };

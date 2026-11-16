@@ -12,7 +12,7 @@
 
    Firestore (project misos-f7956):
      accounts/{pin}      { pin, role, specialPermissions[], createdAt, lastLoginAt, loginCount, bureau?, division?,
-                        name, firstName, middleName, lastName, dateOfBirth, email, robloxUsername, discordUsername (copied from MiGOVT at sign-in), identitySyncedAt, citizenship ("citizen", "resident", "other"; set by staff) }   role: "basic" (default) or a staff role (see ROLE_LABELS)
+                        name, firstName, middleName, lastName, dateOfBirth, email, robloxUsername, discordUsername (copied from MiGOVT at sign-in), identitySyncedAt, }   role: "basic" (default) or a staff role (see ROLE_LABELS)
      activity/{id}       { pin, type, summary, actorPin?, actorName?, actorKind?, hidden, at }       what happened to or by the person with this pin
      transactions/{id}   { pin, desc, amount, status, at }                                           fees
      notices/{id}        { pin ("*" = everyone), title, body, level, at, read }                      official notices (created by staff in the console) */
@@ -34,7 +34,6 @@ export const ROLE_LABELS = {
 };
 /* Every role except "basic" is Department of State staff and can open the staff portal at /sos/eservices/staff/home/. */
 export const STAFF_ROLES = Object.keys(ROLE_LABELS).filter(r => r !== "basic");
-export const CITIZENSHIP = { citizen: "Citizen", resident: "Resident", other: "Neither a citizen nor a resident" };
 export const PERM_LABELS = { dealer: "Licensed dealer", insurer: "Licensed insurer", "records-access": "Records access" };
 
 /* ---------- small helpers ---------- */
@@ -143,6 +142,38 @@ export async function fileCase(ctx, type, title, detail, bureau = "lara") {
 export async function myCases(pin, n = 50) {
   const q = await getDocs(query(collection(db, "cases"), where("pin", "==", String(pin)), limit(100)));
   return q.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => ms(b.updatedAt) - ms(a.updatedAt)).slice(0, n);
+}
+/* ---------- vital records: the "persons" collection in the records Firestore (project mi-vital-records) ----------
+   persons/{pin} = { firstName, middleName, lastName, dob "MM/DD/YYYY", birthTime, cityOfBirth, countyOfBirth, stateOfBirth, status?, updatedAt (ISO text) }
+   status is "None", "Citizen", or "Resident"; a record with no status counts as "None". */
+const RECORDS = { apiKey: "AIzaSyCO08jleK1_Mk4__huY3cP-wKa5SDdLitw", authDomain: "mi-vital-records.firebaseapp.com", projectId: "mi-vital-records",
+  storageBucket: "mi-vital-records.firebasestorage.app", messagingSenderId: "775067715147", appId: "1:775067715147:web:7c2ff2e56a9f98929d2fce" };
+let _rdb = null;
+export const recDb = () => _rdb || (_rdb = getFirestore(initializeApp(RECORDS, "records")));
+export const STATUSES = ["None", "Citizen", "Resident"];
+export const statusOf = r => { const v = String((r && r.status) || "").trim().toLowerCase(); return v === "citizen" ? "Citizen" : v === "resident" ? "Resident" : "None"; };
+export async function getRecord(pin) {
+  const s = await getDoc(doc(recDb(), "persons", String(pin)));
+  return s.exists() ? { pin: String(pin), ...s.data() } : null;
+}
+/* Staff change a person's status. Written to the vital record, which is where status lives. */
+export async function setRecordStatus(pin, status) {
+  if (!STATUSES.includes(status)) throw new Error("Unknown status");
+  await updateDoc(doc(recDb(), "persons", String(pin)), { status, updatedAt: new Date().toISOString() });
+}
+/* "07/17/1971" or "1971-07-17" to "July 17, 1971". */
+export function recordDate(v) {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(v || "")) || (() => { const i = /^(\d{4})-(\d\d)-(\d\d)/.exec(String(v || "")); return i ? [0, i[2], i[3], i[1]] : null; })();
+  return m ? LONG[+m[1] - 1] + " " + +m[2] + ", " + m[3] : (v || "Not on file");
+}
+/* Change the person's name on their SOS account right away and charge the fee. parts = { first, middle, last }. */
+export async function changeName(ctx, parts, fee) {
+  const first = parts.first, middle = parts.middle || "", last = parts.last, name = [first, middle, last].filter(Boolean).join(" "), old = ctx.id.name || "";
+  await updateDoc(doc(db, "accounts", ctx.id.pin), { name, firstName: first, middleName: middle, lastName: last, nameChangedAt: serverTimestamp() });
+  await charge(ctx.id.pin, "Name change", fee);
+  await logActivity(ctx.id.pin, "account.name", "Name changed from " + old + " to " + name, { pin: ctx.id.pin, name, kind: "self" });
+  ctx.id = { ...ctx.id, name, first, middle, last };
+  return name;
 }
 export const visible = rows => rows.filter(r => !r.hidden);
 export const accessLog = rows => visible(rows).filter(r => /^(access|search)\./.test(r.type));
