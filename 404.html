@@ -102,7 +102,20 @@ html{scroll-padding-top:76px}
 @media(max-width:900px){.pg{grid-template-columns:1fr}.side{position:static}.opts{grid-template-columns:1fr}.phead h1{font-size:32px}}
 
 </style>
-</head>
+<style>
+.nf{max-width:1000px;margin:0 auto;padding:64px 24px 80px;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.nf .code{font-size:clamp(90px,16vw,170px);font-weight:800;line-height:.9;letter-spacing:-.04em;color:var(--teal)}
+.nf .code i{font-style:normal;color:#ff7a3d}
+.nf h1{font-size:34px;margin:18px 0 10px;letter-spacing:-.02em}
+.nf p{color:var(--muted);font-size:17px;line-height:1.6;margin:0 0 20px}
+.nf form{display:flex;gap:8px;margin-bottom:22px}
+.nf input{flex:1;min-width:0;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit}
+.nf input:focus{outline:2px solid var(--teal);border-color:var(--teal)}
+.nf .acts{display:flex;flex-wrap:wrap;gap:10px}
+.nf .card{margin:0}
+.nf .path{word-break:break-all;font-size:13px;color:var(--muted);margin-top:14px}
+@media(max-width:800px){.nf{grid-template-columns:1fr;padding:40px 20px 56px;gap:28px}}
+</style></head>
 <body>
 <script src="https://migovt.org/sos/partials.js" data-part="header"></script>
 
