@@ -3,160 +3,99 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SOS e-Services Home | Michigan Secretary of State</title>
+<title>Home | SOS e-Services | Michigan Secretary of State</title>
 <link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://migovt.org/sos/shared.css">
-<style>
-.hide{display:none!important}
-.tiles2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
-.tile2{border:1px solid var(--line);border-radius:16px;padding:20px;background:#fff;display:block}
-a.tile2:hover{border-color:var(--teal);box-shadow:0 12px 26px rgba(14,124,134,.12)}
-.tile2 b{font-size:16px;display:block}
-.tile2 span{font-size:14px;color:var(--muted);display:block;margin-top:4px}
-.tile2.soon{background:#f8fbfb}
-.tile2.soon b{color:#5d7379}
-.tile2 .pill{margin-top:10px}
-.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
-.state{max-width:560px;margin:60px auto;text-align:center}
-@media(max-width:700px){.tiles2{grid-template-columns:1fr}}
-</style></head>
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+</head>
 <body>
-<script src="https://migovt.org/sos/partials.js" data-part="header"></script>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header"></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="nav" data-page="home"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading your account...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">SOS e-Services</div><h1 id="hello">Welcome</h1><p>Your account at a glance, plus your latest fees, activity, and notices.</p></div>
+  <div class="alert ok hide" id="welcome"><b>Your SOS e-Services account has been created.</b>You are all set. Sign in any time with MiGOVT.</div>
 
-<div id="v-load" class="state"><div class="card"><h3>Loading your account...</h3><p>One moment.</p></div></div>
-<div id="v-out" class="state hide"><div class="card"><h3>Sign in to continue</h3><p>SOS e-Services uses your MiGOVT account.</p><p style="margin-top:14px"><a class="btn2" href="https://migovt.org/login/?redirect_uri=https%3A%2F%2Fmigovt.org%2Fsos%2Feservices%2Fhome%2F&site_name=SOS%20e-Services">Login with MiGOVT</a></p></div></div>
-<div id="v-err" class="state hide"><div class="card"><h3>We could not load your account</h3><p id="errmsg">Try again in a moment.</p><p style="margin-top:14px"><a class="btn2" href="https://migovt.org/sos/eservices/home/">Try again</a></p></div></div>
-<div id="v-app" class="hide">
-<section class="phead"><div class="in"><div class="crumbs"><a href="https://migovt.org/sos/">Home</a><span>/</span><a href="https://migovt.org/sos/eservices/">SOS e-Services</a><span>/</span><b>Home</b></div><h1 id="hello">Welcome</h1><p>Your Secretary of State services in one place.</p></div></section>
-<div class="pg"><div class="prose">
-<div class="note hide" id="welcome"><b>Your SOS e-Services account has been created.</b> You are all set. Sign in any time with MiGOVT.</div>
-<h2>Your services</h2>
-<div class="tiles2" id="tiles"></div>
+  <div class="stats mt" id="stats"></div>
+
+  <div class="pc mt"><h2>Important notices</h2><div id="notices"></div><p class="mt"><a class="btn2 s" href="https://migovt.org/sos/eservices/notices/">All official notices</a></p></div>
+
+  <div class="g2 mt">
+    <div class="pc"><h2>Recent transactions</h2><div class="rows" id="tx"></div><p class="mt"><a class="btn2 s" href="https://migovt.org/sos/eservices/history/#transactions">All transactions</a></p></div>
+    <div class="pc"><h2>Recent activity</h2><div class="rows" id="act"></div><p class="mt"><a class="btn2 s" href="https://migovt.org/sos/eservices/history/#activity">All activity</a></p></div>
+  </div>
+
+  <div class="g2 mt">
+    <div class="pc"><h2>Your account</h2><div class="kv2" id="kv"></div><p class="mt"><a class="btn2 s" href="https://migovt.org/sos/eservices/identification/">View or change my information</a></p></div>
+    <div class="pc"><h2>Driver licensing</h2><div class="kv2"><div><span>Driver's license</span><b>None on file</b></div><div><span>Endorsements</span><b>None</b></div><div><span>Chauffeur's license</span><b>None</b></div></div><p class="mt"><a class="btn2" href="https://migovt.org/sos/licenses/testing/">Take a test online</a> <a class="btn2 s" href="https://migovt.org/sos/eservices/licenses/">Driver Licensing</a></p></div>
+  </div>
+
+  <div id="all"></div>
 </div>
-<aside class="side">
-<div class="card"><h3>Your account</h3><div class="kv" id="kv"></div></div>
-<div class="card"><h3>Manage</h3><div class="kv"><div><a href="https://migovt.org/account/">Manage my MiGOVT account</a></div><div><button class="btn2 s" id="signout" type="button" style="width:100%">Sign out</button></div></div></div>
-</aside></div></div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { boot, list, notices, visible, money, when, longDate, el, cap, ROLE_LABELS, PERM_LABELS } from "https://migovt.org/sos/eservices/assets/shared.js";
 
-const db = getFirestore(initializeApp({ apiKey: "AIzaSyCzMDtySiPOXM5J15ePmjyUZRn_Zcyz2w0", authDomain: "misos-f7956.firebaseapp.com", projectId: "misos-f7956",
-  storageBucket: "misos-f7956.firebasestorage.app", messagingSenderId: "696781263120", appId: "1:696781263120:web:0a2b3c56d8ad9ede0f5595", measurementId: "G-JRGCL61BWX" }));
-const B = "https://migovt.org/sos/";
+const ctx = await boot({ page: "home" });
+const { id, acct, role, perms } = ctx;
+const $ = x => document.getElementById(x);
 
-/* ---- roles and special permissions ----
-   role: the account's main role ("basic" for almost everyone, or something like "staff").
-   specialPermissions: extra capabilities on top of the role, e.g. "dealer".
-   Add labels here as new roles and permissions are created; unknown values still display. */
-const ROLE_LABELS = { basic: "Basic", staff: "Staff" };
-const PERM_LABELS = { dealer: "Licensed dealer" };
+$("hello").textContent = "Welcome, " + (id.first || id.name || "there");
+$("welcome").classList.toggle("hide", !ctx.created);
 
-const SERVICES = [
-  { t: "Online tests", d: "Take your driver's, motorcycle, or chauffeur's test.", url: B + "licenses/testing/" },
-  { t: "Contest points", d: "Ask for a review of points added to your record.", url: B + "licenses/suspensions/contest/" },
-  { t: "Driving record", d: "Request a copy of your driving record.", soon: true },
-  { t: "License and ID cards", d: "Request, renew, or replace your card.", soon: true },
-  { t: "Vehicle registration and titles", d: "Register a vehicle or transfer a title.", soon: true },
-  { t: "Update my information", d: "Change your name on your vital record.", soon: true },
-  { t: "Dealer services", d: "Tools for licensed car dealers.", soon: true, perm: "dealer" },
-  { t: "Staff tools", d: "Internal tools for Department staff.", soon: true, role: "staff" }
-];
+/* account overview */
+const kv = $("kv");
+const row = (k, v) => kv.append(el("div", {}, el("span", { text: k }), el("b", {}, v)));
+row("Name", id.name || "Not on file");
+row("PIN", id.pin);
+row("Date of birth", longDate(id.dob));
+row("Role", el("span", { class: "pill", text: ROLE_LABELS[role] || cap(role) }));
+const chips = el("span", { class: "chips" });
+if (!perms.length) chips.textContent = "None"; else perms.forEach(p => chips.append(el("span", { class: "pill o", text: PERM_LABELS[p] || cap(p) })));
+row("Special permissions", chips);
 
-const $ = id => document.getElementById(id);
-const show = n => ["load", "out", "err", "app"].forEach(v => $("v-" + v).classList.toggle("hide", v !== n));
-const cap = s => String(s || "").replace(/^./, c => c.toUpperCase());
-const SK = "sos_session", DAYS = 30;
-const ls = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} }, del: k => { try { localStorage.removeItem(k); } catch {} } };
-const ss = { get: k => { try { return sessionStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch {} } };
+/* fees, activity, notices */
+const empty = t => el("div", { class: "empty", text: t });
+try {
+  const [tx, act, nt] = await Promise.all([list("transactions", id.pin, 5), list("activity", id.pin, 60), notices(id.pin, 3)]);
+  const owed = tx.filter(t => t.status === "pending").reduce((s, t) => s + (Number(t.amount) || 0), 0);
 
-function loadSession() {
-  try { const o = JSON.parse(ls.get(SK) || "null"); if (o && o.pin && o.exp > Date.now()) return o; } catch {}
-  ls.del(SK); return null;
-}
-function saveSession(id) { ls.set(SK, JSON.stringify({ ...id, exp: Date.now() + DAYS * 864e5 })); }
+  $("stats").append(
+    el("div", { class: "stat" }, el("span", { text: "Driver's license" }), el("b", { text: "None on file" }), el("small", { text: "Take a test to get one" })),
+    el("div", { class: "stat" }, el("span", { text: "Balance due" }), el("b", { text: money(owed) }), el("small", { text: owed ? "Pending fees" : "Nothing owed" })),
+    el("div", { class: "stat" }, el("span", { text: "Notices" }), el("b", { text: String(nt.length) }), el("small", { text: nt.length ? "Latest shown below" : "You are all caught up" }))
+  );
 
-/* MiGOVT Login sends people back here with their details in the address. */
-function identityFromReturn() {
-  const p = new URLSearchParams(location.search);
-  if (!p.has("mipass_pin")) return null;
-  const pin = (p.get("mipass_pin") || "").trim();
-  history.replaceState({}, "", location.pathname);
-  if (!/^\d{4,20}$/.test(pin)) return null;
-  const g = k => (p.get("mipass_" + k) || "").trim();
-  return { pin, name: g("name"), first: g("first"), middle: g("middle"), last: g("last"), dob: g("dob"), roblox: g("user"), email: g("email"), discord: g("discord") };
-}
+  const nb = $("notices");
+  if (!nt.length) nb.append(empty("No notices right now."));
+  nt.forEach(n => nb.append(el("div", { class: "notice" + (n.level === "important" ? " imp" : "") }, el("b", { text: n.title || "Notice" }), el("span", { text: n.body || "" }), el("small", { class: "empty", text: " " + when(n.at) }))));
 
-/* Create the SOS e-Services account the first time, otherwise record the sign-in. */
-async function ensureAccount(pin) {
-  const ref = doc(db, "accounts", pin);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) {
-    await setDoc(ref, { pin, role: "basic", specialPermissions: [], createdAt: serverTimestamp(), lastLoginAt: serverTimestamp(), loginCount: 1 });
-    ss.set("sos_counted", pin);
-    return { data: (await getDoc(ref)).data(), created: true };
-  }
-  if (ss.get("sos_counted") !== pin) {
-    ss.set("sos_counted", pin);
-    await updateDoc(ref, { lastLoginAt: serverTimestamp(), loginCount: increment(1) }).catch(() => {});
-  }
-  return { data: snap.data(), created: false };
+  const tb = $("tx");
+  if (!tx.length) tb.append(empty("No fees yet."));
+  tx.forEach(t => tb.append(el("div", {}, el("div", {}, el("b", { text: t.desc }), el("small", { text: when(t.at) })), el("div", { class: "r" }, money(t.amount), el("small", { text: cap(t.status || "paid") })))));
+
+  const ab = $("act"), recent = visible(act).slice(0, 6);
+  if (!recent.length) ab.append(empty("No activity yet."));
+  recent.forEach(a => ab.append(el("div", {}, el("div", {}, el("b", { text: a.summary }), el("small", { text: when(a.at) })))));
+} catch (e) {
+  console.error(e);
+  ["notices", "tx", "act"].forEach(k => $(k).append(empty("We could not load this right now.")));
 }
 
-const LONG = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const longDate = iso => { const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(iso || ""); return m ? LONG[+m[2] - 1] + " " + +m[3] + ", " + m[1] : (iso || "Not on file"); };
-
-function allowed(s, role, perms) {
-  if (s.perm && !perms.includes(s.perm)) return false;
-  if (s.role && role !== s.role) return false;
-  return true;
-}
-
-function render(id, acct, created) {
-  const role = String(acct.role || "basic").toLowerCase();
-  const perms = Array.isArray(acct.specialPermissions) ? acct.specialPermissions.map(String) : [];
-  $("hello").textContent = "Welcome, " + (id.first || id.name || "there");
-  $("welcome").classList.toggle("hide", !created);
-
-  const kv = $("kv"); kv.replaceChildren();
-  const add = (k, v) => { const d = document.createElement("div"); const s = document.createElement("span"); s.textContent = k; const b = document.createElement("b"); if (v instanceof Node) b.appendChild(v); else b.textContent = v; d.append(s, b); kv.appendChild(d); };
-  add("Name", id.name || "Not on file");
-  add("PIN", id.pin);
-  add("Date of birth", longDate(id.dob));
-  const rp = document.createElement("span"); rp.className = "pill"; rp.textContent = ROLE_LABELS[role] || cap(role); add("Role", rp);
-  const chips = document.createElement("span"); chips.className = "chips";
-  if (!perms.length) { chips.textContent = "None"; }
-  else perms.forEach(p => { const c = document.createElement("span"); c.className = "pill o"; c.textContent = PERM_LABELS[p] || cap(p); chips.appendChild(c); });
-  add("Permissions", chips);
-
-  const t = $("tiles"); t.replaceChildren();
-  SERVICES.filter(s => allowed(s, role, perms)).forEach(s => {
-    const el = document.createElement(s.url ? "a" : "div"); el.className = "tile2" + (s.soon && !s.url ? " soon" : "");
-    if (s.url) el.href = s.url;
-    const b = document.createElement("b"); b.textContent = s.t; const d = document.createElement("span"); d.textContent = s.d; el.append(b, d);
-    if (!s.url) { const p = document.createElement("span"); p.className = "pill"; p.textContent = "Coming soon"; el.appendChild(p); }
-    t.appendChild(el);
-  });
-  show("app");
-}
-
-$("signout").addEventListener("click", () => { ls.del(SK); try { sessionStorage.removeItem("sos_counted"); } catch {} location.href = B + "eservices/"; });
-
-(async function init() {
-  let id = identityFromReturn();
-  if (id) saveSession(id); else id = loadSession();
-  if (!id) return show("out");
-  try {
-    const r = await ensureAccount(id.pin);
-    render(id, r.data, r.created);
-  } catch (e) {
-    console.error(e);
-    $("errmsg").textContent = e && e.code === "permission-denied" ? "The account service refused the request. Check the Firestore rules for this project." : "Try again in a moment.";
-    show("err");
-  }
-})();
+/* every service, grouped, from the portal map in partials.js */
+const all = $("all");
+(window.SOS_PAGES || []).forEach(g => {
+  const items = g.items.filter(i => i.k !== "home");
+  if (!items.length) return;
+  all.append(el("div", { class: "grp-h", text: g.g }));
+  const t = el("div", { class: "tiles" });
+  items.forEach(i => t.append(el("a", { class: "tile", href: i.url }, el("b", { text: i.t }), el("span", { text: i.d }), i.tag ? el("em", { text: i.perm && ctx.has(i.perm) ? "Unlocked" : i.tag }) : null)));
+  all.append(t);
+});
 </script>
-<script src="https://migovt.org/sos/partials.js" data-part="footer"></script>
 </body>
 </html>

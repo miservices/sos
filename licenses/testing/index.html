@@ -237,15 +237,15 @@ function outcome(passed){
   var k=state.key,p=profile,t=TESTS[k];
   if(!passed)return '<p>You needed a score above '+PASS+'% ('+need(t.q.length)+' of '+t.q.length+' correct). You can retake the test. The test fee of '+money(t.fee)+' applies each time.</p>';
   if(k==="driver"){
-    if(p.status==="resident")return '<p>You passed. Because you are a resident, your <b>standard driver\'s license</b> has been issued automatically in the system.</p><p>A physical card is not issued automatically. Request your card in SOS e-Services (card fee $55.00).</p>';
-    if(p.status==="citizen")return '<p>You passed. Your <b>restricted driver\'s license</b> has been issued in the system.</p><p>After you have held it for 10 days, it will be advanced to a standard license automatically, as long as it is not suspended or revoked. A physical card is not issued automatically. Request your card in SOS e-Services (card fee $55.00).</p>';
-    return '<p>You passed. Your <b>restricted driver\'s license</b> has been issued in the system.</p><p>Because you are not a citizen or a resident, you cannot advance to a standard license. A physical card is not issued automatically. Request your card in SOS e-Services (card fee $55.00).</p>';
+    if(p.status==="resident")return '<p>You passed. Because you are a resident, your <b>standard driver\'s license</b> has been issued automatically in the system.</p><p>A physical card is not issued automatically. Request your card in <a href="https://migovt.org/sos/eservices/licenses/">Driver Licensing</a> (card fee $55.00).</p>';
+    if(p.status==="citizen")return '<p>You passed. Your <b>restricted driver\'s license</b> has been issued in the system.</p><p>After you have held it for 10 days, it will be advanced to a standard license automatically, as long as it is not suspended or revoked. A physical card is not issued automatically. Request your card in <a href="https://migovt.org/sos/eservices/licenses/">Driver Licensing</a> (card fee $55.00).</p>';
+    return '<p>You passed. Your <b>restricted driver\'s license</b> has been issued in the system.</p><p>Because you are not a citizen or a resident, you cannot advance to a standard license. A physical card is not issued automatically. Request your card in <a href="https://migovt.org/sos/eservices/licenses/">Driver Licensing</a> (card fee $55.00).</p>';
   }
   if(k==="motorcycle"){
-    if(p.status==="resident")return '<p>You passed. Because you are a resident, your <b>motorcycle endorsement</b> is active on your standard license automatically.</p><p>A new card is not issued automatically. Request an updated card in SOS e-Services.</p>';
-    return '<p>You passed. A <b>restricted motorcycle endorsement</b> has been issued in the system.</p><p>After 10 days, as long as your license is not suspended or revoked, it becomes a full motorcycle endorsement. A new card is not issued automatically. Request an updated card in SOS e-Services.</p>';
+    if(p.status==="resident")return '<p>You passed. Because you are a resident, your <b>motorcycle endorsement</b> is active on your standard license automatically.</p><p>A new card is not issued automatically. Request an updated card in <a href="https://migovt.org/sos/eservices/licenses/">Driver Licensing</a>.</p>';
+    return '<p>You passed. A <b>restricted motorcycle endorsement</b> has been issued in the system.</p><p>After 10 days, as long as your license is not suspended or revoked, it becomes a full motorcycle endorsement. A new card is not issued automatically. Request an updated card in <a href="https://migovt.org/sos/eservices/licenses/">Driver Licensing</a>.</p>';
   }
-  return '<p>You passed. Your <b>chauffeur\'s license</b> has been added to your record.</p><p>A new card is not issued automatically. Request an updated card in SOS e-Services.</p>';
+  return '<p>You passed. Your <b>chauffeur\'s license</b> has been added to your record.</p><p>A new card is not issued automatically. Request an updated card in <a href="https://migovt.org/sos/eservices/licenses/">Driver Licensing</a>.</p>';
 }
 
 function result(){
@@ -255,7 +255,7 @@ function result(){
   var h='<div class="panel"><div class="qn">Result</div><div class="score '+(passed?'pass':'fail')+'">'+pct+'%</div>';
   h+='<h2 style="margin-top:10px">'+(passed?'Passed':'Did not pass')+'</h2><p>'+s+' of '+n+' correct. A passing score is above '+PASS+'%.</p>'+outcome(passed);
   h+='<div class="nav"><a class="btn2 s" href="'+B+t.page+'">Back to '+esc(t.name.replace(" Test",""))+' information</a>';
-  h+=passed?'<a class="btn2" href="'+B+'eservices/">Open SOS e-Services</a>':'<button class="btn2" id="retry">Retake test ('+money(t.fee)+')</button>';
+  h+=passed?'<a class="btn2" href="'+B+'eservices/licenses/">Open Driver Licensing</a>':'<button class="btn2" id="retry">Retake test ('+money(t.fee)+')</button>';
   h+='</div></div>';
   var missed=[];state.qs.forEach(function(q,k){if(state.ans[k]!==q.correct)missed.push([q.q,q.opts[q.correct]])});
   if(missed.length){
