@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audit Log | Staff Portal | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+</head>
+<body>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header" data-staff></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="staffnav" data-page="audit"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">Administration</div><h1>Audit Log</h1><p>A record of staff actions: lookups, case decisions, notices, and account changes.</p></div>
+  <div class="pc"><div class="bar"><input id="f" type="search" placeholder="Filter by staff name, action, or PIN" aria-label="Filter"></div><div class="tw" id="t"></div></div>
+</div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
+<script type="module">
+import { bootStaff, $, el, cap, when, BUREAUS, ROLE_LABELS, loadAudit } from "https://migovt.org/sos/eservices/assets/staff.js";
+const ctx = await bootStaff({ page: "audit", cap: "audit.view" });
+const t = $("t");
+t.replaceChildren(el("div", { class: "empty", text: "Loading..." }));
+let rows = [];
+try { rows = await loadAudit(ctx, 200); } catch (e) { console.error(e); t.replaceChildren(el("div", { class: "empty", text: "We could not load the audit log right now." })); }
+function draw() {
+  const q = $("f").value.trim().toLowerCase();
+  const list = rows.filter(r => !q || (r.actorName + " " + r.action + " " + r.target + " " + r.detail).toLowerCase().includes(q));
+  if (!list.length) { t.replaceChildren(el("div", { class: "empty", text: "Nothing to show." })); return; }
+  const tb = el("table", { class: "tbl" }, el("tr", {}, ["When", "Staff", "Action", "Target", "Detail"].map(h => el("th", { text: h }))));
+  list.forEach(r => tb.append(el("tr", {}, el("td", { text: when(r.at) }), el("td", {}, el("b", { text: r.actorName || "PIN " + r.actorPin }), el("br"), el("small", { class: "empty", text: ROLE_LABELS[r.role] || r.role })), el("td", { text: r.action }), el("td", { text: r.target ? "PIN " + r.target : "" }), el("td", { text: r.detail }))));
+  t.replaceChildren(tb);
+}
+$("f").addEventListener("input", draw); if (rows.length) draw();
+</script>
+</body>
+</html>

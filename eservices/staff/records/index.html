@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Records Desk | Staff Portal | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+</head>
+<body>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header" data-staff></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="staffnav" data-page="records"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">Bureau desk</div><h1>Records Desk</h1><p>Certified records and vital records. Part of the Bureau of Licensing and Regulatory Affairs.</p></div>
+  <div class="stats" id="stats"></div>
+  <div class="g2 mt"><div class="pc"><h2>What this desk handles</h2><ul><li>Certified driving record requests</li><li>Birth certificate and other vital record requests</li><li>Citizenship and resident status records</li></ul></div><div class="pc"><h2>Desk tools</h2><div class="stack"><a class="btn2 s" href="https://migovt.org/sos/eservices/staff/lookup/">Person Lookup</a><a class="btn2 s" href="https://migovt.org/sos/eservices/staff/notices/">Send a notice</a></div></div></div>
+  <div class="pc mt"><h2>Cases</h2><div id="q"></div></div>
+</div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
+<script type="module">
+import { bootStaff, $, el, cap, when, BUREAUS, ROLE_LABELS, loadCases, caseStats, renderQueue } from "https://migovt.org/sos/eservices/assets/staff.js";
+const ctx = await bootStaff({ page: "records", desk: "lara" });
+try {
+  const rows = await loadCases(ctx, { bureau: "lara", prefixes: ["record.", "vital."] });
+  const st = caseStats(rows);
+  $("stats").append(
+    el("div", { class: "stat" }, el("span", { text: "Open" }), el("b", { text: String(st.open) })),
+    el("div", { class: "stat" }, el("span", { text: "In review" }), el("b", { text: String(st.review) })),
+    el("div", { class: "stat" }, el("span", { text: "Closed" }), el("b", { text: String(st.done) })));
+  renderQueue($("q"), ctx, rows, { emptyText: "No cases at this desk yet." });
+} catch (e) { console.error(e); $("q").replaceChildren(el("div", { class: "empty", text: "We could not load cases right now." })); }
+</script>
+</body>
+</html>

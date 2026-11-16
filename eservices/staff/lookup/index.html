@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Person Lookup | Staff Portal | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+</head>
+<body>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header" data-staff></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="staffnav" data-page="lookup"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">Tools</div><h1>Person Lookup</h1><p>Search by name or PIN and open a person's file. Every lookup is recorded, and people can see that the Department searched for them.</p></div>
+  <div class="pc"><form id="f" class="bar" role="search"><input id="q" type="search" placeholder="Name (starts with) or PIN" aria-label="Name or PIN" required><button class="btn2" type="submit">Search</button></form><div id="res"></div></div>
+  <div id="file" class="mt"></div>
+</div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
+<script type="module">
+import { bootStaff, $, el, cap, when, BUREAUS, ROLE_LABELS, searchPeople, getAccount, openCase, audit, logSearchAppeared, logSearchOpened, CASE_TYPES, typeLabel, STATUS, PERM_LABELS, loadCasesFor, list, money } from "https://migovt.org/sos/eservices/assets/staff.js";
+const ctx = await bootStaff({ page: "lookup" });
+const res = $("res"), file = $("file");
+const empty = t => el("div", { class: "empty", text: t });
+function personRow(p) {
+  const b = el("button", { class: "btn2 s", type: "button", text: "Open file" });
+  b.addEventListener("click", () => openFile(p));
+  return el("div", { class: "person" }, el("div", {}, el("b", { text: p.name || "Unnamed" }), el("div", { class: "empty", text: "PIN " + p.pin + (p.dob ? " | Born " + p.dob : "") })), b);
+}
+$("f").addEventListener("submit", async e => {
+  e.preventDefault(); file.replaceChildren(); res.replaceChildren(empty("Searching..."));
+  try {
+    const people = await searchPeople($("q").value);
+    res.replaceChildren();
+    if (!people.length) { res.append(empty("No one matched that search.")); return; }
+    people.forEach(p => res.append(personRow(p)));
+    people.slice(0, 10).forEach(p => logSearchAppeared(p.pin));
+    audit(ctx, "lookup.search", "", $("q").value.trim().slice(0, 60));
+  } catch (er) { console.error(er); res.replaceChildren(empty("The search could not run. The MiGOVT account directory may not allow searches.")); }
+});
+async function openFile(p) {
+  logSearchOpened(p.pin); audit(ctx, "lookup.open", p.pin, p.name);
+  file.replaceChildren(el("div", { class: "empty", text: "Opening file..." }));
+  const box = el("div", { class: "stack" });
+  const id = el("div", { class: "pc" }, el("h2", { text: p.name || "Unnamed" }), el("div", { class: "kv2" },
+    ...[["PIN", p.pin], ["Date of birth", p.dob || "Not on file"], ["Roblox", p.roblox || "None"], ["Discord", p.discord || "None"]].map(([k, v]) => el("div", {}, el("span", { text: k }), el("b", { text: v })))));
+  const acct = el("div", { class: "pc" }, el("h2", { text: "SOS e-Services account" }));
+  const cases = el("div", { class: "pc" }, el("h2", { text: "Cases" }), el("div", { id: "pc" }));
+  const hist = el("div", { class: "pc" }, el("h2", { text: "History" }), el("div", { class: "rows", id: "ph" }));
+  const fees = el("div", { class: "pc" }, el("h2", { text: "Fees" }), el("div", { class: "rows", id: "pf" }));
+  box.append(id, acct, el("div", { class: "g2" }, hist, fees), cases);
+  if (ctx.can("cases.open")) {
+    const t = el("select", { "aria-label": "Case type" }, Object.keys(CASE_TYPES).map(k => el("option", { value: k, text: typeLabel(k) })));
+    const title = el("input", { type: "text", placeholder: "Short title", maxlength: "140", "aria-label": "Title" });
+    const go = el("button", { class: "btn2", type: "button", text: "Open case" }), msg = el("span", { class: "empty" });
+    go.addEventListener("click", async () => { if (!title.value.trim()) { msg.textContent = " Add a title."; return; } go.disabled = true; try { await openCase(ctx, { pin: p.pin, name: p.name, type: t.value, title: title.value.trim() }); msg.textContent = " Case opened."; title.value = ""; } catch (er) { console.error(er); msg.textContent = " Could not open the case."; } go.disabled = false; });
+    box.append(el("div", { class: "pc" }, el("h2", { text: "Open a case" }), el("div", { class: "bar" }, t, title, go), msg));
+  }
+  file.replaceChildren(box);
+  try { const a = await getAccount(p.pin); acct.append(a ? el("div", { class: "kv2" }, el("div", {}, el("span", { text: "Role" }), el("b", { text: ROLE_LABELS[a.role] || cap(a.role) })), el("div", {}, el("span", { text: "Special permissions" }), el("b", { text: (a.specialPermissions || []).map(x => PERM_LABELS[x] || cap(x)).join(", ") || "None" }))) : el("div", { class: "empty", text: "This person has not signed in to SOS e-Services yet." })); } catch { acct.append(empty("Could not load the account.")); }
+  try { const c = await loadCasesFor(p.pin); const pc = $("pc"); if (!c.length) pc.append(empty("No cases.")); c.forEach(r => pc.append(el("div", { class: "person" }, el("div", {}, el("b", { text: typeLabel(r.type) }), el("div", { class: "empty", text: r.title })), el("span", { class: "pill", text: STATUS[r.status] || r.status })))); } catch { $("pc").append(empty("Could not load cases.")); }
+  try { const h = await list("activity", p.pin, 12), ph = $("ph"); if (!h.length) ph.append(empty("No history.")); h.forEach(r => ph.append(el("div", {}, el("div", {}, el("b", { text: r.summary }), el("small", { text: when(r.at) + (r.hidden ? " | Hidden from the person" : "") })))));
+        const f = await list("transactions", p.pin, 8), pf = $("pf"); if (!f.length) pf.append(empty("No fees.")); f.forEach(t => pf.append(el("div", {}, el("div", {}, el("b", { text: t.desc }), el("small", { text: when(t.at) })), el("div", { class: "r" }, money(t.amount))))); } catch { $("ph").append(empty("Could not load history.")); }
+}
+</script>
+</body>
+</html>

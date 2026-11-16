@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Work Queue | Staff Portal | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+</head>
+<body>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header" data-staff></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="staffnav" data-page="queue"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">Cases</div><h1>Work Queue</h1><p>Every case in your scope. Open one to work it.</p></div>
+  <div class="stats" id="stats"></div>
+  <div class="pc mt"><div id="q"></div></div>
+</div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
+<script type="module">
+import { bootStaff, $, el, cap, when, BUREAUS, ROLE_LABELS, loadCases, caseStats, renderQueue } from "https://migovt.org/sos/eservices/assets/staff.js";
+const ctx = await bootStaff({ page: "queue" });
+try {
+  const rows = ctx.scope ? await loadCases(ctx) : [];
+  const st = caseStats(rows);
+  $("stats").append(
+    el("div", { class: "stat" }, el("span", { text: "Open" }), el("b", { text: String(st.open) })),
+    el("div", { class: "stat" }, el("span", { text: "In review" }), el("b", { text: String(st.review) })),
+    el("div", { class: "stat" }, el("span", { text: "Closed" }), el("b", { text: String(st.done) })));
+  renderQueue($("q"), ctx, rows, { emptyText: ctx.scope ? "No cases yet." : "Your account has no bureau yet." });
+} catch (e) { console.error(e); $("q").replaceChildren(el("div", { class: "empty", text: "We could not load cases right now." })); }
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Staff Directory | Staff Portal | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+</head>
+<body>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header" data-staff></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="staffnav" data-page="directory"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">Administration</div><h1>Staff Directory</h1><p>Everyone on staff, by role and bureau.</p></div>
+  <div class="pc"><div class="bar"><input id="f" type="search" placeholder="Filter by name, PIN, role, or bureau" aria-label="Filter"></div><div class="tw" id="t"></div></div>
+</div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
+<script type="module">
+import { bootStaff, $, el, cap, when, BUREAUS, ROLE_LABELS, listStaff } from "https://migovt.org/sos/eservices/assets/staff.js";
+const ctx = await bootStaff({ page: "directory" });
+const t = $("t");
+t.replaceChildren(el("div", { class: "empty", text: "Loading..." }));
+let rows = [];
+try { rows = await listStaff(); } catch (e) { console.error(e); t.replaceChildren(el("div", { class: "empty", text: "We could not load the directory right now." })); }
+function draw() {
+  const q = $("f").value.trim().toLowerCase();
+  const list = rows.filter(r => !q || ((r.person && r.person.name || "") + " " + r.pin + " " + (ROLE_LABELS[r.role] || r.role) + " " + (BUREAUS[r.bureau] || "")).toLowerCase().includes(q));
+  if (!list.length) { t.replaceChildren(el("div", { class: "empty", text: rows.length ? "No one matches." : "No staff accounts yet." })); return; }
+  const tb = el("table", { class: "tbl" }, el("tr", {}, ["Name", "Role", "Bureau", "Division"].map(h => el("th", { text: h }))));
+  list.forEach(r => { const b = r.bureau || { "licensing-officer": "lara", "records-officer": "lara", "elections-officer": "elections", "hearing-officer": "hearings" }[r.role]; tb.append(el("tr", {}, el("td", {}, el("b", { text: (r.person && r.person.name) || "PIN " + r.pin }), el("br"), el("small", { class: "empty", text: "PIN " + r.pin })), el("td", { text: ROLE_LABELS[r.role] || cap(r.role) }), el("td", { text: BUREAUS[b] || (["system-administrator", "secretary-of-state", "deputy-secretary-of-state"].includes(r.role) ? "All bureaus" : "Not assigned") }), el("td", { text: r.division || "" }))); });
+  t.replaceChildren(tb);
+}
+$("f").addEventListener("input", draw); if (rows.length) draw();
+</script>
+</body>
+</html>

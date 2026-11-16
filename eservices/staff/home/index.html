@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Staff Home | Staff Portal | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+</head>
+<body>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header" data-staff></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="staffnav" data-page="home"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">Staff Portal</div><h1>Staff Home</h1><p>Your role, your cases, and what you have done recently.</p></div>
+  <div class="stats" id="stats"></div>
+  <div class="g2 mt">
+    <div class="pc"><h2>Your role</h2><div class="kv2" id="role"></div></div>
+    <div class="pc"><h2>Assigned to you</h2><div class="rows" id="mine"></div><p class="mt"><a class="btn2 s" href="https://migovt.org/sos/eservices/staff/queue/">Open the work queue</a></p></div>
+  </div>
+  <div class="pc mt"><h2>Your recent actions</h2><div class="rows" id="acts"></div></div>
+  <div id="tools"></div>
+</div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
+<script type="module">
+import { bootStaff, $, el, cap, when, BUREAUS, ROLE_LABELS, loadCases, caseStats, loadAudit, typeLabel, STATUS } from "https://migovt.org/sos/eservices/assets/staff.js";
+const ctx = await bootStaff({ page: "home" });
+const set = (id, ...k) => $(id).append(...k);
+const empty = t => el("div", { class: "empty", text: t });
+const kv = (k, v) => el("div", {}, el("span", { text: k }), el("b", {}, v));
+set("role", kv("Name", ctx.id.name || "Not on file"), kv("PIN", ctx.id.pin), kv("Role", el("span", { class: "pill", text: ctx.roleLabel })),
+  kv("Bureau", ctx.scope === "all" ? "All bureaus" : (BUREAUS[ctx.bureau] || "Not assigned")), kv("Division", ctx.division || "None"));
+if (!ctx.scope) $("p-body").prepend(el("div", { class: "alert warn" }, el("b", { text: "No bureau assigned" }), "Your account has no bureau yet. A System Administrator can assign one in Account Administration."));
+try {
+  const rows = ctx.scope ? await loadCases(ctx) : [];
+  const st = caseStats(rows), mine = rows.filter(r => r.assignee === ctx.id.pin && ["open", "in-review", "scheduled"].includes(r.status));
+  set("stats",
+    el("div", { class: "stat" }, el("span", { text: "Open cases" }), el("b", { text: String(st.open) }), el("small", { text: ctx.scope === "all" ? "All bureaus" : (BUREAUS[ctx.bureau] || "") })),
+    el("div", { class: "stat" }, el("span", { text: "In review" }), el("b", { text: String(st.review) }), el("small", { text: "Being worked" })),
+    el("div", { class: "stat" }, el("span", { text: "Assigned to you" }), el("b", { text: String(mine.length) }), el("small", { text: mine.length ? "Waiting on you" : "Nothing waiting" })),
+    el("div", { class: "stat" }, el("span", { text: "Closed" }), el("b", { text: String(st.done) }), el("small", { text: "Decided or closed" })));
+  if (!mine.length) set("mine", empty("No cases are assigned to you."));
+  mine.slice(0, 5).forEach(r => set("mine", el("div", {}, el("div", {}, el("b", { text: typeLabel(r.type) }), el("small", { text: (r.name || "PIN " + r.pin) + " | " + r.title })), el("div", { class: "r" }, el("span", { class: "pill o", text: STATUS[r.status] || r.status })))));
+} catch (e) { console.error(e); set("mine", empty("We could not load cases right now.")); }
+try {
+  const a = await loadAudit(ctx, 8, ctx.id.pin);
+  if (!a.length) set("acts", empty("No actions yet."));
+  a.forEach(r => set("acts", el("div", {}, el("div", {}, el("b", { text: r.action }), el("small", { text: (r.target ? "PIN " + r.target + " | " : "") + r.detail })), el("div", { class: "r" }, el("small", { text: when(r.at) })))));
+} catch (e) { console.error(e); set("acts", empty("We could not load your actions right now.")); }
+const tools = $("tools");
+(window.SOS_STAFF || []).forEach(g => {
+  const items = g.items.filter(i => i.k !== "home" && (!i.bureau || ctx.deskOk(i.bureau)) && (i.k !== "accounts" || ctx.can("accounts.manage")) && (i.k !== "audit" || ctx.can("audit.view")));
+  if (!items.length) return;
+  tools.append(el("div", { class: "grp-h", text: g.g }));
+  const t = el("div", { class: "tiles" }); items.forEach(i => t.append(el("a", { class: "tile", href: i.url }, el("b", { text: i.t }), el("span", { text: i.d })))); tools.append(t);
+});
+</script>
+</body>
+</html>

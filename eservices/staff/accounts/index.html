@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Account Administration | Staff Portal | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+</head>
+<body>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header" data-staff></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="staffnav" data-page="accounts"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">Administration</div><h1>Account Administration</h1><p>Assign roles, bureaus, divisions, and special permissions. Every change is recorded in the audit log.</p></div>
+  <div class="pc"><form id="f" class="bar"><input id="pin" inputmode="numeric" placeholder="PIN of the account" aria-label="PIN" required><button class="btn2" type="submit">Find account</button></form><div id="m" class="empty"></div></div>
+  <div id="ed" class="mt"></div>
+  <div class="pc mt"><h2>Current staff</h2><div class="tw" id="staff"></div></div>
+</div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
+<script type="module">
+import { bootStaff, $, el, cap, when, BUREAUS, ROLE_LABELS, getAccount, getPerson, saveAccount, listStaff, STAFF_ROLES, PERM_LABELS } from "https://migovt.org/sos/eservices/assets/staff.js";
+const ctx = await bootStaff({ page: "accounts", cap: "accounts.manage" });
+const PERMS = Object.keys(PERM_LABELS);
+const msg = t => $("m").textContent = t || "";
+$("f").addEventListener("submit", async e => { e.preventDefault(); load($("pin").value.trim()); });
+async function load(pin) {
+  msg(""); $("ed").replaceChildren();
+  if (!/^\d{4,20}$/.test(pin)) return msg("Enter a valid PIN.");
+  try {
+    const [a, p] = await Promise.all([getAccount(pin), getPerson(pin).catch(() => null)]);
+    if (!a) return msg("No SOS e-Services account for that PIN. The person has to sign in once to create it.");
+    const role = el("select", { id: "role" }, ["basic", ...STAFF_ROLES].map(r => el("option", { value: r, text: ROLE_LABELS[r] || cap(r) }))); role.value = a.role || "basic"; role.disabled = !ctx.can("accounts.roles");
+    const bur = el("select", { id: "bur" }, [["", "None"], ...Object.entries(BUREAUS)].map(([v, t]) => el("option", { value: v, text: t }))); bur.value = a.bureau || "";
+    const div = el("input", { id: "div", type: "text", value: a.division || "", maxlength: "80", placeholder: "Division (optional)" });
+    const known = new Set(PERMS), extra = (a.specialPermissions || []).filter(x => !known.has(x));
+    const checks = el("div", { class: "checks" }, [...PERMS, ...extra].map(k => { const c = el("input", { type: "checkbox", value: k }); c.checked = (a.specialPermissions || []).includes(k); return el("label", {}, c, PERM_LABELS[k] || cap(k)); }));
+    const newp = el("input", { type: "text", placeholder: "Add another permission (lowercase, no spaces)", maxlength: "40" });
+    const out = el("span", { class: "empty" }), save = el("button", { class: "btn2", type: "button", text: "Save changes" });
+    save.addEventListener("click", async () => {
+      const perms = [...checks.querySelectorAll("input:checked")].map(c => c.value); const np = newp.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, ""); if (np && !perms.includes(np)) perms.push(np);
+      const f = { bureau: role.value === "basic" ? "" : bur.value, division: role.value === "basic" ? "" : div.value.trim(), specialPermissions: perms };
+      if (ctx.can("accounts.roles")) f.role = role.value;
+      save.disabled = true; out.textContent = " Saving...";
+      try { await saveAccount(ctx, pin, f); out.textContent = " Saved."; loadStaff(); } catch (er) { console.error(er); out.textContent = " Could not save. Check the Firestore rules."; }
+      save.disabled = false;
+    });
+    $("ed").replaceChildren(el("div", { class: "pc detail" }, el("h2", { text: (p && p.name) || "PIN " + pin }), el("p", { class: "sub", text: "PIN " + pin + (ctx.can("accounts.roles") ? "" : " | Only a System Administrator can change roles") }),
+      el("div", { class: "fld" }, el("label", { for: "role", text: "Role" }), role), el("div", { class: "fld" }, el("label", { for: "bur", text: "Bureau" }), bur), el("div", { class: "fld" }, el("label", { for: "div", text: "Division" }), div),
+      el("div", { class: "fld" }, el("label", { text: "Special permissions" }), checks, newp), save, out));
+  } catch (e) { console.error(e); msg("The account could not be loaded."); }
+}
+async function loadStaff() {
+  const t = $("staff");
+  try { const rows = await listStaff(); if (!rows.length) { t.replaceChildren(el("div", { class: "empty", text: "No staff accounts yet." })); return; }
+    const tb = el("table", { class: "tbl" }, el("tr", {}, ["Name", "Role", "Bureau", ""].map(h => el("th", { text: h }))));
+    rows.forEach(r => { const b = el("button", { class: "btn2 s", type: "button", text: "Edit" }); b.addEventListener("click", () => { $("pin").value = r.pin; load(r.pin); window.scrollTo({ top: 0, behavior: "smooth" }); });
+      tb.append(el("tr", {}, el("td", { text: (r.person && r.person.name) || "PIN " + r.pin }), el("td", { text: ROLE_LABELS[r.role] || cap(r.role) }), el("td", { text: BUREAUS[r.bureau] || "" }), el("td", {}, b))); });
+    t.replaceChildren(tb); } catch (e) { console.error(e); t.replaceChildren(el("div", { class: "empty", text: "Could not load staff." })); }
+}
+loadStaff();
+</script>
+</body>
+</html>

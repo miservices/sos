@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Send Notices | Staff Portal | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+</head>
+<body>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header" data-staff></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="staffnav" data-page="notices"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">Tools</div><h1>Send Notices</h1><p>Send an official notice to a person's e-Services account. They see it on their Home page and in Official Notices.</p></div>
+  <div class="g2">
+    <div class="pc"><h2>New notice</h2>
+      <div class="fld"><label for="to">Send to</label><select id="to"><option value="one">One person (by PIN)</option></select></div>
+      <div class="fld" id="pinbox"><label for="pin">PIN</label><input id="pin" inputmode="numeric" placeholder="PIN of the person"></div>
+      <div class="fld"><label for="title">Title</label><input id="title" maxlength="120"></div>
+      <div class="fld"><label for="body">Message</label><textarea id="body" rows="5" maxlength="800"></textarea></div>
+      <div class="fld"><label for="lvl">Importance</label><select id="lvl"><option value="info">Standard</option><option value="important">Important</option></select></div>
+      <button class="btn2" id="go" type="button">Send notice</button> <span class="empty" id="msg"></span>
+    </div>
+    <div class="pc"><h2>Sent by you</h2><div class="rows" id="sent"></div></div>
+  </div>
+</div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
+<script type="module">
+import { bootStaff, $, el, cap, when, BUREAUS, ROLE_LABELS, sendNotice, sentNotices } from "https://migovt.org/sos/eservices/assets/staff.js";
+const ctx = await bootStaff({ page: "notices", cap: "notices.send" });
+if (ctx.can("notices.global")) { const o = el("option", { value: "all", text: "Everyone" }); $("to").append(o); }
+$("to").addEventListener("change", () => { $("pinbox").classList.toggle("hide", $("to").value === "all"); });
+async function sent() {
+  const box = $("sent"); box.replaceChildren();
+  try { const s = await sentNotices(ctx); if (!s.length) box.append(el("div", { class: "empty", text: "You have not sent any notices." })); s.slice(0, 15).forEach(n => box.append(el("div", {}, el("div", {}, el("b", { text: n.title }), el("small", { text: (n.pin === "*" ? "Everyone" : "PIN " + n.pin) + " | " + when(n.at) })), el("div", { class: "r" }, n.level === "important" ? el("span", { class: "pill o", text: "Important" }) : "")))); }
+  catch (e) { console.error(e); box.append(el("div", { class: "empty", text: "Could not load." })); }
+}
+$("go").addEventListener("click", async () => {
+  const msg = $("msg"), all = $("to").value === "all", pin = $("pin").value.trim(), title = $("title").value.trim(), body = $("body").value.trim();
+  if (!all && !/^\d{4,20}$/.test(pin)) { msg.textContent = " Enter the person's PIN."; return; }
+  if (!title || !body) { msg.textContent = " Add a title and a message."; return; }
+  $("go").disabled = true; msg.textContent = " Sending...";
+  try { await sendNotice(ctx, all ? "*" : pin, { title, body, level: $("lvl").value }); msg.textContent = " Sent."; $("title").value = ""; $("body").value = ""; await sent(); }
+  catch (e) { console.error(e); msg.textContent = " Could not send. Check the Firestore rules."; }
+  $("go").disabled = false;
+});
+sent();
+</script>
+</body>
+</html>
