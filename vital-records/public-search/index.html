@@ -15,28 +15,109 @@
 .res{margin-top:16px;border-radius:14px;padding:16px 20px;border:1px solid #cfe9ec;background:#e6f5f6}.res.ok{background:#e3f4ea;border-color:#c9ead5}.res.warn{background:#fff1e8;border-color:#ffd9c2}.res b{display:block;font-size:1.05rem}
 .pp{border:1px solid #dbe7e9;border-radius:14px;padding:14px 18px;margin-top:10px;background:#fff}.pp h3{margin:0 0 4px!important}
 .win{font-weight:800;color:#1c6b3a}
+.sr{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #dbe7e9;border-radius:14px;padding:12px 16px;margin-top:10px;background:#fff}.sr small{display:block;color:#5b6f74}
+.dt{border:1px solid #cfe9ec;border-radius:16px;background:#fff;padding:18px 20px;margin-top:16px}.dt h3{margin:0 0 8px!important}.dt dl{display:grid;grid-template-columns:150px 1fr;gap:6px 12px;margin:10px 0}.dt dt{color:#5b6f74;font-size:.88rem}.dt dd{margin:0;font-weight:600}
+@media(max-width:600px){.dt dl{grid-template-columns:1fr}}
+.fm3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}@media(max-width:700px){.fm3{grid-template-columns:1fr}}.fm3 label{display:block;font-weight:700;font-size:.9rem;margin-bottom:4px}.fm3 input{width:100%;border:1px solid #cfdfe2;border-radius:12px;padding:11px 14px;font:inherit}
 </style>
 </head>
 <body>
 <script src="https://migovt.org/sos/partials.js" data-part="header"></script>
-<section class="phead"><div class="in"><div class="crumbs"><a href="https://migovt.org/sos/">Home</a><span>/</span><a href="https://migovt.org/sos/vital-records/">Vital Records &amp; Citizenship</a><span>/</span><b>Public record search</b></div><h1>Public record search</h1><p>How looking up another person's records works.</p><div class="acts"><a class="btn2" href="https://migovt.org/sos/eservices/records-access/">Records Access</a></div></div></section>
+<section class="phead"><div class="in"><div class="crumbs"><a href="https://migovt.org/sos/">Home</a><span>/</span><a href="https://migovt.org/sos/vital-records/">Vital Records &amp; Citizenship</a><span>/</span><b>Public record search</b></div><h1>Public record search</h1><p>Look up a person by PIN, name, date of birth, or city of birth, and see their record and name change history.</p></div></section>
 <div class="pg"><div class="prose">
-<h2>What you can look up</h2>
-<p>Approved accounts can look up another person's license status, driving record, vehicle registration, title, or insurance. This is called <b>records access</b>.</p>
-<table class="tbl"><tr><th>Record</th><th>Where it comes from</th></tr>
-<tr><td>License status</td><td><a class="l" href="https://migovt.org/sos/licenses/">Licenses &amp; IDs</a></td></tr>
-<tr><td>Driving record</td><td><a class="l" href="https://migovt.org/sos/licenses/records/">Driving records</a></td></tr>
-<tr><td>Vehicle registration</td><td><a class="l" href="https://migovt.org/sos/vehicles/registration/">Vehicle registration</a></td></tr>
-<tr><td>Title</td><td><a class="l" href="https://migovt.org/sos/vehicles/title/">Title applications</a></td></tr>
-<tr><td>Insurance</td><td><a class="l" href="https://migovt.org/sos/vehicles/insurance/">Auto insurance</a></td></tr></table>
-<h2>Who can use it</h2>
-<p>Records access is given to approved accounts. When your account has it, <b>Records Access</b> appears in your SOS e-Services menu. If you do not see it, your account has not been approved.</p>
-<h2>How looking someone up works</h2>
-<ol class="steps"><li><b><a class="l" href="https://migovt.org/sos/eservices/">Sign in to SOS e-Services</a></b>Use your MiGOVT account.</li><li><b>Open Records Access</b>It appears only for approved accounts.</li><li><b>Search by PIN</b>Choose the person and the record you need.</li></ol>
-<div class="note warn"><b>Lookups are recorded.</b> Every time someone looks up your records, it is logged. You can see who has looked at your license in <a class="l" href="https://migovt.org/sos/eservices/licenses/">Driver Licensing</a>.</div>
-<h2>Your own records</h2>
-<p>To see your own information, use <a class="l" href="https://migovt.org/sos/vital-records/my-information/">Update my information</a>.</p>
-</div><aside class="side"><div class="card cta"><h3>Records Access</h3><p>For approved accounts.</p><a class="btn2" href="https://migovt.org/sos/eservices/records-access/">e-Services</a></div><div class="card"><h3>At a glance</h3><div class="kv"><div><span>Who</span><b>Approved accounts</b></div><div><span>Search by</span><b>PIN</b></div><div><span>Lookups</span><b>Recorded</b></div></div></div><div class="card"><h3>Vital records</h3><div class="kv"><div><a class="l" href="https://migovt.org/sos/vital-records/">Vital Records &amp; Citizenship</a></div><div><a class="l" href="https://migovt.org/sos/vital-records/birth-certificates/">Birth certificates</a></div><div><a class="l" href="https://migovt.org/sos/vital-records/name-change/">Name changes</a></div><div><a class="l" href="https://migovt.org/sos/vital-records/citizenship/">Citizenship</a></div><div><a class="l" href="https://migovt.org/sos/vital-records/my-information/">Update my information</a></div></div></div></aside></div>
+<h2>Search vital records</h2>
+<p>Look up a person by PIN, name, date of birth, or city of birth. Fill in any of the boxes. Everything you enter has to match. You can then open a result to see their details, including their name change history.</p>
+<div id="gate"></div>
+<div id="app" hidden>
+<form id="f"><div class="fm3">
+<div><label for="q-pin">PIN</label><input id="q-pin" inputmode="numeric" maxlength="20" autocomplete="off"></div>
+<div><label for="q-first">First name</label><input id="q-first" maxlength="40" autocomplete="off"></div>
+<div><label for="q-last">Last name</label><input id="q-last" maxlength="40" autocomplete="off"></div>
+<div><label for="q-dob">Date of birth</label><input id="q-dob" type="date"></div>
+<div><label for="q-city">City of birth</label><input id="q-city" maxlength="60" autocomplete="off"></div>
+<div style="align-self:end"><button class="btn2" type="submit" style="border:0;cursor:pointer">Search</button></div></div></form>
+<div id="out"></div><div id="detail"></div>
+</div>
+<div class="note warn"><b>People are told when they are looked up.</b> Two different entries appear in a person's history: one when they show up in your search results, and a separate one when you open their result. Both show your name.</div>
+<h2>What you can see</h2>
+<table class="tbl"><tr><th>Detail</th><th>Shown</th></tr>
+<tr><td>Name and PIN</td><td>Yes</td></tr><tr><td>Date of birth and place of birth</td><td>Yes</td></tr><tr><td>Citizenship status</td><td>Yes</td></tr>
+<tr><td>Name at birth and former names</td><td>Yes, with the dates each name was used</td></tr>
+<tr><td>Name change applications</td><td>Yes, with the decision and the date it was filed</td></tr></table>
+<h2>Other lookups</h2>
+<p>To look up a person's license, driving record, vehicle registration, title, or insurance, approved accounts can use <b>Records Access</b> in <a class="l" href="https://migovt.org/sos/eservices/">SOS e-Services</a>. To see your own record, use <a class="l" href="https://migovt.org/sos/vital-records/my-information/">Update my information</a>.</p>
+</div><aside class="side"><div class="card"><h3>At a glance</h3><div class="kv"><div><span>Search by</span><b>PIN, name, DOB, city</b></div><div><span>Sign in</span><b>MiGOVT account</b></div><div><span>Lookups</span><b>Recorded</b></div></div></div><div class="card"><h3>Vital records</h3><div class="kv"><div><a class="l" href="https://migovt.org/sos/vital-records/">Vital Records &amp; Citizenship</a></div><div><a class="l" href="https://migovt.org/sos/vital-records/birth-certificates/">Birth certificates</a></div><div><a class="l" href="https://migovt.org/sos/vital-records/name-change/">Name changes</a></div><div><a class="l" href="https://migovt.org/sos/vital-records/citizenship/">Citizenship</a></div><div><a class="l" href="https://migovt.org/sos/vital-records/my-information/">Update my information</a></div></div></div></aside></div>
 <script src="https://migovt.org/sos/partials.js" data-part="footer"></script>
+<script type="module">
+import { db, recDb, loadSession, loginUrl, boot, logAccess, getRecord, statusOf, nameOf, previousNamesOf, birthNameOf, recordDate, el, $, cap, when } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { getDocs, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+let ctx = null, people = null;
+const norm = s => String(s || "").trim().toLowerCase();
+const isoDob = v => { const s = String(v || ""); let m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s); if (m) return m[3] + "-" + m[1].padStart(2, "0") + "-" + m[2].padStart(2, "0"); m = /^(\d{4})-(\d\d)-(\d\d)/.exec(s); return m ? m[1] + "-" + m[2] + "-" + m[3] : ""; };
+const fullName = p => nameOf(p) || "Unnamed";
+const namesOf = p => [p, ...previousNamesOf(p)].map(n => ({ first: norm(n.first ?? n.firstName), middle: norm(n.middle ?? n.middleName), last: norm(n.last ?? n.lastName) }));
+
+/* ---- sign in: every lookup is recorded under the searcher's name ---- */
+const gate = $("gate");
+async function start() { ctx = await boot({ page: "public-search" }); gate.hidden = true; $("app").hidden = false; }
+if (loadSession() || new URLSearchParams(location.search).has("mipass_pin")) await start();
+else gate.append(el("div", { class: "res" }, el("b", { text: "Sign in to search" }), "Searches are recorded under your name, so you have to sign in with your MiGOVT account first. ", el("br"), el("a", { class: "btn2", href: loginUrl(), text: "Sign in with MiGOVT", style: "margin-top:10px;display:inline-block" })));
+
+async function everyone() {
+  if (people) return people;
+  const s = await getDocs(query(collection(recDb(), "persons"), limit(5000)));
+  return people = s.docs.map(d => ({ pin: d.id, ...d.data() }));
+}
+const me = () => ({ pin: ctx.id.pin, name: ctx.id.name, kind: "person" });
+const seen = new Set(), opened = new Set();
+
+$("f").addEventListener("submit", async e => {
+  e.preventDefault(); const out = $("out"); $("detail").replaceChildren();
+  const pin = $("q-pin").value.trim(), first = norm($("q-first").value), last = norm($("q-last").value), dob = $("q-dob").value, city = norm($("q-city").value);
+  const msg = t => out.replaceChildren(el("div", { class: "empty", text: t }));
+  if (!pin && !first && !last && !dob && !city) return msg("Fill in at least one box.");
+  if (pin && !/^\d{4,20}$/.test(pin)) return msg("A PIN is numbers only.");
+  if ((first && first.length < 2 && !pin && !last && !dob && !city) || (last && last.length < 2 && !pin && !first && !dob && !city)) return msg("Enter at least 2 letters.");
+  msg("Searching...");
+  try {
+    const all = await everyone();
+    const hits = all.filter(p => (!pin || p.pin === pin) && (!dob || isoDob(p.dob) === dob) && (!city || norm(p.cityOfBirth).includes(city))
+      && (!first || namesOf(p).some(n => n.first.startsWith(first) || n.middle.startsWith(first))) && (!last || namesOf(p).some(n => n.last.startsWith(last)))).slice(0, 25);
+    out.replaceChildren();
+    if (!hits.length) return msg("No one matched. Check what you entered, or try fewer boxes.");
+    out.append(el("p", { class: "sub", text: hits.length + (hits.length === 25 ? "+ results" : hits.length === 1 ? " result" : " results") }));
+    hits.forEach(p => {
+      const b = el("button", { class: "btn2 s", type: "button", text: "View details" }); b.addEventListener("click", () => open(p));
+      out.append(el("div", { class: "sr" }, el("div", {}, el("b", { text: fullName(p) }), el("small", { text: "PIN " + p.pin + " | Born " + recordDate(p.dob) + (p.cityOfBirth ? " in " + p.cityOfBirth : "") })), b));
+      if (p.pin !== String(ctx.id.pin) && !seen.has(p.pin)) { seen.add(p.pin); logAccess(p.pin, "search", me()); }
+    });
+  } catch (er) { console.error(er); msg("The search could not run. Try again in a moment."); }
+});
+
+async function open(p) {
+  const box = $("detail"); box.replaceChildren(el("div", { class: "empty", text: "Opening..." })); box.scrollIntoView({ behavior: "smooth" });
+  if (p.pin !== String(ctx.id.pin) && !opened.has(p.pin)) { opened.add(p.pin); logAccess(p.pin, "open", me()); }
+  const row = (k, v) => [el("dt", { text: k }), el("dd", { text: v })];
+  const place = [p.cityOfBirth, p.countyOfBirth ? p.countyOfBirth + " County" : "", p.stateOfBirth].filter(Boolean).join(", ");
+  const d = el("div", { class: "dt" }, el("h3", { text: fullName(p) }), el("dl", {}, ...row("PIN", p.pin), ...row("Date of birth", recordDate(p.dob)), ...row("Born in", place || "Not on file"), ...row("Citizenship status", statusOf(p)), ...row("Name at birth", birthNameOf(p))));
+  box.replaceChildren(d);
+  const prev = previousNamesOf(p);
+  d.append(el("h3", { text: "Name history" }));
+  if (!prev.length) d.append(el("p", { text: "This person has not changed their name." }));
+  else { const tb = el("table", { class: "tbl" }, el("tr", {}, ["Name", "Used", "Until"].map(h => el("th", { text: h }))));
+    prev.forEach((n, i) => tb.append(el("tr", {}, el("td", { text: nameOf(n) }), el("td", { text: i === 0 ? "Name at birth" : "Former name" }), el("td", { text: n.until ? recordDate(String(n.until).slice(0, 10)) : "" }))));
+    tb.append(el("tr", {}, el("td", {}, el("b", { text: fullName(p) })), el("td", { text: "Current name" }), el("td", { text: "" }))); d.append(tb); }
+  d.append(el("h3", { text: "Name change applications" }));
+  try {
+    const s = await getDocs(query(collection(db, "cases"), where("pin", "==", p.pin), where("type", "==", "name.change"), limit(50)));
+    const rows = s.docs.map(x => x.data()).sort((a, b) => (b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0) - (a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0));
+    if (!rows.length) d.append(el("p", { text: "No name change applications on file." }));
+    else { const tb = el("table", { class: "tbl" }, el("tr", {}, ["Change", "Filed", "Decision"].map(h => el("th", { text: h }))));
+      rows.forEach(r => { const dt = r.detail || {}, res = r.result || (r.status === "closed" ? "closed" : r.status === "in-review" ? "in review" : "open");
+        tb.append(el("tr", {}, el("td", { text: dt.from && dt.to ? dt.from + " to " + dt.to : (r.title || "Name change") }), el("td", { text: when(r.createdAt) }), el("td", { text: cap(String(res).replace("-", " ")) }))); });
+      d.append(tb); }
+  } catch (er) { console.error(er); d.append(el("p", { text: "Name change applications could not be loaded." })); }
+}
+</script>
 </body>
 </html>
