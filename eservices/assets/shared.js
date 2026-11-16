@@ -187,19 +187,98 @@ export async function applyNameToMiGOVT(pin, parts) {
   await updateDoc(q.docs[0].ref, { name: [parts.first, parts.middle, parts.last].filter(Boolean).join(" "), firstName: parts.first, middleName: parts.middle || "", lastName: parts.last });
   return true;
 }
+/* ---------- courts portal: the Michigan Courts Firestore (project micourt-dada6) ----------
+   An approved name change is carried into the courts portal so the person has one name everywhere:
+     accounts/{uid}   the portal account (found by mipassPin or pin): name changes, the old name is added to previousNames
+     sbm/{bar number} the State Bar registry entry for an attorney (found by pin): same
+     cases, mscCases  every party with this pin gets the new name and the old name(s) added to aliases (shown as "a/k/a"),
+                      every attorney entry with the person's bar number gets the new name, and a judge or magistrate's name on a case is updated.
+   Case history (docket events, filings, documents) is never rewritten: what was signed under the old name stays as it was. */
+const COURTS = { apiKey: "AIzaSyA8sUFIq81cs6uQvqduardpGJ4R2DxO8NQ", authDomain: "micourt-dada6.firebaseapp.com", projectId: "micourt-dada6",
+  storageBucket: "micourt-dada6.firebasestorage.app", messagingSenderId: "1013564619997", appId: "1:1013564619997:web:8f259dab457915758f6f34" };
+let _cdb = null;
+const courtsDb = () => _cdb || (_cdb = getFirestore(initializeApp(COURTS, "courts")));
+const lcn = s => String(s || "").replace(/\s+/g, " ").trim().toLowerCase();
+const uniqNames = a => { const seen = new Set(), out = []; for (const n of a) { const t = String(n || "").replace(/\s+/g, " ").trim(), k = t.toLowerCase(); if (t && !seen.has(k)) { seen.add(k); out.push(t); } } return out; };
+/* What a name change does to one case record. Returns the fields to write, or null when the case is not affected.
+   who = { pin, newName, oldNames[], bars[] (bar numbers), judge (true if this person sits as a judge or magistrate) } */
+export function renameInCase(c, who) {
+  const pin = String(who.pin), newName = who.newName, olds = who.oldNames, bars = new Set((who.bars || []).map(String));
+  const isOld = n => olds.some(o => lcn(o) === lcn(n));
+  let touched = false;
+  const fixAtty = a => { if (!a || typeof a !== "object" || !a.name) return a; if (a.barNumber && bars.has(String(a.barNumber)) && a.name !== newName) { touched = true; return { ...a, name: newName }; } return a; };
+  const patch = {};
+  if (Array.isArray(c.parties)) {
+    const parties = c.parties.map(p => {
+      if (!p || typeof p !== "object") return p;
+      let q = p;
+      if (String(p.pin || "") === pin && p.name !== newName) {
+        const aliases = uniqNames([...(Array.isArray(p.aliases) ? p.aliases : []), p.name, ...olds]).filter(n => lcn(n) !== lcn(newName));
+        q = { ...q, name: newName, aliases }; touched = true;
+      }
+      if (bars.size) {
+        if (Array.isArray(q.attorneys)) { const at = q.attorneys.map(fixAtty); if (at.some((x, i) => x !== q.attorneys[i])) q = { ...q, attorneys: at }; }
+        if (q.attorney) { const at = fixAtty(q.attorney); if (at !== q.attorney) q = { ...q, attorney: at }; }
+      }
+      return q;
+    });
+    if (touched) patch.parties = parties;
+  }
+  if (who.judge) {
+    const swap = s => { let t = String(s || ""); for (const o of olds) if (o && lcn(t).includes(lcn(o))) t = t.replace(new RegExp(o.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+"), "i"), newName); return t; };
+    if (typeof c.judge === "string" && c.judge && swap(c.judge) !== c.judge) patch.judge = swap(c.judge);
+    if (Array.isArray(c.judges) && c.judges.some(j => typeof j === "string" && swap(j) !== j)) patch.judges = c.judges.map(j => typeof j === "string" ? swap(j) : j);
+  }
+  return Object.keys(patch).length ? patch : null;
+}
+/* parts = { first, middle, last }; fromName = the name the person had when they applied.
+   Returns { accounts, bar, cases } (how many records were changed). Throws if the courts Firestore refuses a write. */
+export async function applyNameToCourts(pin, parts, fromName) {
+  pin = String(pin);
+  const db2 = courtsDb(), newName = [parts.first, parts.middle, parts.last].filter(Boolean).join(" "), when = new Date().toISOString();
+  const out = { accounts: 0, bar: 0, cases: 0 }, olds = [fromName], bars = new Set(); let judge = false;
+  /* the portal account(s) */
+  const accts = new Map();
+  for (const f of ["mipassPin", "pin"]) {
+    const s = await getDocs(query(collection(db2, "accounts"), where(f, "==", pin), limit(5)));
+    s.docs.forEach(d => accts.set(d.id, d));
+  }
+  for (const d of accts.values()) {
+    const a = d.data(); olds.push(a.name);
+    if (a.barNumber) bars.add(String(a.barNumber));
+    if (/judge|magistrate|justice/i.test(String(a.role || ""))) judge = true;
+  }
+  /* the State Bar registry */
+  const reg = new Map(), vals = [pin]; if (/^\d+$/.test(pin)) vals.push(Number(pin));
+  const rs = await getDocs(query(collection(db2, "sbm"), where("pin", "in", vals), limit(5)));
+  rs.docs.forEach(d => reg.set(d.id, d));
+  for (const n of bars) if (!reg.has(n)) { const g = await getDoc(doc(db2, "sbm", n)); if (g.exists()) reg.set(g.id, g); }
+  for (const d of reg.values()) { olds.push(d.data().name); bars.add(String(d.id)); }
+  const oldNames = uniqNames(olds).filter(n => lcn(n) !== lcn(newName));
+  /* write them */
+  for (const d of accts.values()) {
+    const a = d.data(); if (a.name === newName) continue;
+    await updateDoc(d.ref, { name: newName, previousNames: arrayUnion({ name: a.name || fromName || "", until: when }) }); out.accounts++;
+  }
+  for (const d of reg.values()) {
+    const a = d.data(); if (a.name === newName) continue;
+    await updateDoc(d.ref, { name: newName, previousNames: arrayUnion({ name: a.name || fromName || "", until: when }) }); out.bar++;
+  }
+  /* the cases */
+  const who = { pin, newName, oldNames, bars: [...bars], judge };
+  for (const col of ["cases", "mscCases"]) {
+    const s = await getDocs(collection(db2, col));
+    for (const d of s.docs) {
+      const patch = renameInCase(d.data(), who);
+      if (patch) { await updateDoc(d.ref, patch); out.cases++; }
+    }
+  }
+  return out;
+}
 /* "07/17/1971" or "1971-07-17" to "July 17, 1971". */
 export function recordDate(v) {
   const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(v || "")) || (() => { const i = /^(\d{4})-(\d\d)-(\d\d)/.exec(String(v || "")); return i ? [0, i[2], i[3], i[1]] : null; })();
   return m ? LONG[+m[1] - 1] + " " + +m[2] + ", " + m[3] : (v || "Not on file");
-}
-/* Change the person's name on their SOS account right away and charge the fee. parts = { first, middle, last }. */
-export async function changeName(ctx, parts, fee) {
-  const first = parts.first, middle = parts.middle || "", last = parts.last, name = [first, middle, last].filter(Boolean).join(" "), old = ctx.id.name || "";
-  await updateDoc(doc(db, "accounts", ctx.id.pin), { name, firstName: first, middleName: middle, lastName: last, nameChangedAt: serverTimestamp() });
-  await charge(ctx.id.pin, "Name change", fee);
-  await logActivity(ctx.id.pin, "account.name", "Name changed from " + old + " to " + name, { pin: ctx.id.pin, name, kind: "self" });
-  ctx.id = { ...ctx.id, name, first, middle, last };
-  return name;
 }
 export const visible = rows => rows.filter(r => !r.hidden);
 export const accessLog = rows => visible(rows).filter(r => /^(access|search)\./.test(r.type));
