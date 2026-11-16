@@ -185,8 +185,9 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
       } catch (e) { console.error(e); warns.push("The courts portal could not be updated. Check the courts Firestore rules."); }
       await updateDoc(doc(db, "accounts", r.pin), { name: r.detail.to || [r.detail.first, r.detail.middle, r.detail.last].filter(Boolean).join(" "), firstName: r.detail.first, middleName: r.detail.middle || "", lastName: r.detail.last, updatedBy: ctx.id.pin, updatedAt: serverTimestamp() });
       await logActivity(r.pin, "account.name", "Your name was changed to " + (r.detail.to || ""), AGENCY);
-      const fee = parseFloat(String(r.detail.fee || "").replace(/[^0-9.]/g, ""));
-      if (fee > 0) await charge(r.pin, "Name change", fee);
+      /* Charge the fee once. A retried approval finds the earlier charge and skips it. */
+      const fee = parseFloat(String(r.detail.fee || "").replace(/[^0-9.]/g, "")), desc = ("Name change to " + (r.detail.to || "")).slice(0, 120);
+      if (fee > 0) { const prior = await list("transactions", r.pin, 100).catch(() => []); if (!prior.some(t => t.desc === desc)) await charge(r.pin, desc, fee); }
     }
     const before = stateText(r), after = stateText({ status, result });
     if (before !== after) { await audit(ctx, "case.status", r.pin, typeLabel(r.type) + ": " + before + " to " + after); await logActivity(r.pin, "case.status", typeLabel(r.type) + ": " + after, AGENCY); }
