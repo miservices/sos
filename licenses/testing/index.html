@@ -115,7 +115,7 @@ var TESTS={
 };
 
 /* Stand-in for the MiGOVT / SOS e-Services account until the portal exists. */
-var profile={status:"citizen",age:21,license:"none",susp:"none",restricted:0,touched:false};
+var profile={status:"citizen",age:21,license:"none",susp:"none",touched:false};
 var state={key:null,stage:"intro",qs:[],ans:[],i:0,score:0};
 var app=document.getElementById("app");
 var $=function(s){return document.querySelector(s)};
@@ -132,7 +132,6 @@ function checks(key){
     r.push([p.license==="none","You do not already hold a driver's license."]);
     r.push([p.susp!=="active","Your license is not currently suspended or revoked."]);
     r.push([p.susp!=="recent","At least 72 hours have passed since any suspension or revocation ended."]);
-    r.push([p.restricted<8,"Fewer than 8 restricted licenses have been issued to you."]);
   }
   if(key==="motorcycle"){
     r.push([p.status!=="neither","You are a citizen and/or a resident."]);
@@ -183,18 +182,16 @@ function demo(){
    +'<label>Age<input id="d_age" type="number" min="1" max="120" value="'+p.age+'"></label>'
    +'<label>Current license<select id="d_license">'+o("none","None",p.license)+o("restricted","Restricted",p.license)+o("standard","Standard",p.license)+'</select></label>'
    +'<label>Suspension status<select id="d_susp">'+o("none","None",p.susp)+o("active","Currently suspended or revoked",p.susp)+o("recent","Ended less than 72 hours ago",p.susp)+'</select></label>'
-   +'<label>Restricted licenses issued<input id="d_res" type="number" min="0" max="8" value="'+p.restricted+'"></label>'
    +'</div><small>Once SOS e-Services exists, these will come from your signed-in account.</small></details>';
 }
 function bindDemo(){
-  ["status","age","license","susp","res"].forEach(function(n){
+  ["status","age","license","susp"].forEach(function(n){
     var el=$("#d_"+n);if(!el)return;
     el.onchange=function(){
       if(n==="status")profile.status=el.value;
       if(n==="age")profile.age=parseInt(el.value,10)||0;
       if(n==="license"){profile.license=el.value;profile.touched=true}
       if(n==="susp")profile.susp=el.value;
-      if(n==="res")profile.restricted=parseInt(el.value,10)||0;
       intro();
       var d=$("details.demo");if(d)d.open=true;
     };
