@@ -83,50 +83,33 @@
     <div id="bal"></div>
   </div>
 
-  <div class="pc mt"><h2>Your voting requests</h2><div class="rows" id="mine"></div></div>
 </div>
 </main>
 </div>
 <script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
 <script type="module">
-import { boot, el, $, cap, when, ms, fileCase, myCases, getRecord, statusOf, db } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { boot, el, $, getRecord, statusOf } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { cycle, fmtDay, fmtShort, LEVELS, OFFICES } from "https://migovt.org/sos/eservices/assets/elections.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 const ctx = await boot({ page: "voting" });
 const C = cycle();
 
 /* ---- voter registration ---- */
-let voter = null, rec = null, cases = [];
-try { const s = await getDoc(doc(db, "voters", String(ctx.id.pin))); voter = s.exists() ? s.data() : null; } catch (e) { console.warn("voters", e); }
+let rec = null;
 try { rec = await getRecord(ctx.id.pin); } catch (e) { console.warn("record", e); }
-try { cases = (await myCases(ctx.id.pin, 100)).filter(r => /^voter\./.test(r.type)); } catch (e) { console.warn("cases", e); }
-const citizen = statusOf(rec) === "Citizen", pending = cases.find(r => r.type === "voter.registration" && ["open", "in-review"].includes(r.status));
-const registered = voter && voter.status === "active";
+/* Citizens and residents are registered automatically. */
+const vs = statusOf(rec), registered = vs === "Citizen" || vs === "Resident";
 
 $("stats").append(
-  ...[["Registration", registered ? "Registered" : pending ? "Under review" : "Not registered"],
+  ...[["Registration", registered ? "Registered" : "Not eligible"],
       ["Next Election Day", fmtShort(C.electionDay) + ", " + C.electionDay.getFullYear()],
       ["Online voting", C.phase === "open" ? "Open now" : C.phase === "upcoming" ? "Opens " + fmtShort(C.onlineOpen) : "Closed"],
       [C.phase === "upcoming" || C.phase === "open" ? "Days to Election Day" : "Next term begins", C.phase === "closed" ? fmtShort(C.termStart) : String(Math.max(0, C.daysToElection))]]
     .map(([a, b]) => el("div", { class: "stat" }, el("span", { text: a }), el("b", { text: b }))));
 
 const reg = $("reg");
-if (registered) {
-  reg.append(el("div", { class: "alert ok" }, el("b", { text: "You are registered to vote" }), "Registered " + (voter.registeredAt ? fmtDay(new Date(voter.registeredAt)) : "") + ". Your registration applies to every state, county, and city election."));
-} else if (pending) {
-  reg.append(el("div", { class: "alert" }, el("b", { text: "Your registration is under review" }), "Filed " + when(pending.createdAt) + ". The Bureau of Elections will review it."));
-} else {
-  const rows = el("div", { class: "checks2" });
-  [["Michigan citizen", citizen, citizen ? "Your vital record shows you as a citizen." : "Your vital record does not show citizenship. Visit Identification to see your status."]].forEach(([t, ok, why]) => rows.append(el("div", {}, el("span", { class: "pill " + (ok ? "g" : "o"), text: ok ? "Met" : "Not met" }), el("div", {}, el("b", { text: t }), el("small", { text: why })))));
-  const b = el("button", { class: "btn2", type: "button", text: "Register to vote" }), out = el("span", { class: "empty" });
-  b.disabled = !citizen;
-  b.addEventListener("click", async () => {
-    b.disabled = true; out.textContent = " Submitting...";
-    try { await fileCase(ctx, "voter.registration", "Voter registration", { county: "Genesee", city: "Flint" }, "elections"); out.textContent = " Submitted. The Bureau of Elections will review it."; setTimeout(() => location.reload(), 900); }
-    catch (e) { console.error(e); out.textContent = " Could not submit your registration."; b.disabled = false; }
-  });
-  reg.append(el("p", { class: "sub", text: "You are not registered to vote. Registration is reviewed by the Bureau of Elections." }), rows, b, out);
-}
+reg.append(registered
+  ? el("div", { class: "alert ok" }, el("b", { text: "You are registered to vote" }), "Michigan citizens and residents are registered automatically, so there is nothing to file. Your registration applies to every state, county, and city election. Your status on your vital record: " + vs + ".")
+  : el("div", { class: "alert warn" }, el("b", { text: "You are not eligible to vote yet" }), "Citizens and residents are registered automatically. Your vital record does not show either status. See ", el("a", { href: "../identification/", text: "Identification" }), " for your status."));
 
 /* ---- calendar ---- */
 const online = fmtShort(C.onlineOpen) + " to " + fmtShort(C.onlineClose) + ", " + C.onlineClose.getFullYear();
@@ -178,10 +161,6 @@ const show = k => { cur = k; [...tabs.children].forEach(b => b.setAttribute("ari
 Object.entries(LEVELS).forEach(([k, t]) => { const b = el("button", { type: "button", role: "tab", text: t }); b.dataset.k = k; b.addEventListener("click", () => show(k)); tabs.append(b); });
 show("state");
 
-/* ---- your requests ---- */
-const mine = $("mine");
-if (!cases.length) mine.append(el("div", { class: "empty", text: "You have not made any voting requests." }));
-cases.forEach(r => { const act = ["open", "in-review"].includes(r.status), res = r.result || ""; mine.append(el("div", {}, el("div", {}, el("b", { text: r.title }), el("small", { text: "Filed " + when(r.createdAt) })), el("div", { class: "r" }, el("span", { class: "pill " + (res === "approved" ? "g" : act ? "o" : "n"), text: act ? (r.status === "open" ? "Submitted" : "Under review") : cap(res || r.status) })))); });
 </script>
 </body>
 </html>

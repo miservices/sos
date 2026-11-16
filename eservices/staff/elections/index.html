@@ -19,7 +19,7 @@
   <div class="stats" id="stats"></div>
   <div class="g2 mt">
     <div class="pc"><h2>Election calendar</h2><div class="rows" id="cal"></div><p class="sub mt">Every general election runs on this calendar: one year terms, Election Day 21 days before the term begins, and online voting from 30 to 10 days before it.</p></div>
-    <div class="pc"><h2>What this desk handles</h2><ul><li>Voter registrations. Approving one registers the person to vote.</li><li>Candidate filings. Approving one certifies the candidate for that office and lists them on Candidate Services.</li><li>Campaign finance reports</li><li>Business registrations (Office of the Great Seal)</li><li>Notary commissions (Office of the Great Seal)</li></ul></div>
+    <div class="pc"><h2>What this desk handles</h2><ul><li>Voters. Citizens and residents are registered automatically from their vital record, so there is nothing to approve.</li><li>Candidate filings. Approving one certifies the candidate for that office and lists them on Candidate Services.</li><li>Campaign finance reports</li><li>Business registrations (Office of the Great Seal)</li><li>Notary commissions (Office of the Great Seal)</li></ul></div>
   </div>
   <div class="pc mt"><h2>Certified candidates</h2><p class="sub" id="cand-sub"></p><div class="tw" id="cand"></div></div>
   <div class="pc mt"><h2>Cases</h2><div id="q"></div></div>
@@ -29,7 +29,7 @@
 <script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
 <script type="module">
 import { bootStaff, $, el, cap, when, loadCases, caseStats, renderQueue, audit, db, AGENCY } from "https://migovt.org/sos/eservices/assets/staff.js";
-import { logActivity } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { logActivity, recDb } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { cycle, fmtDay, OFFICES, LEVELS, officeOf } from "https://migovt.org/sos/eservices/assets/elections.js";
 import { getDocs, updateDoc, doc, collection, query, where, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 const ctx = await bootStaff({ page: "elections", desk: "elections" });
@@ -38,8 +38,9 @@ const stat = (a, b) => el("div", { class: "stat" }, el("span", { text: a }), el(
 const phase = C.phase === "open" ? "Online voting is open" : C.phase === "upcoming" ? "Online voting opens in " + Math.max(0, C.daysToOpen) + " days" : "Online voting has closed";
 $("cal").append(...[["Term", fmtDay(C.termStart) + " to " + fmtDay(C.termEnd)], ["Online voting", fmtDay(C.onlineOpen) + " to " + fmtDay(C.onlineClose)], ["Election Day", fmtDay(C.electionDay)], ["Runoff", "Online " + fmtDay(C.runoffOnlineOpen) + " to " + fmtDay(C.runoffOnlineClose) + ", in person " + fmtDay(C.runoffDay)], ["Right now", phase]]
   .map(([a, b]) => el("div", {}, el("div", {}, el("b", { text: a })), el("div", { class: "r", text: b }))));
-let voters = "0";
-try { voters = String((await getDocs(query(collection(db, "voters"), where("status", "==", "active"), limit(1000)))).size); } catch (e) { console.warn(e); voters = "?"; }
+/* Registered voters are everyone whose vital record says citizen or resident. */
+let voters = "?";
+try { voters = String((await getDocs(query(collection(recDb(), "persons"), where("status", "in", ["Citizen", "Resident"]), limit(2000)))).size); } catch (e) { console.warn(e); }
 let cands = [];
 try {
   const rows = await loadCases(ctx, { bureau: "elections", prefixes: ["voter.", "candidate.", "finance.", "business.", "notary."] });

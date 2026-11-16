@@ -49,16 +49,16 @@
 </div>
 <script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
 <script type="module">
-import { boot, el, $, cap, when, money, fileCase, myCases, db } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { boot, el, $, cap, when, fileCase, myCases, getRecord, statusOf, db } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { cycle, fmtDay, LEVELS, OFFICES, officeOf } from "https://migovt.org/sos/eservices/assets/elections.js";
-import { doc, getDoc, getDocs, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { getDocs, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 const ctx = await boot({ page: "candidate-services" });
 const C = cycle(), pin = String(ctx.id.pin);
-let voter = null, certified = [], cases = [];
-try { const s = await getDoc(doc(db, "voters", pin)); voter = s.exists() ? s.data() : null; } catch (e) { console.warn(e); }
+let rec = null, certified = [], cases = [];
+try { rec = await getRecord(pin); } catch (e) { console.warn(e); }
 try { certified = (await getDocs(query(collection(db, "candidates"), where("termYear", "==", C.termYear), limit(300)))).docs.map(d => ({ id: d.id, ...d.data() })); } catch (e) { console.warn(e); }
 try { cases = (await myCases(pin, 100)).filter(r => /^(candidate|finance)\./.test(r.type)); } catch (e) { console.warn(e); }
-const registered = voter && voter.status === "active";
+const registered = ["Citizen", "Resident"].includes(statusOf(rec));
 const myCert = certified.filter(c => c.pin === pin && c.status === "certified");
 const OPEN = ["open", "in-review"], termCases = cases.filter(r => r.type === "candidate.filing" && r.detail && Number(r.detail.termYear) === C.termYear);
 
@@ -66,8 +66,8 @@ $("stats").append(...[["Election term", String(C.termYear)], ["Your filings", St
   .map(([a, b]) => el("div", { class: "stat" }, el("span", { text: a }), el("b", { text: b }))));
 
 /* ---- file as a candidate ---- */
-$("f-sub").textContent = "Filing is for the general election held " + fmtDay(C.electionDay) + ", for the term beginning " + fmtDay(C.termStart) + ". You must be a registered voter. The Bureau of Elections reviews each filing and certifies the candidate.";
-if (!registered) { $("f-block").replaceChildren(el("div", { class: "alert warn" }, el("b", { text: "Register to vote first" }), "Only registered voters can file as candidates. Register on the ", el("a", { href: "../voting/", text: "Voting Services" }), " page.")); }
+$("f-sub").textContent = "Filing is for the general election held " + fmtDay(C.electionDay) + ", for the term beginning " + fmtDay(C.termStart) + ". You must be eligible to vote, which means a citizen or resident of Michigan. The Bureau of Elections reviews each filing and certifies the candidate.";
+if (!registered) { $("f-block").replaceChildren(el("div", { class: "alert warn" }, el("b", { text: "You are not eligible to file" }), "Only citizens and residents, who are registered to vote automatically, can file as candidates. See ", el("a", { href: "../identification/", text: "Identification" }), " for your status.")); }
 else {
   const taken = new Set([...myCert.map(c => c.officeKey), ...termCases.filter(r => OPEN.includes(r.status)).map(r => r.detail.officeKey)]);
   const sel = $("f-off"); Object.entries(LEVELS).forEach(([lk, lt]) => { const g = el("optgroup", { label: lt }); OFFICES.filter(o => o.level === lk).forEach(o => g.append(el("option", { value: o.k, text: o.t + (o.seats > 1 ? " (" + o.seats + " seats)" : "") + (taken.has(o.k) ? " - already filed" : "") }))); sel.append(g); });
