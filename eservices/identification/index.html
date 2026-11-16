@@ -35,7 +35,7 @@
     <p class="mt sub">Contact details come from your MiGOVT account, which you manage at <a href="https://migovt.org/account/" style="text-decoration:underline">migovt.org/account</a>.</p></div>
 
   <div class="pc mt" id="name-change"><h2>Apply for a name change</h2>
-    <p class="sub">You can apply to change your name for any reason. Your current name is filled in below. Edit any part and the fee updates. The Department reviews each application, and you can have <b>only one open application at a time</b>. Your <b>date of birth can never be changed</b>.</p>
+    <p class="sub">You can apply to change your name for any reason. Your current name is filled in below. Edit any part and the fee updates. The Department reviews each application, you can have <b>only one open application at a time</b>, and you can apply <b>once every 90 days</b>. Your <b>date of birth can never be changed</b>.</p>
     <div class="three">
       <div class="fld"><label for="nf">First name</label><input id="nf" maxlength="40" autocomplete="off"></div>
       <div class="fld"><label for="nm">Middle name</label><input id="nm" maxlength="40" autocomplete="off"></div>
@@ -69,7 +69,7 @@
 </div>
 <script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
 <script type="module">
-import { boot, el, $, cap, when, money, longDate, list, fileCase, myCases, getRecord, birthNameOf, previousNamesOf, nameOf, statusOf, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { boot, el, $, cap, ms, when, money, longDate, list, fileCase, myCases, getRecord, birthNameOf, previousNamesOf, nameOf, statusOf, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { showCertificate } from "https://migovt.org/sos/eservices/assets/certificate.js";
 
 /* Name change fees */
@@ -111,19 +111,25 @@ function preview() {
 function fillName() { const c = current(); $("nf").value = c.first; $("nm").value = c.middle; $("nl").value = c.last; preview(); }
 ["nf", "nm", "nl"].forEach(k => $(k).addEventListener("input", preview));
 /* Only one application can be outstanding at a time. */
-let outstanding = null;
+let outstanding = null, waitUntil = 0;
+const WAIT_DAYS = 90;
+const dayText = t => new Date(t).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 const ACTIVE_ST = ["open", "in-review", "scheduled"];
 const stateOf = r => r.status === "open" ? "Submitted" : ACTIVE_ST.includes(r.status) ? "Under review" : (r.result || r.status) === "approved" ? "Approved" : (r.result || r.status) === "denied" ? "Denied" : (r.result === "withdrawn" ? "Withdrawn" : "Closed");
 const approved = r => (r.result || r.status) === "approved";
 async function checkOutstanding() {
   const rows = (await myCases(ctx.id.pin, 100)).filter(r => r.type === "name.change");
   outstanding = rows.find(r => ACTIVE_ST.includes(r.status)) || null;
+  /* One request per 90 days, counted from the day the last request was filed (whatever happened to it). */
+  const last = rows.reduce((m, r) => Math.max(m, ms(r.createdAt)), 0);
+  waitUntil = last && last + WAIT_DAYS * 864e5 > Date.now() ? last + WAIT_DAYS * 864e5 : 0;
   return rows;
 }
 function lockForm() {
-  const on = !!outstanding;
+  const on = !!outstanding || !!waitUntil;
   ["nf", "nm", "nl", "nk", "nsub"].forEach(k => $(k).disabled = on);
-  $("nopen").replaceChildren(...(on ? [el("div", { class: "notice" }, el("b", { text: "You already have an application in progress." }), el("span", { text: " Submitted " + when(outstanding.createdAt) + ". You can apply again once it has been decided." }))] : []));
+  $("nopen").replaceChildren(...(outstanding ? [el("div", { class: "notice" }, el("b", { text: "You already have an application in progress." }), el("span", { text: " Submitted " + when(outstanding.createdAt) + ". You can apply again once it has been decided, and no sooner than " + dayText(ms(outstanding.createdAt) + WAIT_DAYS * 864e5) + "." }))]
+    : waitUntil ? [el("div", { class: "notice" }, el("b", { text: "You can only apply once every " + WAIT_DAYS + " days." }), el("span", { text: " You can apply again on " + dayText(waitUntil) + "." }))] : []));
 }
 $("nsub").addEventListener("click", async () => {
   const msg = $("nmsg"), p = parts(), ch = changed(p);
@@ -134,12 +140,12 @@ $("nsub").addEventListener("click", async () => {
   $("nsub").disabled = true; msg.textContent = " Submitting...";
   try {
     await checkOutstanding();
-    if (outstanding) { lockForm(); await drawHistory(); msg.textContent = " You already have an application in progress."; return; }
+    if (outstanding || waitUntil) { lockForm(); await drawHistory(); msg.textContent = outstanding ? " You already have an application in progress." : " You can apply again on " + dayText(waitUntil) + "."; return; }
     await fileCase(ctx, "name.change", "Name change to " + to, { from: ctx.id.name || "", to, first: p.first, middle: p.middle, last: p.last, fee: money(fee), names: String(ch.length) });
     msg.textContent = " Application submitted. " + money(fee) + " will be charged if it is approved.";
     $("nk").checked = false; await checkOutstanding(); lockForm(); await drawHistory();
   } catch (e) { console.error(e); msg.textContent = " Could not submit the application. Try again."; }
-  if (!outstanding) $("nsub").disabled = false;
+  if (!outstanding && !waitUntil) $("nsub").disabled = false;
 });
 function drawPrev() {
   const box = $("nprev"); box.replaceChildren();
