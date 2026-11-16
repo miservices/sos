@@ -183,6 +183,28 @@ async function applyElectionCase(ctx, r) {
   return "";
 }
 
+/* Turns a case's detail into readable rows. Nested lists and objects (business owners, address, agent, signature) are written out, never shown as [object Object]. */
+const DETAIL_LABELS = { typeKey: "Business type key", typeLabel: "Business type", tradeName: "Trade name (DBA)", businessId: "Business record", oldName: "Previous name", certified: "Certifications", fee: "Fee", late: "Days late" };
+const CERT_TEXT = { accurate: "Information is accurate and complete", authorized: "Business is authorized to operate under applicable law", submitter: "Applicant is authorized to submit", notify: "Agrees to notify the Department of material changes" };
+function detailValue(k, v) {
+  if (v === null || v === undefined || v === "") return "";
+  if (k === "fee") { const n = parseFloat(String(v).replace(/[^0-9.]/g, "")); return isNaN(n) ? String(v) : "$" + n.toFixed(2); }
+  if (k === "owners" && Array.isArray(v)) return v.map(o => o && typeof o === "object" ? (o.name || "Unnamed") + ", PIN " + (o.pin || "") + (o.dob ? ", born " + o.dob : "") + (o.percent ? ", " + o.percent + "%" : "") : String(o)).join("\n");
+  if (k === "agent" && typeof v === "object") return (v.name || "Unnamed") + ", PIN " + (v.pin || "") + (v.dob ? ", born " + v.dob : "");
+  if (k === "address" && typeof v === "object") return [v.street, [v.city, v.state, v.zip].filter(Boolean).join(" ")].filter(Boolean).join("\n");
+  if (k === "signature" && typeof v === "object") return (v.name || "") + (v.date ? ", signed " + v.date : "");
+  if (k === "certified" && Array.isArray(v)) return v.map(x => "Yes: " + (CERT_TEXT[x] || x)).join("\n");
+  if (Array.isArray(v)) return v.map(x => typeof x === "object" ? JSON.stringify(x) : String(x)).join(", ");
+  if (typeof v === "object") return Object.entries(v).map(([a, b]) => cap(a) + ": " + b).join("\n");
+  return String(v);
+}
+function detailRows(r) {
+  const d = r.detail && typeof r.detail === "object" ? r.detail : {};
+  const order = r.type && r.type.startsWith("business.") ? ["name", "tradeName", "typeLabel", "industry", "description", "address", "website", "discord", "owners", "agent", "certified", "signature", "fee", "late", "oldName", "businessId"] : [];
+  const keys = [...order.filter(k => k in d), ...Object.keys(d).filter(k => !order.includes(k) && k !== "typeKey")];
+  return keys.map(k => [DETAIL_LABELS[k] || cap(String(k).replace(/([A-Z])/g, " $1").toLowerCase()), detailValue(k, d[k])]).filter(([, v]) => v !== "");
+}
+
 /* Approving a business filing creates or updates the business record at businesses/{id}. Fees are charged once. */
 async function applyBusinessCase(ctx, r) {
   const d = r.detail || {}, now = new Date().toISOString(), day = now.slice(0, 10), by = { updatedBy: ctx.id.pin, updatedAt: serverTimestamp() };
@@ -367,8 +389,8 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
       el("p", { class: "sub", text: (r.name || "PIN " + r.pin) + " | Opened " + when(r.createdAt) + " | " + (BUREAUS[r.bureau] || "") + " | " + (mineOf(r) ? "Assigned to you" : r.assigneeName ? "Assigned to " + r.assigneeName : "Unassigned") }),
       el("p", {}, el("span", { class: "pill " + statusClass(r), text: stateText(r) })));
     if (r._warn) box.append(el("div", { class: "alert", text: r._warn }));
-    const det = r.detail && typeof r.detail === "object" ? Object.entries(r.detail) : [];
-    if (det.length) { const kv = el("div", { class: "kv2" }); det.forEach(([k, v]) => kv.append(el("div", {}, el("span", { text: cap(k) }), el("b", { text: String(v) })))); box.append(kv); }
+    const det = detailRows(r);
+    if (det.length) { const kv = el("div", { class: "kv2" }); det.forEach(([k, v]) => kv.append(el("div", {}, el("span", { text: k }), el("b", { text: v, style: "white-space:pre-line" })))); box.append(kv); }
     box.append(el("h4", { class: "grp-h", text: "Notes" }));
     const notes = Array.isArray(r.notes) ? r.notes : [];
     if (!notes.length) box.append(el("div", { class: "empty", text: "No notes yet." }));
