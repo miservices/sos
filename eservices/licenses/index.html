@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Driver Licensing | SOS e-Services | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+<style>
+.lic{border:1px solid var(--line);border-radius:18px;padding:20px 22px;background:#fff;margin-top:14px}
+.lic:first-of-type{margin-top:0}
+.lic-h{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}
+.lic-h h3{font-size:18px;font-weight:800;margin:0}
+.lic-h small{display:block;color:var(--muted);font-size:13.5px;margin-top:2px}
+.lic.on{border-left:5px solid var(--teal)}
+.lic.bad{border-left:5px solid var(--accent,#ff7a3d)}
+.lic .acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.empty-hero{text-align:center;padding:34px 22px;border:2px dashed var(--line);border-radius:20px;background:linear-gradient(180deg,#fff,var(--sky))}
+.empty-hero .ico{width:64px;height:64px;margin:0 auto 12px;border-radius:50%;background:#fff;border:1px solid var(--line);display:grid;place-items:center;color:var(--teal)}
+.empty-hero h2{margin:0 0 6px;font-size:22px}
+.empty-hero p{color:var(--muted);max-width:520px;margin:0 auto 16px}
+.req{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+.req .pill{font-size:12.5px}
+.get{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.get .lic{margin:0}
+.get .sub{margin:10px 0 12px}
+.meter{height:8px;border-radius:999px;background:#e9f1f3;overflow:hidden;margin:6px 0 2px}
+.meter i{display:block;height:100%;background:var(--teal)}
+</style>
+</head>
+<body>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header"></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="nav" data-page="licenses"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading your licenses...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">Identity and Licensing</div><h1>Driver Licensing</h1><p>Your driver's license, endorsements and commercial license in one place: status, renewal every 12 months, cards, and who has looked at your license.</p></div>
+
+  <div class="stats" id="stats"></div>
+  <div id="banner"></div>
+
+  <div class="pc mt" id="licenses"><h2>Your licenses</h2><div id="mine"></div></div>
+
+  <div class="pc mt" id="renew"><h2>Renew</h2>
+    <p class="sub">Every license must be <b>renewed every 12 months</b>. You do not retake the test. Renewal opens <span id="win">60</span> days before a license expires, and an expired license can be renewed any time. Each renewal is reviewed by the Department and recorded in your <a href="https://migovt.org/sos/eservices/history/" style="text-decoration:underline">Transactions and History</a>.</p>
+    <div class="rows" id="rn"></div>
+  </div>
+
+  <div class="pc mt" id="card"><h2>Cards</h2>
+    <p class="sub">Your license is active in the system as soon as it is issued. A physical card is not issued automatically. Request one when you want it. The card fee is <b>$55.00</b>, charged when the request is approved.</p>
+    <div class="rows" id="cd"></div>
+  </div>
+
+  <div class="pc mt" id="get"><h2>Get a license or endorsement</h2>
+    <p class="sub">Tests are taken online. Your citizenship status decides how far a license can advance: <b id="stt"></b>.</p>
+    <div class="get" id="gt"></div>
+  </div>
+
+  <div class="pc mt" id="history"><h2>Who has looked at your license</h2>
+    <p class="sub">Searches that included you and anyone who opened your license status. Law enforcement network searches are not shown. Your full access history is in <a href="https://migovt.org/sos/eservices/driving-record/" style="text-decoration:underline">Driving Record</a>.</p>
+    <div class="rows" id="hs"></div>
+  </div>
+
+  <div class="pc mt" id="reqs"><h2>Your license requests</h2><div class="rows" id="rq"></div></div>
+</div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
+<script type="module">
+import { boot, db, el, $, cap, ms, when, money, list, fileCase, myCases, getRecord, statusOf, visible } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+const CARD_FEE = 55, RENEW_FEE = 0, RENEW_WINDOW_DAYS = 60, ADVANCE_DAYS = 10, DAY = 864e5;
+const B = "https://migovt.org/sos/";
+const KINDS = [
+  { k: "driver", t: "Driver's license", test: "driver" },
+  { k: "motorcycle", t: "Motorcycle endorsement", test: "motorcycle" },
+  { k: "chauffeur", t: "Chauffeur's license", test: "chauffeur" },
+  { k: "cdl", t: "Commercial driver's license", url: B + "licenses/commercial/" }
+];
+const ACTIVE_ST = ["open", "in-review", "scheduled"];
+const tm = v => v && v.toMillis ? v.toMillis() : typeof v === "string" ? (Date.parse(v) || 0) : (+v || 0);
+const day = t => t ? new Date(t).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "Not on file";
+
+const ctx = await boot({ page: "licenses" });
+let record = null, lic = null, cases = [];
+try { record = await getRecord(ctx.id.pin); } catch (e) { console.error(e); }
+try { const s = await getDoc(doc(db, "licenses", ctx.id.pin)); lic = s.exists() ? s.data() : null; } catch (e) { console.warn("No license data", e); }
+const cit = statusOf(record);   // None, Citizen, Resident
+const now = Date.now();
+$("stt").textContent = cit === "Resident" ? "as a Resident you receive a standard license immediately" : cit === "Citizen" ? "as a Citizen you advance to standard after " + ADVANCE_DAYS + " days" : "with a status of None a license stays restricted";
+$("win").textContent = RENEW_WINDOW_DAYS;
+
+/* ---- what state is each license in? ---- */
+function stateOf(k) {
+  const l = lic && lic[k];
+  if (!l || typeof l !== "object") return { have: false, label: "None on file", cls: "n" };
+  const st = String(l.status || "active").toLowerCase(), exp = tm(l.expiresAt);
+  const o = { have: true, l, exp, issued: tm(l.issuedAt), cls: "g", label: "Active", usable: true };
+  if (st === "suspended" || st === "revoked") return { ...o, label: cap(st), cls: "o", usable: false, bad: true };
+  if (exp && exp < now) return { ...o, label: "Expired", cls: "o", usable: false, bad: true, expired: true };
+  if (k === "driver" && String(l.class || "").toLowerCase() === "restricted") return { ...o, label: "Restricted", cls: "o" };
+  if (k === "driver") return { ...o, label: "Standard" };
+  return o;
+}
+const S = Object.fromEntries(KINDS.map(x => [x.k, stateOf(x.k)]));
+/* A suspended or revoked driver's license removes the motorcycle endorsement and the chauffeur's license. */
+if (S.driver.have && /suspended|revoked/i.test(S.driver.label)) ["motorcycle", "chauffeur"].forEach(k => { if (S[k].have) S[k] = { ...S[k], label: "Removed", cls: "o", usable: false, bad: true }; });
+const dr = S.driver, standard = dr.have && dr.usable && String(dr.l.class || "").toLowerCase() === "standard";
+const age = (() => { const m = /^(\d{4})-(\d\d)-(\d\d)/.exec(String(ctx.id.dob || "")); if (!m) return null; const b = new Date(+m[1], +m[2] - 1, +m[3]), n = new Date(); let a = n.getFullYear() - b.getFullYear(); if (n < new Date(n.getFullYear(), b.getMonth(), b.getDate())) a--; return a; })();
+const daysLeft = t => Math.ceil((t - now) / DAY);
+
+/* ---- summary ---- */
+const stat = (a, b) => el("div", { class: "stat" }, el("span", { text: a }), el("b", { text: b }));
+$("stats").append(
+  stat("Driver's license", dr.have ? dr.label : "None"),
+  stat("Expires", dr.have && dr.exp ? day(dr.exp) : "Not applicable"),
+  stat("Endorsements", [S.motorcycle, S.chauffeur].filter(s => s.have && s.usable).length + " active"),
+  stat("Card", dr.have && dr.l.cardIssuedAt ? "Issued" : dr.have ? "Not issued" : "Not applicable"));
+
+/* ---- banner: the most important thing to know ---- */
+(function banner() {
+  const b = $("banner"); let a = null;
+  if (dr.have && /suspended|revoked/i.test(dr.label)) a = el("div", { class: "alert warn mt" }, el("b", { text: "Your driver's license is " + dr.label.toLowerCase() + "." }), "You cannot drive, and your motorcycle endorsement and chauffeur's license are removed. See ", el("a", { href: B + "licenses/suspensions/", text: "Suspensions and Revocations", style: "text-decoration:underline" }), ", or ", el("a", { href: B + "licenses/suspensions/contest/", text: "contest the points", style: "text-decoration:underline" }), ".");
+  else if (dr.have && dr.expired) a = el("div", { class: "alert warn mt" }, el("b", { text: "Your driver's license expired on " + day(dr.exp) + "." }), "Renew it below. You do not need to retake the test.");
+  else if (dr.have && dr.exp && daysLeft(dr.exp) <= RENEW_WINDOW_DAYS) a = el("div", { class: "alert warn mt" }, el("b", { text: "Your driver's license expires in " + daysLeft(dr.exp) + " day" + (daysLeft(dr.exp) === 1 ? "" : "s") + "." }), "Renewal is open. Renew it below.");
+  if (a) b.append(a);
+})();
+
+/* ---- your licenses ---- */
+function kv(rows) { const d = el("div", { class: "kv2" }); rows.forEach(([k, v]) => d.append(el("div", {}, el("span", { text: k }), el("b", { text: v })))); return d; }
+function drawMine() {
+  const box = $("mine"); box.replaceChildren();
+  if (!KINDS.some(x => S[x.k].have)) {
+    box.append(el("div", { class: "empty-hero" },
+      el("div", { class: "ico" }, el("span", { text: "ID", style: "font-weight:800;font-size:20px" })),
+      el("h2", { text: "You do not have a license on file" }),
+      el("p", { text: "To drive in Michigan you need a driver's license. Pass the online test and your license is issued in the system. Tests are open to anyone 18 or older." }),
+      el("a", { class: "btn2", href: B + "licenses/testing/#driver", text: "Take the driver's test" }), " ",
+      el("a", { class: "btn2 s", href: B + "licenses/driver/", text: "How it works" })));
+    return;
+  }
+  KINDS.forEach(x => {
+    const s = S[x.k]; if (!s.have) return;
+    const l = s.l, c = el("div", { class: "lic " + (s.bad ? "bad" : "on") });
+    c.append(el("div", { class: "lic-h" }, el("div", {}, el("h3", { text: x.t }), el("small", { text: x.k === "cdl" && l.class ? "Class " + l.class : x.k === "driver" ? (s.label === "Restricted" || s.label === "Standard" ? s.label + " classification" : "Classification: " + cap(l.class || "standard")) : "Added to your driver's license" })), el("span", { class: "pill " + s.cls, text: s.label })));
+    const rows = [["Issued", day(s.issued)], ["Expires", s.exp ? day(s.exp) : "Not recorded"], ["Card", l.cardIssuedAt ? "Issued " + day(tm(l.cardIssuedAt)) : "Not issued"]];
+    if (l.renewedAt) rows.push(["Last renewed", day(tm(l.renewedAt))]);
+    c.append(kv(rows));
+    if (x.k === "driver" && s.label === "Restricted") {
+      const adv = s.issued + ADVANCE_DAYS * DAY, pct = Math.max(0, Math.min(100, Math.round((now - s.issued) / (ADVANCE_DAYS * DAY) * 100)));
+      c.append(el("div", { class: "mt" },
+        cit === "Citizen" ? el("div", {}, el("b", { text: adv > now ? "Advances to standard on " + day(adv) : "Advancing to standard" }), el("div", { class: "meter" }, el("i", { style: "width:" + pct + "%" })), el("small", { class: "empty", text: "As long as the license is not suspended or revoked." }))
+        : cit === "Resident" ? el("div", { class: "alert" }, "Residents receive the standard license automatically. Your classification will update shortly.")
+        : el("div", { class: "alert" }, el("b", { text: "This license cannot advance to standard." }), "Advancing requires citizen or resident status. Your status is " + cit + ".")));
+    }
+    box.append(c);
+  });
+}
+
+/* ---- renew + cards: one open request per license at a time ---- */
+const openReq = (type, k) => cases.find(r => r.type === type && r.detail && r.detail.kind === k && ACTIVE_ST.includes(r.status));
+async function request(type, x, title, fee, msg, btn) {
+  btn.disabled = true; msg.textContent = " Submitting...";
+  try {
+    cases = await myCases(ctx.id.pin, 100);
+    if (openReq(type, x.k)) { msg.textContent = " You already have this request open."; drawAll(); return; }
+    const detail = { kind: x.k, license: x.t }; if (fee > 0) detail.fee = money(fee);
+    await fileCase(ctx, type, title + ": " + x.t, detail);
+    cases = await myCases(ctx.id.pin, 100); drawAll();
+  } catch (e) { console.error(e); msg.textContent = " Could not submit. Try again."; btn.disabled = false; }
+}
+function rowFor(x, type, label, fee, ready, whyNot) {
+  const pend = openReq(type, x.k), msg = el("small", { class: "empty" });
+  const right = el("div", { class: "r" });
+  if (pend) right.append(el("span", { class: "pill o", text: pend.status === "open" ? "Submitted" : "Under review" }));
+  else if (!ready) right.append(el("span", { class: "pill n", text: whyNot }));
+  else { const b = el("button", { class: "btn2", type: "button", text: label + (fee > 0 ? " (" + money(fee) + ")" : "") }); b.addEventListener("click", () => request(type, x, label, fee, msg, b)); right.append(b); }
+  return el("div", {}, el("div", {}, el("b", { text: x.t }), msg), right);
+}
+function drawRenew() {
+  const box = $("rn"); box.replaceChildren(); let any = false;
+  KINDS.forEach(x => {
+    const s = S[x.k]; if (!s.have) return; any = true;
+    const bad = /suspended|revoked|removed/i.test(s.label), exp = s.exp, open = !exp || exp - now <= RENEW_WINDOW_DAYS * DAY;
+    const row = rowFor(x, "license.renewal", "Renew", RENEW_FEE, !bad && open, bad ? s.label : "Opens " + day(exp - RENEW_WINDOW_DAYS * DAY));
+    row.firstChild.insertBefore(el("small", { text: exp ? (s.expired ? "Expired " : "Expires ") + day(exp) : "No expiration recorded" }), row.firstChild.children[1] || null);
+    box.append(row);
+  });
+  if (!any) box.append(el("div", { class: "empty", text: "You do not have a license to renew." }));
+}
+function drawCards() {
+  const box = $("cd"); box.replaceChildren(); let any = false;
+  KINDS.forEach(x => {
+    const s = S[x.k]; if (!s.have) return; any = true;
+    const bad = /suspended|revoked|removed/i.test(s.label);
+    if (s.l.cardIssuedAt) { box.append(el("div", {}, el("div", {}, el("b", { text: x.t }), el("small", { text: "Card issued " + day(tm(s.l.cardIssuedAt)) })), el("div", { class: "r" }, el("span", { class: "pill g", text: "Issued" })))); return; }
+    box.append(rowFor(x, "license.card", "Request card", CARD_FEE, !bad, bad ? s.label : ""));
+  });
+  if (!any) box.append(el("div", { class: "empty", text: "You do not have a license, so there is no card to request." }));
+}
+
+/* ---- get a license ---- */
+function drawGet() {
+  const box = $("gt"); box.replaceChildren();
+  const pill = (ok, t) => el("span", { class: "pill " + (ok ? "g" : "n"), text: (ok ? "Met: " : "Not met: ") + t });
+  KINDS.forEach(x => {
+    const s = S[x.k], c = el("div", { class: "lic" }), req = el("div", { class: "req" });
+    c.append(el("div", { class: "lic-h" }, el("div", {}, el("h3", { text: x.t }))));
+    let ok = true;
+    const add = (v, t) => { req.append(pill(v, t)); if (!v) ok = false; };
+    add(age != null && age >= 18, "18 or older");
+    if (x.k !== "driver") add(standard, "standard license");
+    if (x.k === "motorcycle") add(cit !== "None", "citizen or resident");
+    if (x.k === "chauffeur") add(cit === "Citizen", "citizen");
+    c.append(req);
+    if (s.have) c.append(el("p", { class: "sub", text: "You already hold this. Status: " + s.label + "." }));
+    else {
+      const a = el("a", { class: "btn2" + (ok ? "" : " s"), href: x.url || B + "licenses/testing/#" + x.test, text: x.k === "cdl" ? "CDL enrollment" : "Take the test" });
+      c.append(el("p", { class: "sub", text: x.k === "driver" ? "Test fee $75.00. Pass above 70 percent." : x.k === "motorcycle" ? "Application fee $135.00. Added to a standard license." : x.k === "chauffeur" ? "Test fee $175.00. Citizens only." : "Training from the Secretary of State, then a knowledge test and a skills test." }), a);
+    }
+    box.append(c);
+  });
+}
+
+/* ---- history and requests ---- */
+async function drawHistory() {
+  const box = $("hs"); box.replaceChildren();
+  try {
+    const rows = visible(await list("activity", ctx.id.pin, 200)).filter(r => /^(access\.license|search\.)/.test(r.type)).slice(0, 15);
+    if (!rows.length) { box.append(el("div", { class: "empty", text: "No one has looked at your license yet." })); return; }
+    rows.forEach(r => box.append(el("div", {}, el("div", {}, el("b", { text: r.summary }), el("small", { text: r.actorKind === "agency" ? "Department of State" : r.actorName || "" })), el("div", { class: "r" }, el("small", { text: when(r.at) })))));
+  } catch (e) { console.error(e); box.append(el("div", { class: "empty", text: "Could not load." })); }
+}
+function drawReqs() {
+  const box = $("rq"); box.replaceChildren();
+  const rows = cases.filter(r => /^license\./.test(r.type)).slice(0, 10);
+  if (!rows.length) { box.append(el("div", { class: "empty", text: "No requests yet." })); return; }
+  rows.forEach(r => {
+    const act = ACTIVE_ST.includes(r.status), res = r.result || (r.status === "approved" || r.status === "denied" ? r.status : "");
+    box.append(el("div", {}, el("div", {}, el("b", { text: r.title }), el("small", { text: "Filed " + when(r.createdAt) })), el("div", { class: "r" }, el("span", { class: "pill " + (res === "approved" ? "g" : act ? "o" : "n"), text: act ? (r.status === "open" ? "Submitted" : "Under review") : cap(res || "closed") }))));
+  });
+}
+function drawAll() { drawMine(); drawRenew(); drawCards(); drawGet(); drawReqs(); }
+try { cases = await myCases(ctx.id.pin, 100); } catch (e) { console.error(e); }
+drawAll(); await drawHistory();
+if (location.hash) { const t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }
+</script>
+</body>
+</html>

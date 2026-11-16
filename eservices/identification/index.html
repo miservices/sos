@@ -113,7 +113,7 @@ function fillName() { const c = current(); $("nf").value = c.first; $("nm").valu
 /* Only one application can be outstanding at a time. */
 let outstanding = null, waitUntil = 0;
 const WAIT_DAYS = 90;
-const ENFORCE_WAIT = false;   /* TESTING: the 90-day limit is off. Set to true to turn it back on. */
+const ENFORCE_WAIT = true;    /* Set to false to switch the 90-day limit off (for testing). */
 const dayText = t => new Date(t).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 const ACTIVE_ST = ["open", "in-review", "scheduled"];
 const stateOf = r => r.status === "open" ? "Submitted" : ACTIVE_ST.includes(r.status) ? "Under review" : (r.result || r.status) === "approved" ? "Approved" : (r.result || r.status) === "denied" ? "Denied" : (r.result === "withdrawn" ? "Withdrawn" : "Closed");

@@ -79,7 +79,7 @@ export async function loadAudit(ctx, n = 150, actorPin) {
 /* type -> [label, bureau]. Public portal pages create cases with one of these types. */
 export const CASE_TYPES = {
   "license.contest": ["Contest points", "lara"], "license.application": ["License application", "lara"], "license.reinstatement": ["Reinstatement request", "lara"],
-  "id.application": ["ID application", "lara"], "name.change": ["Name change", "lara"], "dealer.license": ["Dealership license", "lara"],
+  "id.application": ["ID application", "lara"], "license.renewal": ["License renewal", "lara"], "license.card": ["Card request", "lara"], "name.change": ["Name change", "lara"], "dealer.license": ["Dealership license", "lara"],
   "insurer.license": ["Insurance license", "lara"], "professional.license": ["Professional license", "lara"],
   "record.copy": ["Certified record request", "lara"], "vital.request": ["Vital record request", "lara"],
   "voter.registration": ["Voter registration", "elections"], "candidate.filing": ["Candidate filing", "elections"], "finance.report": ["Campaign finance report", "elections"],
@@ -120,6 +120,27 @@ export async function loadCasesFor(pin) {
   return s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => ms(b.updatedAt) - ms(a.updatedAt));
 }
 export const caseStats = rows => ({ open: rows.filter(r => r.status === "open").length, review: rows.filter(r => r.status === "in-review" || r.status === "scheduled").length, done: rows.filter(r => !ACTIVE.includes(r.status)).length });
+
+/* Approving a license renewal or card request updates licenses/{pin}.{driver|motorcycle|chauffeur|cdl} and charges the fee once. */
+async function applyLicenseCase(ctx, r) {
+  const k = r.detail && r.detail.kind; if (!["driver", "motorcycle", "chauffeur", "cdl"].includes(k)) return "This request has no license type.";
+  const ref = doc(db, "licenses", String(r.pin)), snap = await getDoc(ref), l = snap.exists() ? snap.data()[k] : null;
+  if (!l) return "No " + k + " license is on file for this person, so nothing was updated.";
+  const now = new Date(), up = { updatedBy: ctx.id.pin, updatedAt: serverTimestamp() };
+  const tm = v => v && v.toMillis ? v.toMillis() : typeof v === "string" ? (Date.parse(v) || 0) : (+v || 0);
+  if (r.type === "license.renewal") {
+    /* 12 months from the current expiration, or from today if it has already expired */
+    const from = new Date(Math.max(tm(l.expiresAt), now.getTime())); from.setFullYear(from.getFullYear() + 1);
+    up[k + ".expiresAt"] = from.toISOString(); up[k + ".renewedAt"] = now.toISOString();
+    if (String(l.status || "").toLowerCase() === "expired") up[k + ".status"] = "active";
+  } else up[k + ".cardIssuedAt"] = now.toISOString();
+  await updateDoc(ref, up);
+  await audit(ctx, r.type === "license.renewal" ? "license.renew" : "license.card", r.pin, (r.detail.license || k));
+  await logActivity(r.pin, r.type === "license.renewal" ? "license.renewed" : "license.card", (r.type === "license.renewal" ? "Renewed: " : "Card issued: ") + (r.detail.license || k), AGENCY);
+  const fee = parseFloat(String(r.detail.fee || "").replace(/[^0-9.]/g, "")), desc = ((r.type === "license.renewal" ? "License renewal: " : "Card fee: ") + (r.detail.license || k)).slice(0, 120);
+  if (fee > 0) { const prior = await list("transactions", r.pin, 100).catch(() => []); if (!prior.some(t => t.desc === desc)) await charge(r.pin, desc, fee); }
+  return "";
+}
 
 /* Open a case for a person (staff). */
 export async function openCase(ctx, { pin, name, type, title, detail }) {
@@ -193,11 +214,14 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
       const fee = parseFloat(String(r.detail.fee || "").replace(/[^0-9.]/g, "")), desc = ("Name change to " + (r.detail.to || "")).slice(0, 120);
       if (fee > 0) { const prior = await list("transactions", r.pin, 100).catch(() => []); if (!prior.some(t => t.desc === desc)) await charge(r.pin, desc, fee); }
     }
+    if (result === "approved" && r.result !== "approved" && (r.type === "license.renewal" || r.type === "license.card")) {
+      try { const w = await applyLicenseCase(ctx, r); if (w) warns.push(w); } catch (e) { console.error(e); warns.push("The license could not be updated. Check the Firestore rules for licenses."); }
+    }
     const before = stateText(r), after = stateText({ status, result });
     if (before !== after) { await audit(ctx, "case.status", r.pin, typeLabel(r.type) + ": " + before + " to " + after); await logActivity(r.pin, "case.status", typeLabel(r.type) + ": " + after, AGENCY); }
     else if (nn) await audit(ctx, "case.note", r.pin, typeLabel(r.type));
     if (up.assignee !== undefined && up.assignee) await audit(ctx, "case.assign", r.pin, typeLabel(r.type) + ": assigned to " + (ctx.id.name || ctx.id.pin));
-    r._warn = warns.length ? "The SOS account name was changed, but: " + warns.join(" ") : "";
+    r._warn = warns.length ? (r.type === "name.change" ? "The SOS account name was changed, but: " : "The case was saved, but: ") + warns.join(" ") : "";
     Object.assign(r, { status, result, assignee: up.assignee ?? r.assignee, assigneeName: up.assigneeName ?? r.assigneeName, notes: nn ? [...(Array.isArray(r.notes) ? r.notes : []), nn] : r.notes, updatedAt: Date.now() });
   }
 
