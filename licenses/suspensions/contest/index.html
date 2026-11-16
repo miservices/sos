@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contest Points | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/shared.css">
+</head>
+<body>
+<script src="https://migovt.org/sos/partials.js" data-part="header"></script>
+<section class="phead"><div class="in"><div class="crumbs"><a href="https://migovt.org/sos/">Home</a><span>/</span><a href="https://migovt.org/sos/licenses/">Licenses &amp; IDs</a><span>/</span><a href="https://migovt.org/sos/licenses/suspensions/">Suspensions &amp; Revocations</a><span>/</span><b>Contest Points</b></div><h1>Contest Points</h1><p>Ask the Department to review points added to your record.</p><div class="acts"></div></div></section>
+<div class="pg"><div class="prose">
+<p>If you believe points were added to your record by mistake, or that an officer misused the system, submit this form. If your contest is <b>substantiated, all points from that entire incident are voided, including the highest one.</b></p>
+<div class="note">Only the highest-point violation from a single stop or incident is counted. If more than one violation from the same incident was added to your record, that is grounds to contest.</div>
+<form id="cf" class="cform" novalidate>
+<label>Citation or incident number<input name="inc" required placeholder="Example: 26-04471"></label>
+<label>Date of the incident<input name="date" type="date" required></label>
+<label>Points assessed to you for this incident<input name="pts" type="number" min="0" max="99" required></label>
+<label>Why are you contesting?
+<select name="why" required><option value="">Select a reason</option><option>More than one violation from the same incident was counted</option><option>Automated detection made an error</option><option>The officer misused the system or acted improperly</option><option>The violation did not occur</option><option>Other</option></select></label>
+<label>Explain what happened<textarea name="stmt" rows="6" required placeholder="Describe the incident and why the points are not correct."></textarea></label>
+<label>Supporting evidence (optional)<input type="file" name="ev" multiple></label>
+<label class="chk"><input type="checkbox" name="ok" required> I affirm that the information I provided is true.</label>
+<div class="err" id="err" hidden></div>
+<button class="btn2" type="submit">Submit contest</button>
+</form>
+<div id="done" class="note" hidden></div>
+<style>
+.cform{display:grid;gap:16px;margin:22px 0;max-width:640px}
+.cform label{display:grid;gap:6px;font-weight:700;font-size:14.5px}
+.cform input,.cform select,.cform textarea{font:inherit;font-weight:400;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;outline:0;background:#fff}
+.cform input:focus,.cform select:focus,.cform textarea:focus{border-color:var(--teal)}
+.cform .chk{display:flex;gap:10px;align-items:flex-start;font-weight:500}
+.cform .chk input{margin-top:3px}
+.err{color:#b4491a;font-weight:700;font-size:14.5px}
+</style>
+<script>
+document.getElementById('cf').addEventListener('submit',function(e){
+  e.preventDefault();
+  var f=e.target,err=document.getElementById('err'),ok=true;
+  ['inc','date','pts','why','stmt'].forEach(function(n){if(!f[n].value.trim())ok=false});
+  if(!f.ok.checked)ok=false;
+  if(!ok){err.textContent='Please complete all required fields and confirm the statement.';err.hidden=false;return}
+  err.hidden=true;
+  var ref='CP-'+Math.floor(100000+Math.random()*900000);
+  f.hidden=true;
+  var d=document.getElementById('done');
+  d.innerHTML='<b>Your contest has been submitted.</b><br>Reference number: <b>'+ref+'</b><br>The Department will review the incident. If it is substantiated, all points from the incident will be voided.';
+  d.hidden=false;window.scrollTo({top:0,behavior:'smooth'});
+});
+</script>
+</div><aside class="side"><div class="card cta"><h3>Signed in</h3><p>This form assumes you are signed in to SOS e-Services.</p><a class="btn2 " href="https://migovt.org/sos/eservices/">Open SOS e-Services</a></div><div class="card"><h3>Related</h3><div class="kv"><div><a href="https://migovt.org/sos/licenses/suspensions/#points">How points work</a></div><div><a href="https://migovt.org/sos/licenses/suspensions/#incidents">Multiple tickets in one incident</a></div><div><a href="https://migovt.org/sos/licenses/records/">Driving records</a></div></div></div></aside></div>
+<script src="https://migovt.org/sos/partials.js" data-part="footer"></script>
+</body>
+</html>

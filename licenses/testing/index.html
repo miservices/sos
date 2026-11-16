@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Online Testing | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/shared.css">
+<style>
+.tw{max-width:860px;margin:0 auto;padding:36px 24px 0}
+.panel{border:1px solid var(--line);border-radius:20px;padding:28px;background:#fff;margin-bottom:18px}
+.panel h2{font-size:24px;font-weight:800;letter-spacing:-.01em;margin-bottom:6px}
+.panel p{color:var(--muted)}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+.facts div{background:var(--sky);border-radius:14px;padding:14px 16px}
+.facts b{display:block;font-size:22px;color:var(--teal2)}
+.facts span{font-size:13px;color:var(--muted)}
+.chk{list-style:none;padding:0;margin:14px 0}
+.chk li{display:flex;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line);font-size:15px}
+.chk li:first-child{border-top:0}
+.chk .tag{min-width:68px;text-align:center;font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px}
+.chk .ok .tag{background:#dff5e9;color:#17794a}
+.chk .no .tag{background:#fff1ea;color:#b4491a}
+details.demo{border:1.5px dashed #b9cdd1;border-radius:16px;padding:14px 18px;margin:18px 0;background:#fafdfd}
+details.demo summary{cursor:pointer;font-weight:700;font-size:14.5px}
+.demo .g{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.demo label{display:grid;gap:5px;font-size:13px;font-weight:700;color:var(--muted)}
+.demo select,.demo input{font:inherit;font-size:14px;font-weight:500;color:var(--ink);border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;background:#fff}
+.demo small{display:block;margin-top:10px;color:var(--muted);font-size:12.5px}
+.bar{height:8px;background:var(--sky);border-radius:999px;overflow:hidden;margin:10px 0 22px}
+.bar i{display:block;height:100%;background:var(--teal);border-radius:999px;transition:width .2s}
+.qn{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
+.qt{font-size:22px;font-weight:800;line-height:1.3;margin:8px 0 18px;letter-spacing:-.01em}
+.ans{display:grid;gap:10px}
+.ans button{text-align:left;font:inherit;font-weight:600;font-size:15.5px;padding:15px 18px;border:1.5px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;color:var(--ink)}
+.ans button:hover{border-color:var(--teal)}
+.ans button.sel{border-color:var(--teal);background:var(--sky);color:var(--teal2)}
+.nav{display:flex;justify-content:space-between;gap:12px;margin-top:22px;flex-wrap:wrap}
+.score{font-size:56px;font-weight:800;line-height:1}
+.pass{color:#17794a}.fail{color:#b4491a}
+.miss{margin-top:8px}
+.miss div{padding:12px 0;border-top:1px solid var(--line);font-size:14.5px}
+.miss div b{display:block}
+.miss span{color:#17794a;font-weight:700}
+@media(max-width:700px){.facts,.demo .g{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<script src="https://migovt.org/sos/partials.js" data-part="header"></script>
+<section class="phead"><div class="in">
+<div class="crumbs"><a href="https://migovt.org/sos/">Home</a><span>/</span><a href="https://migovt.org/sos/licenses/">Licenses &amp; IDs</a><span>/</span><b>Online Testing</b></div>
+<h1 id="ph1">Online Testing</h1>
+<p id="plead">Take your driver's, motorcycle, or chauffeur's test online. You must be 18 or older.</p>
+</div></section>
+<div class="tw" id="app"></div>
+<script src="https://migovt.org/sos/partials.js" data-part="footer"></script>
+<script>
+(function(){
+var B="https://migovt.org/sos/";
+var PASS=70;
+/* Each question: [question, correct answer, wrong, wrong, wrong]. Order is shuffled at test time. */
+var TESTS={
+ driver:{name:"Driver's License Test",page:"licenses/driver/",fee:75,q:[
+  ["What does a red octagonal sign mean?","Come to a complete stop","Slow down and proceed with caution","Yield to cross traffic only","The road ahead is closed"],
+  ["What does a solid yellow line on your side of the center line mean?","Passing is not allowed","Passing is allowed when the road is clear","The lane is for turning only","The road is one way"],
+  ["What must you do when you approach a yield sign?","Slow down and give the right of way to other traffic","Stop completely every time","Speed up to merge","Honk to warn others"],
+  ["Two vehicles reach a four-way stop at the same time. Who goes first?","The driver on the right","The driver on the left","The larger vehicle","The faster driver"],
+  ["In good conditions, what is a safe following distance?","At least three seconds","About one car length","One second","Half a second"],
+  ["How should you treat a flashing red traffic light?","Like a stop sign","Like a yield sign","Slow down and continue","Ignore it"],
+  ["An emergency vehicle with a siren approaches from behind. What should you do?","Pull to the right and stop","Speed up to get out of the way","Stop in the middle of the lane","Continue at the same speed"],
+  ["A pedestrian is in a crosswalk ahead of you. What should you do?","Yield and let them cross","Honk and keep going","Speed up to pass first","Swerve around them"],
+  ["A school bus ahead is stopped with its red lights flashing. What should you do?","Stop and wait until the lights stop flashing","Pass carefully on the left","Slow to ten miles per hour and pass","Honk to alert the driver"],
+  ["Your car begins to hydroplane. What should you do?","Ease off the accelerator and steer straight","Brake hard","Accelerate to regain grip","Turn the wheel sharply"],
+  ["What should you do before changing lanes?","Signal, check mirrors, and check your blind spot","Signal only","Check only your rearview mirror","Speed up first"],
+  ["Who must wear a seat belt in a moving vehicle?","The driver and all passengers","Only the driver","Only front-seat occupants","Only passengers under 18"],
+  ["You feel drowsy while driving. What is the best action?","Pull over safely and rest","Open the windows and keep driving","Turn up the radio","Drive faster to finish sooner"],
+  ["A posted speed limit is best understood as:","The maximum speed under ideal conditions","A speed you must always drive","The minimum safe speed","A suggestion"],
+  ["When may you turn right at a red light?","After stopping and yielding, unless a sign prohibits it","Never","Without stopping if no cars are visible","Only if you have a passenger"]
+ ]},
+ motorcycle:{name:"Motorcycle Endorsement Test",page:"licenses/motorcycle/",fee:135,q:[
+  ["Which gear gives the best protection when riding?","An approved helmet, eye protection, gloves, and boots","A helmet only","Sunglasses and a light jacket","Sandals and a hoodie"],
+  ["How should you brake in a normal stop on a motorcycle?","Use both the front and rear brakes together","Use only the rear brake","Use only the front brake","Downshift only"],
+  ["How should you choose your lane position?","Choose the position that makes you most visible and avoids hazards","Always ride in the center of the lane","Always ride at the lane edge","Ride between lanes"],
+  ["What is true about riding in the rain?","Roads are slickest in the first minutes of rain, so reduce speed","Rain makes no difference","Roads are safest right after rain starts","You should brake harder"],
+  ["How much following distance should you allow on a motorcycle?","At least three to four seconds","One second","Half a second","One bike length"],
+  ["How should you check your blind spot before a lane change?","Turn your head and look","Check only your mirrors","Signal and move over","Honk"],
+  ["How should you enter a curve?","Slow down before the curve, look through the turn, and lean","Brake hard in the middle of the curve","Accelerate sharply before the curve","Look at the ground in front of the bike"],
+  ["What does a passenger need to ride safely?","A seat made for two and footrests","Nothing special","To hold the rider's helmet","To stand on the rear fender"],
+  ["What hazard should you watch for beside parked cars?","Doors opening into your path","Nothing in particular","Cars braking quietly","Open windows"],
+  ["You must cross loose gravel. What should you do?","Slow down, stay upright, and avoid sudden steering or braking","Speed up to cross quickly","Brake hard","Swerve sharply"],
+  ["How should a group of riders position themselves?","In a staggered formation","Side by side in one lane","Bumper to bumper in a line","Spread across the lane"],
+  ["How does alcohol affect riding?","It impairs balance and judgment, so never ride impaired","It improves reaction time","It only affects drivers of cars","It has no effect in small amounts"],
+  ["How can you make yourself more visible to other drivers?","Use your headlight and wear bright clothing","Ride in the blind spots of cars","Turn off lights to save power","Wear dark clothing"],
+  ["What should you remember about motorcycle turn signals?","They may not cancel automatically, so check them","They always cancel on their own","They are optional","They only work above 30 mph"],
+  ["What should you inspect before every ride?","Tires, brakes, lights, controls, and fluids","Only the paint","Only the fuel","Nothing if it ran yesterday"]
+ ]},
+ chauffeur:{name:"Chauffeur's License Test",page:"licenses/chauffeur/",fee:175,q:[
+  ["Who needs a chauffeur's license?","Someone who drives passengers for hire","Anyone who drives a car","Only owners of limousines","Only drivers of large trucks"],
+  ["What should you do before departing with passengers?","Make sure all passengers are wearing seat belts","Start driving right away","Ask them to open the windows","Check your phone"],
+  ["You are feeling impaired or very fatigued. What should you do?","Decline to drive until you are fit to drive","Drive carefully anyway","Take a short trip only","Ask a passenger to watch you"],
+  ["A passenger travels with a service animal. What should you do?","Allow the service animal to ride","Refuse the trip","Charge an extra fee","Ask the animal to ride in the trunk"],
+  ["What fare may you charge?","The agreed or posted fare","Whatever you think the passenger can pay","Double during busy hours without notice","A tip as a requirement"],
+  ["A passenger becomes disruptive. What is the best response?","Pull over safely in a well-lit area and ask them to exit or contact authorities","Drive faster to finish the trip","Argue with the passenger while driving","Stop in the middle of the road"],
+  ["How should you drive with passengers on board?","Smoothly, with gentle acceleration and braking","Quickly to save time","Aggressively in traffic","With sudden stops"],
+  ["What is the safest way to use a navigation device?","Mounted and used hands-free","Held in one hand","Held in your lap","Typed in while moving"],
+  ["What records should you keep?","Trip records as required","None","Only receipts you like","Only the last trip"],
+  ["How often should you check your vehicle?","Before each shift, including lights, brakes, and cleanliness","Once a year","Only when it breaks down","Never"],
+  ["Where should you pick up and drop off passengers?","In legal stopping zones without blocking traffic","Anywhere convenient","In the middle of the lane","In a crosswalk"],
+  ["How should you handle driver fatigue on long shifts?","Take required rest breaks","Drink more caffeine and continue","Drive faster","Skip breaks to earn more"],
+  ["A passenger leaves an item in your vehicle. What should you do?","Report it and return it to the owner","Keep it","Throw it away","Sell it"],
+  ["You are in a collision with passengers on board. What should you do first?","Stop, check for injuries, and call emergency services","Leave the scene","Continue the trip","Ask passengers to leave quietly"],
+  ["May you refuse a ride because of a passenger's protected characteristic?","No, you must not discriminate","Yes, if you prefer","Yes, on slow days","Only for long trips"]
+ ]}
+};
+
+/* Stand-in for the MiGOVT / SOS e-Services account until the portal exists. */
+var profile={status:"citizen",age:21,license:"none",susp:"none",restricted:0,touched:false};
+var state={key:null,stage:"intro",qs:[],ans:[],i:0,score:0};
+var app=document.getElementById("app");
+var $=function(s){return document.querySelector(s)};
+
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function money(n){return "$"+n.toFixed(2)}
+function need(n){return Math.floor(PASS/100*n)+1}
+
+function checks(key){
+  var p=profile,r=[];
+  r.push([p.age>=18,"You are at least 18 years old."]);
+  if(key==="driver"){
+    r.push([p.license==="none","You do not already hold a driver's license."]);
+    r.push([p.susp!=="active","Your license is not currently suspended or revoked."]);
+    r.push([p.susp!=="recent","At least 72 hours have passed since any suspension or revocation ended."]);
+    r.push([p.restricted<8,"Fewer than 8 restricted licenses have been issued to you."]);
+  }
+  if(key==="motorcycle"){
+    r.push([p.status!=="neither","You are a citizen and/or a resident."]);
+    r.push([p.license==="standard","You hold a standard driver's license, not a restricted one."]);
+    r.push([p.susp!=="active","Your license is not currently suspended or revoked."]);
+  }
+  if(key==="chauffeur"){
+    r.push([p.status==="citizen","You are a citizen."]);
+    r.push([p.license==="standard","You hold a standard driver's license, not a restricted one."]);
+    r.push([p.susp!=="active","Your license is not currently suspended or revoked."]);
+  }
+  return r;
+}
+
+function picker(){
+  $("#ph1").textContent="Online Testing";
+  $("#plead").textContent="Choose the test you want to take. You must be 18 or older.";
+  var h='<div class="panel"><h2>Choose a test</h2><p>Each test is taken online. Passing requires a score above '+PASS+'%.</p><div class="opts" style="margin-top:18px">';
+  ["driver","motorcycle","chauffeur"].forEach(function(k){
+    var t=TESTS[k];
+    h+='<a class="opt" href="#'+k+'"><b>'+t.name+'</b><span>'+t.q.length+' questions. Passing score above '+PASS+'%.</span><em>Fee '+money(t.fee)+'</em></a>';
+  });
+  h+='</div></div>';
+  app.innerHTML=h;
+}
+
+function intro(){
+  var t=TESTS[state.key],c=checks(state.key),ok=c.every(function(x){return x[0]});
+  $("#ph1").textContent=t.name;
+  $("#plead").textContent="Review the requirements, then begin when you are ready.";
+  var h='<div class="panel"><h2>'+t.name+'</h2><p>Answer every question, then submit. You must score above '+PASS+'% to pass.</p>';
+  h+='<div class="facts"><div><b>'+money(t.fee)+'</b><span>Test fee</span></div><div><b>'+t.q.length+'</b><span>Questions</span></div><div><b>Above '+PASS+'%</b><span>To pass</span></div><div><b>'+need(t.q.length)+' of '+t.q.length+'</b><span>Correct needed</span></div></div>';
+  h+='<ul class="chk">'+c.map(function(x){return '<li class="'+(x[0]?'ok':'no')+'"><span class="tag">'+(x[0]?'Met':'Not met')+'</span>'+esc(x[1])+'</li>'}).join("")+'</ul>';
+  h+=demo();
+  h+='<div class="nav"><a class="btn2 s" href="#">Choose a different test</a>';
+  h+=ok?'<button class="btn2" id="go">Pay '+money(t.fee)+' and begin</button>':'<span class="btn2 off">Requirements not met</span>';
+  h+='</div></div><p style="font-size:14px;color:var(--muted)">Read more about this license on its <a class="l" style="color:var(--teal2);font-weight:700;text-decoration:underline" href="'+B+t.page+'">information page</a>.</p>';
+  app.innerHTML=h;
+  var go=$("#go");if(go)go.onclick=start;
+  bindDemo();
+}
+
+function demo(){
+  var p=profile;
+  function o(v,l,cur){return '<option value="'+v+'"'+(cur===v?' selected':'')+'>'+l+'</option>'}
+  return '<details class="demo"><summary>Demo account settings (stands in for your MiGOVT account)</summary><div class="g">'
+   +'<label>Citizenship status<select id="d_status">'+o("citizen","Citizen",p.status)+o("resident","Resident",p.status)+o("neither","Neither",p.status)+'</select></label>'
+   +'<label>Age<input id="d_age" type="number" min="1" max="120" value="'+p.age+'"></label>'
+   +'<label>Current license<select id="d_license">'+o("none","None",p.license)+o("restricted","Restricted",p.license)+o("standard","Standard",p.license)+'</select></label>'
+   +'<label>Suspension status<select id="d_susp">'+o("none","None",p.susp)+o("active","Currently suspended or revoked",p.susp)+o("recent","Ended less than 72 hours ago",p.susp)+'</select></label>'
+   +'<label>Restricted licenses issued<input id="d_res" type="number" min="0" max="8" value="'+p.restricted+'"></label>'
+   +'</div><small>Once SOS e-Services exists, these will come from your signed-in account.</small></details>';
+}
+function bindDemo(){
+  ["status","age","license","susp","res"].forEach(function(n){
+    var el=$("#d_"+n);if(!el)return;
+    el.onchange=function(){
+      if(n==="status")profile.status=el.value;
+      if(n==="age")profile.age=parseInt(el.value,10)||0;
+      if(n==="license"){profile.license=el.value;profile.touched=true}
+      if(n==="susp")profile.susp=el.value;
+      if(n==="res")profile.restricted=parseInt(el.value,10)||0;
+      intro();
+      var d=$("details.demo");if(d)d.open=true;
+    };
+  });
+}
+
+function start(){
+  var t=TESTS[state.key];
+  state.qs=shuffle(t.q).map(function(q){
+    var opts=shuffle(q.slice(1));
+    return {q:q[0],opts:opts,correct:opts.indexOf(q[1])};
+  });
+  state.ans=state.qs.map(function(){return -1});
+  state.i=0;state.stage="test";render();window.scrollTo({top:0});
+}
+
+function question(){
+  var t=TESTS[state.key],q=state.qs[state.i],n=state.qs.length;
+  var answered=state.ans.filter(function(a){return a>=0}).length;
+  var h='<div class="panel"><div class="qn">Question '+(state.i+1)+' of '+n+'</div><div class="bar"><i style="width:'+(answered/n*100)+'%"></i></div>';
+  h+='<div class="qt">'+esc(q.q)+'</div><div class="ans">';
+  q.opts.forEach(function(o,k){h+='<button data-k="'+k+'" class="'+(state.ans[state.i]===k?'sel':'')+'">'+esc(o)+'</button>'});
+  h+='</div><div class="nav">';
+  h+=state.i>0?'<button class="btn2 s" id="prev">Previous</button>':'<span></span>';
+  if(state.i<n-1)h+='<button class="btn2'+(state.ans[state.i]<0?' off':'')+'" id="next">Next question</button>';
+  else h+='<button class="btn2'+(answered<n?' off':'')+'" id="submit">Submit test</button>';
+  h+='</div>';
+  if(state.i===n-1&&answered<n)h+='<p style="margin-top:12px;font-size:14px;color:var(--muted)">Answer all questions to submit. '+(n-answered)+' remaining.</p>';
+  h+='</div>';
+  app.innerHTML=h;
+  document.querySelectorAll(".ans button").forEach(function(b){b.onclick=function(){state.ans[state.i]=parseInt(b.getAttribute("data-k"),10);question()}});
+  var pv=$("#prev");if(pv)pv.onclick=function(){state.i--;question()};
+  var nx=$("#next");if(nx)nx.onclick=function(){if(state.ans[state.i]>=0){state.i++;question()}};
+  var sb=$("#submit");if(sb)sb.onclick=function(){if(state.ans.every(function(a){return a>=0}))finish()};
+}
+
+function finish(){
+  var s=0;state.qs.forEach(function(q,k){if(state.ans[k]===q.correct)s++});
+  state.score=s;state.stage="result";render();window.scrollTo({top:0});
+}
+
+function outcome(passed){
+  var k=state.key,p=profile,t=TESTS[k];
+  if(!passed)return '<p>You needed a score above '+PASS+'% ('+need(t.q.length)+' of '+t.q.length+' correct). You can retake the test. The test fee of '+money(t.fee)+' applies each time.</p>';
+  if(k==="driver"){
+    if(p.status==="resident")return '<p>You passed. Because you are a resident, your <b>standard driver\'s license</b> has been issued automatically in the system.</p><p>A physical card is not issued automatically. Request your card in SOS e-Services (card fee $55.00).</p>';
+    if(p.status==="citizen")return '<p>You passed. Your <b>restricted driver\'s license</b> has been issued in the system.</p><p>After you have held it for 10 days, it will be advanced to a standard license automatically, as long as it is not suspended or revoked. A physical card is not issued automatically. Request your card in SOS e-Services (card fee $55.00).</p>';
+    return '<p>You passed. Your <b>restricted driver\'s license</b> has been issued in the system.</p><p>Because you are not a citizen or a resident, you cannot advance to a standard license. A physical card is not issued automatically. Request your card in SOS e-Services (card fee $55.00).</p>';
+  }
+  if(k==="motorcycle"){
+    if(p.status==="resident")return '<p>You passed. Because you are a resident, your <b>motorcycle endorsement</b> is active on your standard license automatically.</p><p>A new card is not issued automatically. Request an updated card in SOS e-Services.</p>';
+    return '<p>You passed. A <b>restricted motorcycle endorsement</b> has been issued in the system.</p><p>After 10 days, as long as your license is not suspended or revoked, it becomes a full motorcycle endorsement. A new card is not issued automatically. Request an updated card in SOS e-Services.</p>';
+  }
+  return '<p>You passed. Your <b>chauffeur\'s license</b> has been added to your record.</p><p>A new card is not issued automatically. Request an updated card in SOS e-Services.</p>';
+}
+
+function result(){
+  var t=TESTS[state.key],n=state.qs.length,s=state.score,pct=Math.round(s/n*1000)/10,passed=pct>PASS;
+  $("#ph1").textContent=t.name;
+  $("#plead").textContent="Your test results.";
+  var h='<div class="panel"><div class="qn">Result</div><div class="score '+(passed?'pass':'fail')+'">'+pct+'%</div>';
+  h+='<h2 style="margin-top:10px">'+(passed?'Passed':'Did not pass')+'</h2><p>'+s+' of '+n+' correct. A passing score is above '+PASS+'%.</p>'+outcome(passed);
+  h+='<div class="nav"><a class="btn2 s" href="'+B+t.page+'">Back to '+esc(t.name.replace(" Test",""))+' information</a>';
+  h+=passed?'<a class="btn2" href="'+B+'eservices/">Open SOS e-Services</a>':'<button class="btn2" id="retry">Retake test ('+money(t.fee)+')</button>';
+  h+='</div></div>';
+  var missed=[];state.qs.forEach(function(q,k){if(state.ans[k]!==q.correct)missed.push([q.q,q.opts[q.correct]])});
+  if(missed.length){
+    h+='<div class="panel"><h2>Questions you missed</h2><div class="miss">'+missed.map(function(m){return '<div><b>'+esc(m[0])+'</b><span>Correct answer: '+esc(m[1])+'</span></div>'}).join("")+'</div></div>';
+  }
+  app.innerHTML=h;
+  var r=$("#retry");if(r)r.onclick=function(){state.stage="intro";render()};
+}
+
+function render(){
+  if(!state.key){picker();return}
+  if(state.stage==="intro")intro();
+  else if(state.stage==="test")question();
+  else result();
+}
+function route(){
+  var k=(location.hash||"").replace("#","");
+  state.key=TESTS[k]?k:null;
+  state.stage="intro";
+  if(state.key&&!profile.touched)profile.license=(state.key==="driver")?"none":"standard";
+  render();
+}
+window.addEventListener("hashchange",function(){route();window.scrollTo({top:0})});
+route();
+})();
+</script>
+</body>
+</html>
