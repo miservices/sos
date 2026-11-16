@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page not found | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* MiGOVT Secretary of State: shared styles (base, banner, header, navigation, footer) */
+:root{--teal:#0e7c86;--teal2:#0a5d65;--sky:#e6f5f6;--ink:#0f2327;--muted:#58707a;--line:#dbe7ea;--accent:#ff7a3d}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:#fff;color:var(--ink);line-height:1.55}
+a{color:inherit;text-decoration:none}
+.sim{background:var(--ink);color:#c8dadd;font-size:12.5px;text-align:center;padding:7px 16px}
+header.top{display:flex;align-items:center;gap:10px;max-width:1180px;margin:auto;padding:14px 24px}
+.logo{display:block;margin-right:auto;line-height:0}
+.logo svg{height:58px;width:auto;display:block}
+.util{display:flex;align-items:center;gap:20px;font-size:14px;font-weight:600;color:var(--muted)}
+.util > a:not(.btn):hover{color:var(--teal2)}
+.sbox input{border:1.5px solid var(--line);border-radius:999px;padding:9px 16px;font:inherit;font-size:14px;width:170px;outline:0}
+.sbox input:focus{border-color:var(--teal)}
+.btn{background:var(--teal);color:#fff;padding:11px 20px;border-radius:999px;font-weight:700;font-size:14px;white-space:nowrap}
+.btn:hover{background:var(--teal2)}
+.navbar{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:30}
+.navbar .in{max-width:1180px;margin:auto;padding:0 24px}
+.menu{list-style:none;padding:0;display:flex;justify-content:space-between}
+.menu > li > a{display:flex;align-items:center;gap:7px;padding:15px 6px;font-weight:700;font-size:14.5px;color:var(--ink);border-bottom:3px solid transparent;margin-bottom:-1px}
+.menu > li:hover > a,.menu > li:focus-within > a{color:var(--teal2);border-bottom-color:var(--teal)}
+.mega{position:absolute;left:0;right:0;top:100%;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 24px 40px rgba(15,35,39,.12);opacity:0;visibility:hidden;transform:translateY(4px);transition:.14s}
+.menu > li:hover .mega,.menu > li:focus-within .mega{opacity:1;visibility:visible;transform:none}
+.mega .in{display:grid;grid-template-columns:repeat(var(--c),1fr) 290px;gap:34px;padding-top:30px;padding-bottom:32px}
+.mega h4{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:10px}
+.mega ul{list-style:none;padding:0}
+.mega li a{display:block;padding:7px 0;font-size:15px;font-weight:500}
+.mega li a:hover{color:var(--teal);text-decoration:underline;text-underline-offset:3px}
+.feat{background:var(--sky);border-radius:18px;padding:22px}
+.feat b{font-size:17px;display:block;margin-bottom:6px}
+.feat p{font-size:14px;color:var(--muted);margin-bottom:12px}
+.feat a{font-weight:700;color:var(--teal2);font-size:14px}
+.mnav{display:none;border-top:1px solid var(--line);padding:10px 24px;background:#fff;position:sticky;top:0;z-index:30}
+.mnav summary{font-weight:700;cursor:pointer}
+.mnav a{display:block;padding:9px 0;font-weight:600;color:var(--muted)}
+footer{margin-top:80px;border-top:1px solid var(--line);padding:34px 24px;color:var(--muted);font-size:13.5px}
+footer .in{max-width:1180px;margin:auto;display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+footer a{margin-right:16px;font-weight:600;color:var(--teal2)}
+@media(max-width:1060px){.navbar,.util .sbox,.util > a:not(.btn){display:none}.mnav{display:block}}
+
+/* Content pages (shared by all SOS sub-pages) */
+html{scroll-padding-top:76px}
+.phead{background:linear-gradient(180deg,#d9f0f2,#eef9fa);border-bottom:1px solid var(--line)}
+.phead .in{max-width:1180px;margin:auto;padding:34px 24px 38px}
+.crumbs{font-size:13.5px;color:var(--muted);margin-bottom:14px}
+.crumbs a:hover{color:var(--teal);text-decoration:underline}
+.crumbs span{margin:0 8px;color:#a9bcc1}
+.phead h1{font-size:40px;line-height:1.12;font-weight:800;letter-spacing:-.02em}
+.phead p{color:var(--muted);font-size:17px;max-width:740px;margin-top:10px}
+.acts{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap}
+.btn2{display:inline-block;background:var(--teal);color:#fff;padding:13px 24px;border-radius:999px;font-weight:700;font-size:15px;border:1.5px solid var(--teal);cursor:pointer;font-family:inherit}
+.btn2:hover{background:var(--teal2);border-color:var(--teal2)}
+.btn2.s{background:#fff;color:var(--teal2)}
+.btn2.s:hover{background:var(--sky)}
+.btn2.off{background:#cfdcdf;border-color:#cfdcdf;color:#6c8187;cursor:not-allowed}
+.pg{max-width:1180px;margin:0 auto;padding:40px 24px 0;display:grid;grid-template-columns:1fr 330px;gap:44px;align-items:start}
+.prose h2{font-size:26px;margin:40px 0 10px;font-weight:800;letter-spacing:-.01em}
+.prose h2:first-child{margin-top:0}
+.prose h3{font-size:18px;margin:22px 0 6px}
+.prose p{margin:10px 0;color:#2b4147}
+.prose ul{padding-left:20px;margin:10px 0;color:#2b4147}
+.prose li{margin:6px 0}
+.prose a.l{color:var(--teal2);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.side{position:sticky;top:76px;display:grid;gap:16px}
+.card{border:1px solid var(--line);border-radius:18px;padding:22px;background:#fff}
+.card h3{font-size:16px;margin-bottom:6px}
+.card p{font-size:14.5px;color:var(--muted)}
+.kv div{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-top:1px solid var(--line);font-size:14.5px}
+.kv div:first-child{border-top:0}
+.kv span{color:var(--muted)}
+.kv b{text-align:right}
+.card.cta{background:var(--teal);border-color:var(--teal);color:#fff}
+.card.cta p{color:#d4eef0;margin-bottom:14px}
+.card.cta .btn2{background:#fff;color:var(--teal2);border-color:#fff}
+.steps{list-style:none;counter-reset:s;padding:0;margin:14px 0}
+.steps li{counter-increment:s;position:relative;padding:16px 18px 16px 64px;border:1px solid var(--line);border-radius:16px;margin:0 0 10px;background:#fff}
+.steps li::before{content:counter(s);position:absolute;left:18px;top:15px;width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;font-weight:800;display:grid;place-items:center}
+.steps b{display:block;margin-bottom:2px}
+.note{border-left:4px solid var(--teal);background:var(--sky);padding:14px 18px;border-radius:0 12px 12px 0;margin:16px 0;font-size:15px}
+.note.warn{border-color:var(--accent);background:#fff1ea}
+.tbl{width:100%;border-collapse:separate;border-spacing:0;margin:14px 0;font-size:14.5px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tbl th,.tbl td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl th{background:var(--sky);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal2)}
+.tbl td:first-child{font-weight:700}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+.opt{display:block;border:1px solid var(--line);border-radius:16px;padding:20px;background:#fff;transition:.15s}
+.opt:hover{border-color:var(--teal);box-shadow:0 12px 26px rgba(14,124,134,.12)}
+.opt b{font-size:17px;display:block}
+.opt span{font-size:14px;color:var(--muted);display:block;margin-top:4px}
+.opt em{font-style:normal;display:inline-block;margin-top:10px;font-weight:700;font-size:13.5px;color:var(--teal2)}
+.pill{display:inline-block;background:var(--sky);color:var(--teal2);font-weight:700;font-size:12.5px;padding:4px 12px;border-radius:999px}
+.pill.o{background:#fff1ea;color:#b4491a}
+@media(max-width:900px){.pg{grid-template-columns:1fr}.side{position:static}.opts{grid-template-columns:1fr}.phead h1{font-size:32px}}
+
+</style>
+</head>
+<body>
+<script src="https://migovt.org/sos/partials.js" data-part="header"></script>
+
+<main class="nf">
+<div>
+<div class="code" aria-hidden="true">4<i>0</i>4</div>
+<h1>We could not find that page</h1>
+<p>The page may have moved, or the address may have a typo. Try searching, or head to one of the popular pages.</p>
+<form action="https://migovt.org/sos/" method="get" role="search" onsubmit="return false"><input type="search" id="q" placeholder="Search Secretary of State services" aria-label="Search"><button class="btn2" type="submit">Search</button></form>
+<div class="acts"><a class="btn2 " href="https://migovt.org/sos/">Go to the home page</a><a class="btn2 s" href="https://migovt.org/sos/eservices/">SOS e-Services</a></div>
+<div class="path" id="path"></div>
+</div>
+<div class="card"><h3>Popular pages</h3><div class="kv"><div><a href="https://migovt.org/sos/licenses/driver/">Driver's licenses</a></div><div><a href="https://migovt.org/sos/licenses/testing/">Online testing</a></div><div><a href="https://migovt.org/sos/licenses/id/">Personal ID &amp; REAL ID</a></div><div><a href="https://migovt.org/sos/licenses/records/">Driving records</a></div><div><a href="https://migovt.org/sos/vehicles/">Vehicles</a></div><div><a href="https://migovt.org/sos/vital-records/">Vital records</a></div><div><a href="https://migovt.org/sos/elections/">Elections</a></div><div><a href="https://migovt.org/sos/directory/">Office directory</a></div></div></div>
+</main>
+<script>
+(function(){var p=document.getElementById("path");if(p)p.textContent="Address requested: "+location.pathname;})();
+</script>
+<script src="https://migovt.org/sos/partials.js" data-part="footer"></script>
+</body>
+</html>
