@@ -13,7 +13,7 @@ header.top{display:flex;align-items:center;gap:10px;max-width:1180px;margin:auto
 .sbox input:focus{border-color:var(--teal)}
 .btn{background:var(--teal);color:#fff;padding:11px 20px;border-radius:999px;font-weight:700;font-size:14px;white-space:nowrap}
 .btn:hover{background:var(--teal2)}
-.navbar{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff;position:relative;z-index:30}
+.navbar{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:30}
 .navbar .in{max-width:1180px;margin:auto;padding:0 24px}
 .menu{list-style:none;padding:0;display:flex;justify-content:space-between}
 .menu > li > a{display:flex;align-items:center;gap:7px;padding:15px 6px;font-weight:700;font-size:14.5px;color:var(--ink);border-bottom:3px solid transparent;margin-bottom:-1px}
@@ -29,7 +29,7 @@ header.top{display:flex;align-items:center;gap:10px;max-width:1180px;margin:auto
 .feat b{font-size:17px;display:block;margin-bottom:6px}
 .feat p{font-size:14px;color:var(--muted);margin-bottom:12px}
 .feat a{font-weight:700;color:var(--teal2);font-size:14px}
-.mnav{display:none;border-top:1px solid var(--line);padding:10px 24px}
+.mnav{display:none;border-top:1px solid var(--line);padding:10px 24px;background:#fff;position:sticky;top:0;z-index:30}
 .mnav summary{font-weight:700;cursor:pointer}
 .mnav a{display:block;padding:9px 0;font-weight:600;color:var(--muted)}
 footer{margin-top:80px;border-top:1px solid var(--line);padding:34px 24px;color:var(--muted);font-size:13.5px}
