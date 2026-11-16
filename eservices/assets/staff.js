@@ -17,7 +17,7 @@
                   Public portal pages create these (status "open"); staff work them here.
      audit/{id}   { actorPin, actorName, role, bureau, action, target, detail, at } */
 import { boot, db, E, $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, logActivity, logAccess, charge, list, money, getRecord, setRecordStatus, applyNameToRecord, applyNameToMiGOVT, applyNameToCourts, statusOf, STATUSES, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
-import { TYPES as BIZ_TYPES, plusYear } from "https://migovt.org/sos/eservices/assets/business.js";
+import { TYPES as BIZ_TYPES, plusYear, bizNumber } from "https://migovt.org/sos/eservices/assets/business.js";
 import { doc, getDoc, getDocs, addDoc, updateDoc, setDoc, collection, query, where, limit, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 export { $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, E, db, list, money, getRecord, setRecordStatus, applyNameToRecord, applyNameToMiGOVT, applyNameToCourts, statusOf, STATUSES, recordDate };
 
@@ -185,33 +185,46 @@ async function applyElectionCase(ctx, r) {
 
 /* Approving a business filing creates or updates the business record at businesses/{id}. Fees are charged once. */
 async function applyBusinessCase(ctx, r) {
-  const d = r.detail || {}, now = new Date().toISOString(), by = { updatedBy: ctx.id.pin, updatedAt: serverTimestamp() };
+  const d = r.detail || {}, now = new Date().toISOString(), day = now.slice(0, 10), by = { updatedBy: ctx.id.pin, updatedAt: serverTimestamp() };
   const fee = parseFloat(String(d.fee || "").replace(/[^0-9.]/g, ""));
   const bill = async desc => { desc = desc.slice(0, 120); if (fee > 0) { const prior = await list("transactions", r.pin, 100).catch(() => []); if (!prior.some(t => t.desc === desc)) await charge(r.pin, desc, fee); } };
+  /* The details a person submits, in the shape the business record stores them. */
+  const owners = (Array.isArray(d.owners) ? d.owners : []).filter(o => o && typeof o === "object").map(o => ({ name: String(o.name || ""), dob: String(o.dob || ""), pin: String(o.pin || ""), percent: String(o.percent || "") }));
+  const agent = d.agent && typeof d.agent === "object" ? { name: String(d.agent.name || ""), dob: String(d.agent.dob || ""), pin: String(d.agent.pin || "") } : null;
+  const fields = () => ({ name: d.name, tradeName: d.tradeName || "", description: d.description || "", industry: d.industry || "", address: d.address || {}, website: d.website || "", discord: d.discord || "",
+    ownerDetails: owners, owners: owners.map(o => o.pin), agent: agent || { name: "", dob: "", pin: "" }, access: [...new Set([...owners.map(o => o.pin), agent ? agent.pin : "", String(r.pin)].filter(Boolean))],
+    signature: { name: (d.signature && d.signature.name) || "", signedAt: now } });
   if (r.type === "business.registration") {
     const T = BIZ_TYPES[d.typeKey]; if (!T || !d.name) return "This registration has no business type or name, so no business was created.";
+    if (!owners.length || !agent) return "This registration is missing owner or registered agent details, so no business was created.";
     const dup = await getDocs(query(collection(db, "businesses"), where("caseId", "==", r.id), limit(1)));
     if (!dup.empty) return "A business was already created from this application.";
-    const day = now.slice(0, 10), b = { name: d.name, type: d.typeKey, typeLabel: T.t, description: d.description || "", agent: String(d.agent || r.pin), owners: (Array.isArray(d.owners) && d.owners.length ? d.owners : [r.pin]).map(String), ownerPin: String(r.pin), status: "active", registeredAt: now, caseId: r.id, ...by };
-    if (T.report) b.dueDate = plusYear(day);
+    let num = ""; for (let i = 0; i < 10 && !num; i++) { const n = bizNumber(); if ((await getDocs(query(collection(db, "businesses"), where("businessNumber", "==", n), limit(1)))).empty) num = n; }
+    if (!num) return "A business ID could not be generated. Approve it again.";
+    const b = { ...fields(), businessNumber: num, type: d.typeKey, typeLabel: T.t, applicantPin: String(r.pin), status: "active", approvedAt: now, approvedBy: ctx.id.pin, registeredAt: now, caseId: r.id, ...by };
+    if (T.report) { b.dueDate = plusYear(day); b.expiresAt = b.dueDate; }
     await addDoc(collection(db, "businesses"), b);
-    await audit(ctx, "business.register", r.pin, d.name + " (" + T.t + ")");
-    await logActivity(r.pin, "business.registered", "Business registered: " + d.name, AGENCY);
+    await audit(ctx, "business.register", r.pin, d.name + " (" + T.t + ") " + num);
+    await logActivity(r.pin, "business.registered", "Business registered: " + d.name + " (" + num + ")", AGENCY);
     await bill("Business registration: " + d.name); return "";
   }
   if (!d.businessId) return "This filing is not linked to a business, so nothing was updated.";
   const ref = doc(db, "businesses", d.businessId), snap = await getDoc(ref); if (!snap.exists()) return "The business no longer exists.";
-  const b = snap.data(), T = BIZ_TYPES[b.type] || {}, day = now.slice(0, 10);
+  const b = snap.data();
+  const merged = () => { const f = fields(); return { ...f, name: f.name || b.name, ownerDetails: owners.length ? owners : (b.ownerDetails || []), owners: owners.length ? f.owners : (b.owners || []), agent: agent || b.agent || f.agent,
+    access: [...new Set([...(b.access || []), ...(owners.length ? f.access : [])])] }; };
   if (r.type === "business.annual-report") {
-    const up = { description: d.description ?? b.description ?? "", agent: String(d.agent || b.agent), owners: Array.isArray(d.owners) && d.owners.length ? d.owners.map(String) : b.owners, lastReportAt: now, status: "active", dueDate: plusYear(b.dueDate && b.dueDate > day ? b.dueDate : (b.dueDate || day)), ...by };
-    await updateDoc(ref, up); await audit(ctx, "business.report", r.pin, b.name); await logActivity(r.pin, "business.report", "Annual report accepted: " + b.name, AGENCY); await bill("Annual report: " + b.name);
+    const due = plusYear(b.dueDate || day);
+    await updateDoc(ref, { ...merged(), name: b.name, status: "active", lastReportAt: now, dueDate: due, expiresAt: due, ...by });
+    await audit(ctx, "business.report", r.pin, b.name); await logActivity(r.pin, "business.report", "Annual report accepted: " + b.name, AGENCY); await bill("Annual report: " + b.name);
   } else if (r.type === "business.amendment") {
-    await updateDoc(ref, { name: d.name || b.name, description: d.description ?? b.description ?? "", agent: String(d.agent || b.agent), owners: Array.isArray(d.owners) && d.owners.length ? d.owners.map(String) : b.owners, ...by });
+    await updateDoc(ref, { ...merged(), ...by });
     await audit(ctx, "business.amend", r.pin, b.name + (d.name && d.name !== b.name ? " to " + d.name : "")); await logActivity(r.pin, "business.amended", "Business details updated: " + (d.name || b.name), AGENCY);
   } else if (r.type === "business.dissolution") {
     await updateDoc(ref, { status: "dissolved", dissolvedAt: now, ...by }); await audit(ctx, "business.dissolve", r.pin, b.name); await logActivity(r.pin, "business.dissolved", "Business dissolved: " + b.name, AGENCY);
   } else if (r.type === "business.reinstatement") {
-    await updateDoc(ref, { status: "active", dueDate: plusYear(day), lastReportAt: now, ...by }); await audit(ctx, "business.reinstate", r.pin, b.name); await logActivity(r.pin, "business.reinstated", "Business reinstated: " + b.name, AGENCY); await bill("Business reinstatement: " + b.name);
+    const due = plusYear(day);
+    await updateDoc(ref, { ...merged(), name: b.name, status: "active", dueDate: due, expiresAt: due, lastReportAt: now, ...by }); await audit(ctx, "business.reinstate", r.pin, b.name); await logActivity(r.pin, "business.reinstated", "Business reinstated: " + b.name, AGENCY); await bill("Business reinstatement: " + b.name);
   }
   return "";
 }

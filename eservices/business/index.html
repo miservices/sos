@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
 <style>
-.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:760px){.two{grid-template-columns:1fr}}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}@media(max-width:760px){.two{grid-template-columns:1fr}}
 .fld select,.fld input,.fld textarea{width:100%}
 .bz{border:1px solid var(--line);border-radius:16px;padding:16px 18px;background:#fff;margin-top:12px}
 .bz h3{margin:0 0 2px;font-size:17px;font-weight:800}.bz .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
@@ -16,6 +16,9 @@
 @media(max-width:600px){.bz dl{grid-template-columns:1fr}}
 .bz .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .fx{border-top:1px dashed var(--line);margin-top:12px;padding-top:12px}
+.sec{border-top:1px solid var(--line);margin-top:16px;padding-top:14px}.sec>h3{margin:0 0 8px;font-size:16px;font-weight:800}.sec .sub{margin:0 0 8px}
+.own{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px;background:#f8fbfb}.own .four{display:grid;grid-template-columns:2fr 1.2fr 1.2fr .8fr;gap:10px}@media(max-width:860px){.own .four{grid-template-columns:1fr 1fr}}
+.own .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .chk{display:flex;gap:8px;align-items:flex-start;margin:10px 0;font-size:14px}.chk input{margin-top:3px;width:auto}
 </style>
 </head>
@@ -42,71 +45,139 @@
 </div>
 <script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
 <script type="module">
-import { boot, el, $, cap, when, fileCase, myCases, db } from "https://migovt.org/sos/eservices/assets/shared.js";
-import { TYPES, LATE_FEE, EARLY_DAYS, money, isoDay, plusYear, daysBetween, parsePins, nameProblem, sameName, standing } from "https://migovt.org/sos/eservices/assets/business.js";
+import { boot, el, $, cap, when, fileCase, myCases, getRecord, db } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { TYPES, INDUSTRIES, CERTS, LATE_FEE, EARLY_DAYS, money, isoDay, plusYear, nameProblem, sameName, standing, isoDob, zipOk, fullNameOk, siteNorm, discordNorm } from "https://migovt.org/sos/eservices/assets/business.js";
 import { getDocs, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 const ctx = await boot({ page: "business" });
 const pin = String(ctx.id.pin), today = isoDay(new Date());
 let mine = [], cases = [];
-try { mine = (await getDocs(query(collection(db, "businesses"), where("owners", "array-contains", pin), limit(100)))).docs.map(d => ({ id: d.id, ...d.data() })); } catch (e) { console.warn(e); }
+try { mine = (await getDocs(query(collection(db, "businesses"), where("access", "array-contains", pin), limit(100)))).docs.map(d => ({ id: d.id, ...d.data() })); } catch (e) { console.warn(e); }
 try { cases = (await myCases(pin, 100)).filter(r => /^business\./.test(r.type)); } catch (e) { console.warn(e); }
 const OPEN = ["open", "in-review"], openFor = id => cases.find(r => OPEN.includes(r.status) && r.detail && r.detail.businessId === id);
-const longDay = iso => { const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(iso || ""); return m ? new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "Not set"; };
+const longDay = iso => { const m = /^(\d{4})-(\d\d)-(\d\d)/.exec(iso || ""); return m ? new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "Not set"; };
 const clean = s => String(s || "").replace(/\s+/g, " ").trim();
+const norm = s => clean(s).toLowerCase();
+const ownersOf = b => Array.isArray(b.ownerDetails) && b.ownerDetails.length ? b.ownerDetails : (b.owners || []).map(p => ({ name: "", dob: "", pin: p, percent: "" }));
 
 const live = mine.filter(b => b.status !== "dissolved");
 $("stats").append(...[["Your businesses", String(live.length)], ["Active", String(live.filter(b => standing(b).code === "active").length)], ["Need attention", String(live.filter(b => ["past-due", "admin-dissolved"].includes(standing(b).code)).length)], ["Open filings", String(cases.filter(r => OPEN.includes(r.status)).length)]]
   .map(([a, b]) => el("div", { class: "stat" }, el("span", { text: a }), el("b", { text: b }))));
 
 /* One form for registering, amending, and filing a report. mode: register | amend | report | reinstate */
-function form(mode, b, onDone) {
-  const wrap = el("div", { class: "fx" }), msg = el("span", { class: "empty" });
-  const typeSel = el("select", {}, Object.entries(TYPES).map(([k, t]) => el("option", { value: k, text: t.t + " (" + money(t.fee) + ")" })));
-  const name = el("input", { maxlength: "80", autocomplete: "off", value: b ? b.name : "" });
-  const desc = el("textarea", { rows: "2", maxlength: "300", placeholder: "What the business does." }); desc.value = b ? (b.description || "") : "";
-  const agent = el("input", { inputmode: "numeric", maxlength: "20", autocomplete: "off", value: b ? (b.agent || pin) : pin });
-  const owners = el("input", { autocomplete: "off", placeholder: "PINs separated by commas", value: b ? (b.owners || []).filter(x => x !== pin).join(", ") : "" });
-  const operating = el("input", { type: "checkbox", checked: "" }), sure = el("input", { type: "checkbox" });
-  const hint = el("small", { class: "empty" }), fee = el("div", { class: "alert" });
+function form(mode, b) {
+  const wrap = el("div", { class: mode === "register" ? "" : "fx" }), msg = el("span", { class: "empty" });
   const f = (l, c, h) => el("div", { class: "fld" }, el("label", { text: l }), c, h || "");
+  const sec = (t, sub, ...k) => el("div", { class: "sec" }, el("h3", { text: t }), sub ? el("p", { class: "sub", text: sub }) : "", ...k);
+  const inp = (v, o = {}) => el("input", { autocomplete: "off", value: v || "", ...o });
+  const locked = mode === "report" || mode === "reinstate";
+  const typeSel = el("select", {}, Object.entries(TYPES).map(([k, t]) => el("option", { value: k, text: t.t + " (" + money(t.fee) + ")" })));
+  const name = inp(b && b.name, { maxlength: "80" }), trade = inp(b && b.tradeName, { maxlength: "80", placeholder: "Optional" });
+  const desc = el("textarea", { rows: "2", maxlength: "300", placeholder: "What the business does." }); desc.value = b ? (b.description || "") : "";
+  const ind = el("select", {}, el("option", { value: "", text: "Choose an industry" }), INDUSTRIES.map(x => el("option", { value: x, text: x }))); ind.value = b ? (b.industry || "") : "";
+  const A = (b && b.address) || {}, street = inp(A.street, { maxlength: "100" }), city = inp(A.city, { maxlength: "60" }), zip = inp(A.zip, { maxlength: "10", inputmode: "numeric" });
+  const state = inp("MI", { disabled: "" }), site = inp(b && b.website, { maxlength: "120", placeholder: "Optional, for example https://example.com" }), disc = inp(b && b.discord, { maxlength: "120", placeholder: "Optional, a discord.gg invite link" });
+  const hint = el("small", { class: "empty" }), fee = el("div", { class: "alert" }), tot = el("small", { class: "empty" });
+  if (b) typeSel.value = b.type;
   const typeKey = () => mode === "register" ? typeSel.value : b.type;
+
+  /* owners */
+  const ownBox = el("div", {}), rows = [];
+  const addOwner = (o = {}) => {
+    const r = { name: inp(o.name, { maxlength: "80" }), dob: inp(isoDob(o.dob), { type: "date" }), pin: inp(o.pin, { inputmode: "numeric", maxlength: "20" }), pct: inp(o.percent, { inputmode: "decimal", maxlength: "6", placeholder: "0" }) };
+    const rm = el("button", { class: "btn2 s", type: "button", text: "Remove" });
+    r.box = el("div", { class: "own" }, el("div", { class: "hd" }, el("b", { text: "Owner" }), rm), el("div", { class: "four" }, f("Full legal name", r.name), f("Date of birth", r.dob), f("Personal identification number", r.pin), f("Ownership %", r.pct)));
+    rm.addEventListener("click", () => { if (rows.length <= 1) return; rows.splice(rows.indexOf(r), 1); r.box.remove(); numberRows(); });
+    r.pct.addEventListener("input", total); rows.push(r); ownBox.append(r.box); numberRows(); total();
+  };
+  const numberRows = () => rows.forEach((r, i) => { r.box.querySelector("b").textContent = "Owner " + (i + 1); r.box.querySelector("button").hidden = rows.length <= 1; });
+  const total = () => { const t = rows.reduce((n, r) => n + (parseFloat(r.pct.value) || 0), 0); tot.textContent = "Total ownership: " + (Math.round(t * 1000) / 1000) + "%" + (Math.abs(t - 100) < 0.0005 ? "" : " (must equal 100%)"); };
+  const addBtn = el("button", { class: "btn2 s", type: "button", text: "Add another owner" }); addBtn.addEventListener("click", () => { if (rows.length < TYPES[typeKey()].max) addOwner(); });
+  const O = b ? ownersOf(b) : [{ name: ctx.id.name || "", dob: ctx.id.dob || "", pin, percent: "100" }]; O.forEach(addOwner);
+
+  /* registered agent */
+  const G = (b && b.agent && typeof b.agent === "object") ? b.agent : { name: "", dob: "", pin: b && b.agent ? b.agent : "" };
+  const aName = inp(G.name, { maxlength: "80" }), aDob = inp(isoDob(G.dob), { type: "date" }), aPin = inp(G.pin, { inputmode: "numeric", maxlength: "20" });
+  const same = el("button", { class: "btn2 s", type: "button", text: "Same as owner 1" }); same.addEventListener("click", () => { const r = rows[0]; aName.value = r.name.value; aDob.value = r.dob.value; aPin.value = r.pin.value; });
+
+  /* certification and signature */
+  const certs = CERTS.map(([k, t]) => { const c = el("input", { type: "checkbox" }); return { k, c, row: el("label", { class: "chk" }, c, t) }; });
+  const operating = el("input", { type: "checkbox", checked: "" });
+  const sig = inp("", { maxlength: "80", placeholder: "Type your full legal name" });
+
   const refresh = () => {
-    const T = TYPES[typeKey()], st = b ? standing(b) : null; hint.textContent = mode === "reinstate" ? "" : T.hint;
+    const T = TYPES[typeKey()], st = b ? standing(b) : null; hint.textContent = locked ? "" : T.hint;
     if (mode === "register") fee.textContent = "Filing fee: " + money(T.fee) + ". " + (T.report ? "An annual report (" + money(T.reportFee) + ") is due every year." : "No annual report is required.");
     else if (mode === "report") fee.textContent = "Annual report fee: " + money(T.reportFee) + (st && st.late > 0 ? " plus a " + money(LATE_FEE) + " late fee (" + st.late + " days late)." : ". Your next report will be due " + longDay(plusYear(b.dueDate)) + ".");
     else if (mode === "reinstate") fee.textContent = "To reinstate, you pay the missed report fee (" + money(T.reportFee) + ") plus a " + money(LATE_FEE) + " late fee. Your business returns to Active and the next report is due one year after approval.";
     else fee.textContent = "There is no fee to amend your details.";
+    while (rows.length > T.max) { const r = rows.pop(); r.box.remove(); } numberRows(); total();
   };
   typeSel.addEventListener("change", refresh);
   const go = el("button", { class: "btn2", type: "button", text: { register: "Submit registration", amend: "Submit amendment", report: "File annual report", reinstate: "Request reinstatement" }[mode] });
   const cancel = el("button", { class: "btn2 s", type: "button", text: "Cancel" }); cancel.addEventListener("click", () => wrap.remove());
+  if (locked) { name.disabled = true; typeSel.disabled = true; }
   wrap.append(
-    ...(mode === "register" ? [f("Business type", typeSel)] : []),
-    f("Business name", name, hint), f("What the business does", desc),
-    el("div", { class: "two" }, f("Registered agent (PIN)", agent), f("Other owners or officers (PINs)", owners)),
-    ...(mode === "report" ? [el("label", { class: "chk" }, operating, "The business is still operating.")] : []), fee,
-    el("label", { class: "chk" }, sure, "I confirm this information is true and I understand the fee."), go, " ", ...(mode === "register" ? [] : [cancel]), " ", msg);
-  if (mode === "report" || mode === "reinstate") name.disabled = true;
+    sec("Business information", "", ...(mode === "register" ? [f("Business type", typeSel)] : []), el("div", { class: "two" }, f("Business name", name, hint), f("Trade name (DBA)", trade)), f("Business description", desc), f("Industry", ind)),
+    sec("Business address", "The principal business address has to be in Michigan.", f("Street address", street), el("div", { class: "two" }, f("City", city), el("div", { class: "two" }, f("State", state), f("ZIP code", zip))),
+      el("div", { class: "two" }, f("Business website", site), f("Business Discord server", disc))),
+    sec("Owner information", "List every owner. Ownership has to add up to 100%. Each person is checked against their vital record by PIN and date of birth.", ownBox, el("div", { class: "mt" }, addBtn, " ", tot)),
+    sec("Registered agent", "The person who receives legal papers for the business. It can be an owner.", el("div", { class: "mt" }, same), el("div", { class: "two" }, f("Full legal name", aName), el("div", { class: "two" }, f("Date of birth", aDob), f("Personal identification number", aPin)))),
+    sec("Certification", "", ...(mode === "report" ? [el("label", { class: "chk" }, operating, "The business is still operating.")] : []), ...certs.map(c => c.row)),
+    sec("Electronic signature", "Typing your name here is your signature. It is dated today.", el("div", { class: "two" }, f("Signature", sig), f("Date signed", inp(longDay(today), { disabled: "" })))), fee,
+    el("div", { class: "mt" }, go, " ", ...(mode === "register" ? [] : [cancel]), " ", msg));
   refresh();
+
+  const check = async () => {
+    const key = typeKey(), T = TYPES[key], nm = clean(name.value);
+    if (!locked) { const p = nameProblem(key, nm); if (p) return p; }
+    if (!ind.value) return "Choose an industry.";
+    if (clean(desc.value).length < 10) return "Describe what the business does.";
+    if (clean(street.value).length < 3 || clean(city.value).length < 2) return "Enter the full principal business address.";
+    if (!zipOk(zip.value)) return "Enter a 5 digit ZIP code.";
+    if (siteNorm(site.value) === null) return "The website is not a valid address.";
+    if (discordNorm(disc.value) === null) return "The Discord server has to be an invite link, like discord.gg/yourserver.";
+    if (rows.length < T.min) return "A " + T.t.toLowerCase() + " needs at least " + T.min + " owners.";
+    const seen = new Set();
+    for (const [i, r] of rows.entries()) {
+      const n = "Owner " + (i + 1) + ": ";
+      if (!fullNameOk(r.name.value)) return n + "enter the full legal name.";
+      if (!r.dob.value || r.dob.value >= today) return n + "enter a valid date of birth.";
+      if (!/^\d{4,20}$/.test(r.pin.value.trim())) return n + "enter the PIN, numbers only.";
+      if (seen.has(r.pin.value.trim())) return n + "this PIN is listed twice.";
+      seen.add(r.pin.value.trim());
+      const p = parseFloat(r.pct.value); if (!(p > 0 && p <= 100)) return n + "enter an ownership percentage between 0 and 100.";
+    }
+    if (Math.abs(rows.reduce((n, r) => n + parseFloat(r.pct.value), 0) - 100) > 0.0005) return "Ownership has to add up to exactly 100%.";
+    if (T.max === 1 && rows.length > 1) return "A sole proprietorship has one owner.";
+    if (!fullNameOk(aName.value)) return "Registered agent: enter the full legal name.";
+    if (!aDob.value || aDob.value >= today) return "Registered agent: enter a valid date of birth.";
+    if (!/^\d{4,20}$/.test(aPin.value.trim())) return "Registered agent: enter the PIN, numbers only.";
+    const all = [...rows.map(r => ({ who: "Owner", n: r.name.value, d: r.dob.value, p: r.pin.value.trim() })), { who: "Registered agent", n: aName.value, d: aDob.value, p: aPin.value.trim() }];
+    if (!all.some(x => x.p === pin)) return "You have to be listed as an owner or the registered agent to file for this business.";
+    for (const x of all) { let rec = null; try { rec = await getRecord(x.p); } catch (e) { console.warn(e); return "Could not check PIN " + x.p + ". Try again."; }
+      if (!rec) return x.who + " PIN " + x.p + " has no vital record, so we could not confirm this person."; if (isoDob(rec.dob) !== x.d) return x.who + " PIN " + x.p + ": the date of birth does not match the vital record."; }
+    if (mode === "report" && !operating.checked) return "If the business is not operating, dissolve it instead.";
+    if (certs.some(c => !c.c.checked)) return "Tick every box in the certification.";
+    const me = norm(ctx.id.name || ""); if (!fullNameOk(sig.value) || (me && norm(sig.value) !== me)) return "Sign with your full legal name" + (ctx.id.name ? ", exactly as " + ctx.id.name : "") + ".";
+    if (mode === "register" || (mode === "amend" && !sameName(nm, b.name))) {
+      const taken = (await getDocs(query(collection(db, "businesses"), where("status", "==", "active"), limit(1000)))).docs.map(d => d.data()).find(x => x.type === key && sameName(x.name, nm) && !(b && x.name === b.name));
+      if (taken) return "That name is already used by an active " + T.t.toLowerCase() + ".";
+    }
+    return "";
+  };
   go.addEventListener("click", async () => {
-    const key = typeKey(), T = TYPES[key], nm = clean(name.value), others = parsePins(owners.value), ag = agent.value.trim();
-    const all = [...new Set([pin, ...others])];
-    const bad = (!/^\d{4,20}$/.test(ag) && "The registered agent has to be a PIN.") || others.find(x => !/^\d{4,20}$/.test(x)) && "Owners are listed by PIN, numbers only."
-      || (mode !== "report" && mode !== "reinstate" && nameProblem(key, nm)) || (all.length < T.min && "A " + T.t.toLowerCase() + " needs at least " + T.min + " owners or partners, including you.")
-      || (all.length > T.max && "A " + T.t.toLowerCase() + " can have at most " + T.max + " owners.") || (!sure.checked && "Tick the box to confirm.") || (mode === "report" && !operating.checked && "If the business is not operating, dissolve it instead.");
-    if (bad) { msg.textContent = " " + bad; return; }
     go.disabled = true; msg.textContent = " Checking...";
     try {
-      if (mode === "register" || (mode === "amend" && !sameName(nm, b.name))) {
-        const taken = (await getDocs(query(collection(db, "businesses"), where("status", "==", "active"), limit(1000)))).docs.map(d => d.data()).find(x => x.type === key && sameName(x.name, nm) && !(b && x.name === b.name));
-        if (taken) { msg.textContent = " That name is already used by an active " + T.t.toLowerCase() + "."; go.disabled = false; return; }
-      }
-      const base = { name: nm, description: clean(desc.value).slice(0, 300), agent: ag, owners: all };
-      if (mode === "register") { await fileCase(ctx, "business.registration", "Register: " + nm, { ...base, typeKey: key, typeLabel: T.t, fee: T.fee.toFixed(2) }, "lara"); }
-      else if (mode === "amend") { await fileCase(ctx, "business.amendment", "Amend: " + b.name, { ...base, businessId: b.id, oldName: b.name, fee: "0.00" }, "lara"); }
+      const bad = await check(); if (bad) { msg.textContent = " " + bad; go.disabled = false; return; }
+      const key = typeKey(), T = TYPES[key], nm = clean(name.value);
+      const base = { name: nm, tradeName: clean(trade.value), typeKey: key, typeLabel: T.t, description: clean(desc.value).slice(0, 300), industry: ind.value,
+        address: { street: clean(street.value), city: clean(city.value), state: "MI", zip: zip.value.trim() }, website: siteNorm(site.value) || "", discord: discordNorm(disc.value) || "",
+        owners: rows.map(r => ({ name: clean(r.name.value), dob: r.dob.value, pin: r.pin.value.trim(), percent: String(parseFloat(r.pct.value)) })),
+        agent: { name: clean(aName.value), dob: aDob.value, pin: aPin.value.trim() }, certified: CERTS.map(c => c[0]), signature: { name: clean(sig.value), date: today } };
+      if (mode === "register") await fileCase(ctx, "business.registration", "Register: " + nm, { ...base, fee: T.fee.toFixed(2) }, "lara");
+      else if (mode === "amend") await fileCase(ctx, "business.amendment", "Amend: " + b.name, { ...base, businessId: b.id, oldName: b.name, fee: "0.00" }, "lara");
       else { const st = standing(b), owed = (T.reportFee + (st.late > 0 ? LATE_FEE : 0)).toFixed(2);
-        await fileCase(ctx, mode === "report" ? "business.annual-report" : "business.reinstatement", (mode === "report" ? "Annual report: " : "Reinstate: ") + b.name,
-          { ...base, name: b.name, businessId: b.id, fee: owed, late: st.late > 0 ? st.late : 0 }, "lara"); }
+        await fileCase(ctx, mode === "report" ? "business.annual-report" : "business.reinstatement", (mode === "report" ? "Annual report: " : "Reinstate: ") + b.name, { ...base, name: b.name, businessId: b.id, fee: owed, late: st.late > 0 ? st.late : 0 }, "lara"); }
       msg.textContent = " Filed. The Division will review it."; setTimeout(() => location.reload(), 900);
     } catch (e) { console.error(e); msg.textContent = " Could not file. Try again."; go.disabled = false; }
   });
@@ -119,8 +190,7 @@ if (!mine.length) box.append(el("div", { class: "empty", text: "You do not own a
 mine.sort((a, b) => String(a.name).localeCompare(String(b.name))).forEach(b => {
   const T = TYPES[b.type] || { t: b.typeLabel || b.type, report: false }, st = standing(b), pend = openFor(b.id), dis = st.code === "dissolved";
   const row = (k, v) => [el("dt", { text: k }), el("dd", { text: v })];
-  const card = el("div", { class: "bz" });
-  const acts = el("div", { class: "acts" });
+  const card = el("div", { class: "bz" }), acts = el("div", { class: "acts" });
   const add = (label, mode, primary) => { const x = el("button", { class: primary ? "btn2" : "btn2 s", type: "button", text: label }); x.addEventListener("click", () => { card.querySelectorAll(".fx").forEach(n => n.remove()); card.append(form(mode, b)); }); acts.append(x); };
   if (!dis && !pend) {
     if (st.code === "admin-dissolved") add("Request reinstatement", "reinstate", true);
@@ -128,10 +198,14 @@ mine.sort((a, b) => String(a.name).localeCompare(String(b.name))).forEach(b => {
       add("Amend details", "amend", false); }
     if (st.code !== "admin-dissolved") { const d = el("button", { class: "btn2 s", type: "button", text: "Dissolve" }); d.addEventListener("click", () => dissolve(b, card)); acts.append(d); }
   }
-  card.append(el("div", { class: "top" }, el("div", {}, el("h3", { text: b.name }), el("small", { text: T.t })), el("span", { class: "pill " + st.cls, text: st.label })),
-    el("dl", {}, ...row("Registered", b.registeredAt ? longDay(String(b.registeredAt).slice(0, 10)) : "Not set"),
-      ...(T.report ? row("Annual report due", longDay(b.dueDate) + (st.late > 0 ? " (" + st.late + " days late)" : "")) : row("Annual report", "Not required")),
-      ...row("Registered agent", "PIN " + (b.agent || "")), ...row("Owners", (b.owners || []).map(p => "PIN " + p).join(", ")), ...(b.description ? row("Description", b.description) : [])));
+  const A = b.address || {}, ag = b.agent && typeof b.agent === "object" ? b.agent : { name: "", pin: b.agent || "" };
+  card.append(el("div", { class: "top" }, el("div", {}, el("h3", { text: b.name }), el("small", { text: T.t + (b.tradeName ? " | doing business as " + b.tradeName : "") })), el("span", { class: "pill " + st.cls, text: st.label })),
+    el("dl", {}, ...row("Business ID", b.businessNumber || "Not assigned"), ...row("Approved", longDay(b.approvedAt || b.registeredAt)),
+      ...(T.report ? row("Expires", longDay(b.expiresAt || b.dueDate) + (st.late > 0 ? " (" + st.late + " days late)" : "")) : row("Expires", "Does not expire")),
+      ...row("Industry", b.industry || "Not set"), ...(A.street ? row("Address", A.street + ", " + A.city + ", " + (A.state || "MI") + " " + A.zip) : []),
+      ...(b.website ? row("Website", b.website) : []), ...(b.discord ? row("Discord", b.discord) : []),
+      ...row("Owners", ownersOf(b).map(o => (o.name ? o.name + " (PIN " + o.pin + ")" : "PIN " + o.pin) + (o.percent ? ", " + o.percent + "%" : "")).join("; ")),
+      ...row("Registered agent", (ag.name ? ag.name + " " : "") + "(PIN " + (ag.pin || "") + ")"), ...(b.description ? row("Description", b.description) : [])));
   if (st.code === "past-due") card.append(el("div", { class: "alert warn" }, el("b", { text: "Your annual report is past due. " }), "File it by " + longDay(isoDay(new Date(new Date(b.dueDate + "T00:00:00").getTime() + 30 * 864e5))) + " or the business will be administratively dissolved."));
   if (st.code === "admin-dissolved") card.append(el("div", { class: "alert warn" }, el("b", { text: "This business was administratively dissolved. " }), "Its good standing is lost and its name can be registered by someone else. Request reinstatement to restore it."));
   if (pend) card.append(el("div", { class: "alert" }, "A filing is already under review: " + pend.title + "."));
