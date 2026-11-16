@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campaign finance | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/shared.css">
+<style>
+.k3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:14px 0}
+.k3>div{border:1px solid #dbe7e9;border-radius:14px;padding:14px 16px;background:#fff}.k3 span{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#5b6f74}.k3 b{display:block;font-size:18px;margin-top:4px}
+.fm{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:560px}.fm label{display:block;font-weight:700;font-size:.9rem;margin-bottom:4px}.fm input{width:100%;border:1px solid #cfdfe2;border-radius:12px;padding:11px 14px;font:inherit}.fm .full{grid-column:1/-1}
+@media(max-width:600px){.fm{grid-template-columns:1fr}}
+.res{margin-top:16px;border-radius:14px;padding:16px 20px;border:1px solid #cfe9ec;background:#e6f5f6}.res.ok{background:#e3f4ea;border-color:#c9ead5}.res.warn{background:#fff1e8;border-color:#ffd9c2}.res b{display:block;font-size:1.05rem}
+.pp{border:1px solid #dbe7e9;border-radius:14px;padding:14px 18px;margin-top:10px;background:#fff}.pp h3{margin:0 0 4px!important}
+.win{font-weight:800;color:#1c6b3a}
+</style>
+</head>
+<body>
+<script src="https://migovt.org/sos/partials.js" data-part="header"></script>
+<section class="phead"><div class="in"><div class="crumbs"><a href="https://migovt.org/sos/">Home</a><span>/</span><a href="https://migovt.org/sos/elections/">Elections</a><span>/</span><b>Campaign finance</b></div><h1>Campaign finance</h1><p>Money raised and spent by candidates, reported to the Bureau of Elections.</p></div></section>
+<div class="pg"><div class="prose">
+<h2>What candidates report</h2>
+<p>Candidates submit campaign finance reports of the money they raised and spent. The Bureau of Elections reviews every report. Once a report is approved it is listed below for the public.</p>
+<div class="k3"><div><span>Approved reports</span><b id="f-n">0</b></div><div><span>Total raised</span><b id="f-r">$0.00</b></div><div><span>Total spent</span><b id="f-s">$0.00</b></div></div>
+<h2>Published reports</h2>
+<div id="fin"><p>Loading reports...</p></div>
+<h2>For candidates</h2>
+<ol class="steps"><li><b><a class="l" href="https://migovt.org/sos/eservices/candidate-services/">Sign in to Candidate Services</a></b>File as a candidate first. Reports are submitted by candidates.</li>
+<li><b>Submit a report</b>Choose the report type, enter total money raised and spent, and add notes about major donors or expenses.</li>
+<li><b>Review</b>The Bureau of Elections reviews it. Approved reports are published on this page.</li></ol>
+</div><aside class="side"><div class="card cta"><h3>Candidates</h3><p>Submit a report in Candidate Services.</p><a class="btn2" href="https://migovt.org/sos/eservices/candidate-services/">Candidate Services</a></div><div class="card"><h3>Elections</h3><div class="kv"><div><a class="l" href="https://migovt.org/sos/elections/">Election information</a></div><div><a class="l" href="https://migovt.org/sos/elections/register/">Voter registration</a></div><div><a class="l" href="https://migovt.org/sos/elections/status/">Check registration status</a></div><div><a class="l" href="https://migovt.org/sos/elections/absentee/">Absentee voting</a></div><div><a class="l" href="https://migovt.org/sos/elections/polling-places/">Polling places</a></div><div><a class="l" href="https://migovt.org/sos/elections/results/">Election results</a></div></div></div></aside></div>
+<script src="https://migovt.org/sos/partials.js" data-part="footer"></script>
+<script type="module">
+import { db } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { getDocs, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+const $ = id => document.getElementById(id), usd = n => "$" + Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const e = (t, tx) => { const x = document.createElement(t); if (tx != null) x.textContent = tx; return x; };
+const tm = v => v && v.toMillis ? v.toMillis() : +v || 0;
+try {
+  const rows = (await getDocs(query(collection(db, "cases"), where("type", "==", "finance.report"), where("result", "==", "approved"), limit(500)))).docs.map(d => d.data()).filter(r => r.detail).sort((a, b) => tm(b.updatedAt) - tm(a.updatedAt));
+  $("f-n").textContent = String(rows.length); $("f-r").textContent = usd(rows.reduce((a, r) => a + parseFloat(r.detail.raised || 0), 0)); $("f-s").textContent = usd(rows.reduce((a, r) => a + parseFloat(r.detail.spent || 0), 0));
+  const box = $("fin"); box.replaceChildren();
+  if (!rows.length) { box.append(e("p", "No reports have been published yet.")); }
+  else { const tb = e("table"); tb.className = "tbl"; const h = e("tr"); ["Candidate", "Office", "Report", "Raised", "Spent", "Filed"].forEach(t => h.append(e("th", t))); tb.append(h);
+    rows.forEach(r => { const d = r.detail, tr = e("tr"); [r.name || "", d.office || "", d.period || "", usd(d.raised), usd(d.spent), tm(r.createdAt) ? new Date(tm(r.createdAt)).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""].forEach(t => tr.append(e("td", t))); tb.append(tr); });
+    box.append(tb); }
+} catch (er) { console.error(er); $("fin").replaceChildren(e("p", "Reports could not be loaded right now.")); }
+</script>
+</body>
+</html>

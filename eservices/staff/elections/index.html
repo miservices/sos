@@ -22,6 +22,21 @@
     <div class="pc"><h2>What this desk handles</h2><ul><li>Voters. Citizens and residents are registered automatically from their vital record, so there is nothing to approve.</li><li>Candidate filings. Approving one certifies the candidate for that office and lists them on Candidate Services.</li><li>Campaign finance reports</li><li>Business registrations (Office of the Great Seal)</li><li>Notary commissions (Office of the Great Seal)</li></ul></div>
   </div>
   <div class="pc mt"><h2>Certified candidates</h2><p class="sub" id="cand-sub"></p><div class="tw" id="cand"></div></div>
+  <div class="g2 mt">
+    <div class="pc"><h2>Polling places</h2><p class="sub">Shown on the public Polling places page.</p>
+      <div class="fld"><label for="pp-name">Name</label><input id="pp-name" maxlength="100"></div>
+      <div class="fld"><label for="pp-loc">Location</label><input id="pp-loc" maxlength="160" placeholder="Address or where it is"></div>
+      <div class="fld"><label for="pp-area">Serves</label><select id="pp-area"><option>Genesee County</option><option>City of Flint</option><option>Statewide</option></select></div>
+      <div class="fld"><label for="pp-hrs">Hours</label><input id="pp-hrs" maxlength="80"></div>
+      <button class="btn2" id="pp-go" type="button">Add polling place</button> <span class="empty" id="pp-msg"></span>
+      <div class="rows mt" id="pp-list"></div></div>
+    <div class="pc"><h2>Election results</h2><p class="sub">Enter totals for each race, then publish. Published results appear on the public Election results page.</p>
+      <div class="fld"><label for="rs-year">Term beginning January 1 of</label><select id="rs-year"></select></div>
+      <div class="fld"><label for="rs-off">Race</label><select id="rs-off"></select></div>
+      <div class="fld"><label for="rs-tot">Candidates and totals, one per line: Name, total</label><textarea id="rs-tot" rows="6" placeholder="Jordan Reyes, 41&#10;Sam Ortiz, 37"></textarea></div>
+      <button class="btn2" id="rs-save" type="button">Save race</button> <button class="btn2 s" id="rs-pub" type="button"></button> <span class="empty" id="rs-msg"></span>
+      <div class="rows mt" id="rs-list"></div></div>
+  </div>
   <div class="pc mt"><h2>Cases</h2><div id="q"></div></div>
 </div>
 </main>
@@ -31,7 +46,7 @@
 import { bootStaff, $, el, cap, when, loadCases, caseStats, renderQueue, audit, db, AGENCY } from "https://migovt.org/sos/eservices/assets/staff.js";
 import { logActivity, recDb } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { cycle, fmtDay, OFFICES, LEVELS, officeOf } from "https://migovt.org/sos/eservices/assets/elections.js";
-import { getDocs, updateDoc, doc, collection, query, where, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { getDocs, getDoc, setDoc, addDoc, updateDoc, doc, collection, query, where, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 const ctx = await bootStaff({ page: "elections", desk: "elections" });
 const C = cycle();
 const stat = (a, b) => el("div", { class: "stat" }, el("span", { text: a }), el("b", { text: b }));
@@ -71,6 +86,57 @@ async function drawCands() {
   $("cand").replaceChildren(tb);
 }
 await drawCands();
+
+/* ---- polling places ---- */
+async function drawPP() {
+  const box = $("pp-list"); box.replaceChildren();
+  try {
+    const rows = (await getDocs(query(collection(db, "pollingPlaces"), limit(300)))).docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => String(a.name).localeCompare(String(b.name)));
+    if (!rows.length) box.append(el("div", { class: "empty", text: "None yet." }));
+    rows.forEach(r => { const b = el("button", { class: "btn2 s", type: "button", text: r.active ? "Hide" : "Show" });
+      b.addEventListener("click", async () => { try { await updateDoc(doc(db, "pollingPlaces", r.id), { active: !r.active, updatedBy: ctx.id.pin, updatedAt: serverTimestamp() }); await audit(ctx, "polling.toggle", r.id, r.name + (r.active ? " hidden" : " shown")); drawPP(); } catch (e) { console.error(e); alert("Could not save. Check the Firestore rules for pollingPlaces."); } });
+      box.append(el("div", {}, el("div", {}, el("b", { text: r.name }), el("small", { text: [r.location, r.hours, r.area].filter(Boolean).join(" | ") })), el("div", { class: "r" }, el("span", { class: "pill " + (r.active ? "g" : "n"), text: r.active ? "Shown" : "Hidden" }), " ", b))); });
+  } catch (e) { console.error(e); box.append(el("div", { class: "empty", text: "Could not load polling places." })); }
+}
+$("pp-go").addEventListener("click", async () => {
+  const name = $("pp-name").value.trim(), m = $("pp-msg"); if (!name) { m.textContent = " Enter a name."; return; }
+  try { await addDoc(collection(db, "pollingPlaces"), { name, location: $("pp-loc").value.trim().slice(0, 160), area: $("pp-area").value, hours: $("pp-hrs").value.trim().slice(0, 80), active: true, updatedBy: ctx.id.pin, updatedAt: serverTimestamp() });
+    await audit(ctx, "polling.add", name, $("pp-area").value); ["pp-name", "pp-loc", "pp-hrs"].forEach(i => $(i).value = ""); m.textContent = " Added."; drawPP(); }
+  catch (e) { console.error(e); m.textContent = " Could not save. Check the Firestore rules for pollingPlaces."; }
+});
+await drawPP();
+
+/* ---- election results: one document per term, one entry per race ---- */
+const yr = $("rs-year"); [C.termYear, C.termYear - 1].forEach(y => yr.append(el("option", { value: String(y), text: String(y) })));
+$("rs-off").append(...OFFICES.map(o => el("option", { value: o.k, text: o.t + " (" + LEVELS[o.level] + ")" })));
+let RD = null;
+async function loadRes() {
+  const y = yr.value; RD = null;
+  try { const s = await getDoc(doc(db, "electionResults", y)); RD = s.exists() ? s.data() : null; } catch (e) { console.error(e); }
+  $("rs-pub").textContent = RD && RD.published ? "Unpublish results" : "Publish results";
+  const box = $("rs-list"); box.replaceChildren(); const races = (RD && RD.races) || {};
+  const have = OFFICES.filter(o => races[o.k]);
+  if (!have.length) box.append(el("div", { class: "empty", text: "No races entered for " + y + "." }));
+  have.forEach(o => box.append(el("div", {}, el("div", {}, el("b", { text: o.t }), el("small", { text: races[o.k].candidates.map(c => c.name + " " + c.total).join(", ") })))));
+  box.append(el("div", {}, el("div", {}, el("b", { text: "Status" })), el("div", { class: "r" }, el("span", { class: "pill " + (RD && RD.published ? "g" : "n"), text: RD && RD.published ? "Published" : "Not published" }))));
+  const o = races[$("rs-off").value]; $("rs-tot").value = o ? o.candidates.map(c => c.name + ", " + c.total).join("\n") : "";
+}
+yr.addEventListener("change", loadRes); $("rs-off").addEventListener("change", () => { const o = ((RD && RD.races) || {})[$("rs-off").value]; $("rs-tot").value = o ? o.candidates.map(c => c.name + ", " + c.total).join("\n") : ""; });
+$("rs-save").addEventListener("click", async () => {
+  const m = $("rs-msg"), list = []; 
+  for (const ln of $("rs-tot").value.split("\n").map(x => x.trim()).filter(Boolean)) { const i = ln.lastIndexOf(","), n = ln.slice(0, i).trim(), t = Number(ln.slice(i + 1)); if (i < 1 || !n || !Number.isFinite(t) || t < 0) { m.textContent = " Use the form Name, total on each line."; return; } list.push({ name: n.slice(0, 60), total: t }); }
+  if (!list.length) { m.textContent = " Enter at least one candidate."; return; }
+  const o = officeOf($("rs-off").value);
+  try { await setDoc(doc(db, "electionResults", yr.value), { termYear: Number(yr.value), published: !!(RD && RD.published), races: { [o.k]: { candidates: list } }, updatedBy: ctx.id.pin, updatedAt: serverTimestamp() }, { merge: true });
+    await audit(ctx, "results.save", yr.value, o.t); m.textContent = " Saved."; await loadRes(); } catch (e) { console.error(e); m.textContent = " Could not save. Check the Firestore rules for electionResults."; }
+});
+$("rs-pub").addEventListener("click", async () => {
+  const m = $("rs-msg"), to = !(RD && RD.published); if (!RD) { m.textContent = " Save a race first."; return; }
+  if (!confirm((to ? "Publish" : "Unpublish") + " the " + yr.value + " results on the public page?")) return;
+  try { await setDoc(doc(db, "electionResults", yr.value), { termYear: Number(yr.value), published: to, updatedBy: ctx.id.pin, updatedAt: serverTimestamp() }, { merge: true });
+    await audit(ctx, to ? "results.publish" : "results.unpublish", yr.value, "Election results"); m.textContent = to ? " Published." : " Unpublished."; await loadRes(); } catch (e) { console.error(e); m.textContent = " Could not save."; }
+});
+await loadRes();
 </script>
 </body>
 </html>

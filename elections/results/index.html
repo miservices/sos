@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Election results | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/shared.css">
+<style>
+.k3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:14px 0}
+.k3>div{border:1px solid #dbe7e9;border-radius:14px;padding:14px 16px;background:#fff}.k3 span{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#5b6f74}.k3 b{display:block;font-size:18px;margin-top:4px}
+.fm{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:560px}.fm label{display:block;font-weight:700;font-size:.9rem;margin-bottom:4px}.fm input{width:100%;border:1px solid #cfdfe2;border-radius:12px;padding:11px 14px;font:inherit}.fm .full{grid-column:1/-1}
+@media(max-width:600px){.fm{grid-template-columns:1fr}}
+.res{margin-top:16px;border-radius:14px;padding:16px 20px;border:1px solid #cfe9ec;background:#e6f5f6}.res.ok{background:#e3f4ea;border-color:#c9ead5}.res.warn{background:#fff1e8;border-color:#ffd9c2}.res b{display:block;font-size:1.05rem}
+.pp{border:1px solid #dbe7e9;border-radius:14px;padding:14px 18px;margin-top:10px;background:#fff}.pp h3{margin:0 0 4px!important}
+.win{font-weight:800;color:#1c6b3a}
+</style>
+</head>
+<body>
+<script src="https://migovt.org/sos/partials.js" data-part="header"></script>
+<section class="phead"><div class="in"><div class="crumbs"><a href="https://migovt.org/sos/">Home</a><span>/</span><a href="https://migovt.org/sos/elections/">Elections</a><span>/</span><b>Election results</b></div><h1>Election results</h1><p>Results of Michigan general elections, once they are published.</p></div></section>
+<div class="pg"><div class="prose">
+<div id="r"><p>Loading results...</p></div>
+<h2>How results are decided</h2>
+<p>Single seat races go to the candidate with the most votes. Ranked preference races go to the candidates with the highest total preference scores. A tie is settled by a runoff, except for a tie for Speaker, Chief Justice, Chairperson, or President of the Council, which is broken by the newly elected Governor or Mayor. <a class="l" href="https://migovt.org/sos/elections/">Read how elections work</a>.</p>
+</div><aside class="side"><div class="card"><h3>At a glance</h3><div class="kv"><div><span>Term</span><b id="g-term"></b></div><div><span>Election Day</span><b id="g-eday"></b></div><div><span>Online voting</span><b id="g-online"></b></div><div><span>Voters</span><b>Citizens and residents</b></div></div></div><div class="card"><h3>Elections</h3><div class="kv"><div><a class="l" href="https://migovt.org/sos/elections/">Election information</a></div><div><a class="l" href="https://migovt.org/sos/elections/register/">Voter registration</a></div><div><a class="l" href="https://migovt.org/sos/elections/status/">Check registration status</a></div><div><a class="l" href="https://migovt.org/sos/elections/absentee/">Absentee voting</a></div><div><a class="l" href="https://migovt.org/sos/elections/polling-places/">Polling places</a></div><div><a class="l" href="https://migovt.org/sos/elections/campaign-finance/">Campaign finance</a></div></div></div></aside></div>
+<script src="https://migovt.org/sos/partials.js" data-part="footer"></script>
+<script type="module">
+import { cycle, fmtDay, fmtShort, OFFICES, LEVELS } from "https://migovt.org/sos/eservices/assets/elections.js";
+const C = cycle(), $ = id => document.getElementById(id);
+$("g-term").textContent = "Jan 1 to Dec 31, " + C.termYear; $("g-eday").textContent = fmtDay(C.electionDay); $("g-online").textContent = fmtShort(C.onlineOpen) + " to " + fmtShort(C.onlineClose);
+import { db } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { getDocs, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+const box = $("r"), e = (t, tx, c) => { const x = document.createElement(t); if (c) x.className = c; if (tx != null) x.textContent = tx; return x; };
+try {
+  const docs = (await getDocs(query(collection(db, "electionResults"), where("published", "==", true), limit(20)))).docs.map(d => d.data()).sort((a, b) => b.termYear - a.termYear);
+  box.replaceChildren();
+  if (!docs.length) box.append(e("p", "No results have been published yet. Results appear here after the election is certified."));
+  docs.forEach(D => {
+    box.append(e("h2", "Term beginning January 1, " + D.termYear));
+    const races = D.races || {};
+    OFFICES.filter(o => races[o.k] && (races[o.k].candidates || []).length).forEach(o => {
+      const cs = [...races[o.k].candidates].sort((a, b) => b.total - a.total), n = o.seats, win = cs.slice(0, n);
+      const unit = o.ranked ? "Points" : "Votes";
+      const tb = e("table", null, "tbl"); const h = e("tr"); ["Candidate", unit, ""].forEach(t => h.append(e("th", t))); tb.append(h);
+      cs.forEach((c, i) => { const r = e("tr"); r.append(e("td", c.name), e("td", String(c.total))); const w = e("td", i < n ? (o.ranked && i === 0 ? "Elected, " + o.head : "Elected") : "", i < n ? "win" : ""); r.append(w); tb.append(r); });
+      box.append(e("h3", o.t + " (" + LEVELS[o.level] + ")"), tb);
+      const tie = cs.length > n && cs[n - 1].total === cs[n].total, head = o.ranked && cs.length > 1 && cs[0].total === cs[1].total;
+      if (head) box.append(e("div", "Tie for " + o.head + ". It is broken by " + o.tie + ".", "note warn"));
+      else if (tie) box.append(e("div", "There is a tie for the last " + (n === 1 ? "seat" : "seat") + ". A runoff is held to settle it.", "note warn"));
+    });
+  });
+} catch (er) { console.error(er); box.replaceChildren(e("p", "Results could not be loaded right now.")); }
+</script>
+</body>
+</html>

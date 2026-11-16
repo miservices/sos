@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polling places | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/shared.css">
+<style>
+.k3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:14px 0}
+.k3>div{border:1px solid #dbe7e9;border-radius:14px;padding:14px 16px;background:#fff}.k3 span{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#5b6f74}.k3 b{display:block;font-size:18px;margin-top:4px}
+.fm{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:560px}.fm label{display:block;font-weight:700;font-size:.9rem;margin-bottom:4px}.fm input{width:100%;border:1px solid #cfdfe2;border-radius:12px;padding:11px 14px;font:inherit}.fm .full{grid-column:1/-1}
+@media(max-width:600px){.fm{grid-template-columns:1fr}}
+.res{margin-top:16px;border-radius:14px;padding:16px 20px;border:1px solid #cfe9ec;background:#e6f5f6}.res.ok{background:#e3f4ea;border-color:#c9ead5}.res.warn{background:#fff1e8;border-color:#ffd9c2}.res b{display:block;font-size:1.05rem}
+.pp{border:1px solid #dbe7e9;border-radius:14px;padding:14px 18px;margin-top:10px;background:#fff}.pp h3{margin:0 0 4px!important}
+.win{font-weight:800;color:#1c6b3a}
+</style>
+</head>
+<body>
+<script src="https://migovt.org/sos/partials.js" data-part="header"></script>
+<section class="phead"><div class="in"><div class="crumbs"><a href="https://migovt.org/sos/">Home</a><span>/</span><a href="https://migovt.org/sos/elections/">Elections</a><span>/</span><b>Polling places</b></div><h1>Polling places</h1><p>Where to vote in person on Election Day.</p></div></section>
+<div class="pg"><div class="prose">
+<h2>Election Day</h2>
+<p>In person voting is held on Election Day, <b id="p-eday"></b>. If a runoff is needed, in person voting is on <b id="p-ro"></b>. You can also <a class="l" href="https://migovt.org/sos/elections/absentee/">vote online</a> during the online voting window.</p>
+<h2>Polling places</h2>
+<div id="pp"><p>Loading polling places...</p></div>
+<div class="note">The County Clerk administers elections at the county level and for every municipality within the county.</div>
+</div><aside class="side"><div class="card"><h3>At a glance</h3><div class="kv"><div><span>Term</span><b id="g-term"></b></div><div><span>Election Day</span><b id="g-eday"></b></div><div><span>Online voting</span><b id="g-online"></b></div><div><span>Voters</span><b>Citizens and residents</b></div></div></div><div class="card"><h3>Elections</h3><div class="kv"><div><a class="l" href="https://migovt.org/sos/elections/">Election information</a></div><div><a class="l" href="https://migovt.org/sos/elections/register/">Voter registration</a></div><div><a class="l" href="https://migovt.org/sos/elections/status/">Check registration status</a></div><div><a class="l" href="https://migovt.org/sos/elections/absentee/">Absentee voting</a></div><div><a class="l" href="https://migovt.org/sos/elections/results/">Election results</a></div><div><a class="l" href="https://migovt.org/sos/elections/campaign-finance/">Campaign finance</a></div></div></div></aside></div>
+<script src="https://migovt.org/sos/partials.js" data-part="footer"></script>
+<script type="module">
+import { cycle, fmtDay, fmtShort, OFFICES, LEVELS } from "https://migovt.org/sos/eservices/assets/elections.js";
+const C = cycle(), $ = id => document.getElementById(id);
+$("g-term").textContent = "Jan 1 to Dec 31, " + C.termYear; $("g-eday").textContent = fmtDay(C.electionDay); $("g-online").textContent = fmtShort(C.onlineOpen) + " to " + fmtShort(C.onlineClose);
+import { db } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { getDocs, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+$("p-eday").textContent = fmtDay(C.electionDay); $("p-ro").textContent = fmtDay(C.runoffDay);
+const box = $("pp");
+try {
+  const rows = (await getDocs(query(collection(db, "pollingPlaces"), where("active", "==", true), limit(200)))).docs.map(d => d.data()).sort((a, b) => String(a.area).localeCompare(String(b.area)) || String(a.name).localeCompare(String(b.name)));
+  box.replaceChildren();
+  if (!rows.length) box.innerHTML = "<p>No polling places have been posted yet. Check back closer to Election Day.</p>";
+  rows.forEach(r => { const d = document.createElement("div"); d.className = "pp"; const h = document.createElement("h3"); h.textContent = r.name; const p = document.createElement("p"); p.textContent = [r.location, r.hours, r.area].filter(Boolean).join(" | "); d.append(h, p); if (r.notes) { const n = document.createElement("p"); n.textContent = r.notes; d.append(n); } box.append(d); });
+} catch (e) { console.error(e); box.innerHTML = "<p>Polling places could not be loaded right now.</p>"; }
+</script>
+</body>
+</html>
