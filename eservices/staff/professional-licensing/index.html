@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Professional Licenses | Staff Portal | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+<style>
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.four{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media(max-width:800px){.two,.four{grid-template-columns:1fr}}
+.fld select,.fld input,.fld textarea{width:100%}
+.dl{width:100%;border-collapse:collapse;font-size:.88rem}.dl th,.dl td{text-align:left;padding:8px 10px;border-bottom:1px solid #dbe7e9;vertical-align:top}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.tags span{background:#e6f5f6;border-radius:999px;padding:4px 10px;font-size:.82rem;display:inline-flex;gap:6px;align-items:center}
+.tags button{border:0;background:none;cursor:pointer;font-weight:700;color:#0a5d65}
+</style>
+</head>
+<body>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header" data-staff></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="staffnav" data-page="professional-licenses"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">Tools</div><h1>Professional Licenses</h1><p>Issue medical and bail bond agent licenses, change their status, set restrictions and conditions, and record disciplinary actions. Everything here shows on the license holder's Professional Licensing page and is recorded in the audit log.</p></div>
+  <div class="stats" id="stats"></div>
+  <div class="pc mt"><h2>All licenses</h2>
+    <div class="bar"><input id="q" type="search" placeholder="Filter by name, PIN or license number" aria-label="Filter"><select id="fs" aria-label="Status"></select><select id="fk" aria-label="License"></select></div>
+    <div class="tw" id="tbl"></div>
+  </div>
+  <div id="ed" class="mt"></div>
+  <div class="pc mt"><h2>Issue a license directly</h2>
+    <p class="sub">Normally approving an application issues the license. Use this to add one that did not come through an application.</p>
+    <div class="four"><div class="fld"><label for="n-pin">PIN</label><input id="n-pin" inputmode="numeric" maxlength="20" autocomplete="off"></div>
+    <div class="fld"><label for="n-kind">License</label><select id="n-kind"></select></div>
+    <div class="fld"><label for="n-issue">Issue date</label><input id="n-issue" type="date"></div>
+    <div class="fld"><label for="n-exp">Expiration date</label><input id="n-exp" type="date"></div></div>
+    <button class="btn2" id="n-go" type="button">Issue license</button> <span class="empty" id="n-msg"></span>
+  </div>
+</div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
+<script type="module">
+import { bootStaff, $, el, cap, db, getPerson, audit, AGENCY } from "https://migovt.org/sos/eservices/assets/staff.js";
+import { logActivity } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, limit, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+const ctx = await bootStaff({ page: "professional-licenses" });
+const KINDS = [["medical-physician", "Medical: Physician", "MD"], ["medical-paramedic", "Medical: Paramedic", "PM"], ["medical-aemt", "Medical: Advanced EMT", "AE"], ["medical-emt", "Medical: EMT", "EM"], ["bail-bond", "Bail Bond Agent", "BB"]];
+const KT = Object.fromEntries(KINDS.map(k => [k[0], k[1]])), KP = Object.fromEntries(KINDS.map(k => [k[0], k[2]]));
+const STS = ["active", "inactive", "suspended", "revoked", "expired", "probationary", "conditional"];
+const PILL = { active: "g", inactive: "n", suspended: "o", revoked: "o", expired: "o", probationary: "o", conditional: "o" };
+const ACTIONS = ["Reprimand", "Fine", "Probation", "Suspension", "Revocation", "Reinstatement", "Other"];
+const tm = v => v && v.toMillis ? v.toMillis() : typeof v === "string" ? (Date.parse(v) || 0) : (+v || 0);
+const day = t => t ? new Date(t).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+const iso = t => t ? new Date(t).toISOString().slice(0, 10) : "";
+const keyOf = l => l.type === "medical" ? "medical-" + String(l.classification || "").toLowerCase() : String(l.type || "").toLowerCase();
+const arr = v => Array.isArray(v) ? v : v ? [v] : [];
+const line = x => typeof x === "object" && x ? (x.description || x.text || "") : String(x);
+let rows = [], open = null;
+
+async function load() {
+  try { rows = (await getDocs(query(collection(db, "professionalLicenses"), limit(500)))).docs.map(d => ({ id: d.id, ...d.data() })); }
+  catch (e) { console.error(e); $("tbl").replaceChildren(el("div", { class: "empty", text: "Could not load licenses. Check the Firestore rules." })); return; }
+  const names = {}; await Promise.all([...new Set(rows.map(r => r.pin))].map(async p => { try { const x = await getPerson(p); names[p] = x && x.name; } catch (e) {} }));
+  rows.forEach(r => r._name = r.name || names[r.pin] || "PIN " + r.pin);
+  const st = r => { const s = String(r.status || "active").toLowerCase(); return s === "active" && tm(r.expiresAt) && tm(r.expiresAt) < Date.now() ? "expired" : s; };
+  rows.forEach(r => r._st = st(r));
+  const n = f => String(rows.filter(f).length), soon = rows.filter(r => r._st === "active" && tm(r.expiresAt) && tm(r.expiresAt) < Date.now() + 60 * 864e5).length;
+  $("stats").replaceChildren(...[["Licenses", n(() => true)], ["Active", n(r => r._st === "active")], ["Suspended or revoked", n(r => ["suspended", "revoked"].includes(r._st))], ["Expiring in 60 days", String(soon)]].map(([a, b]) => el("div", { class: "stat" }, el("span", { text: a }), el("b", { text: b }))));
+  draw();
+}
+function draw() {
+  const t = $("q").value.trim().toLowerCase(), fs = $("fs").value, fk = $("fk").value;
+  const list = rows.filter(r => (!fs || r._st === fs) && (!fk || keyOf(r) === fk) && (!t || (r._name + " " + r.pin + " " + (r.number || "")).toLowerCase().includes(t))).sort((a, b) => a._name.localeCompare(b._name));
+  if (!list.length) { $("tbl").replaceChildren(el("div", { class: "empty", text: "No licenses match." })); return; }
+  const tb = el("table", { class: "dl" }, el("tr", {}, ["Holder", "License", "Number", "Status", "Expires", ""].map(h => el("th", { text: h }))));
+  list.forEach(r => { const b = el("button", { class: "btn2 s", type: "button", text: "Manage" }); b.addEventListener("click", () => { edit(r.id); $("ed").scrollIntoView({ behavior: "smooth" }); });
+    tb.append(el("tr", {}, el("td", {}, el("b", { text: r._name }), el("br"), el("small", { text: "PIN " + r.pin })), el("td", { text: KT[keyOf(r)] || "Professional license" }), el("td", { text: r.number || "" }), el("td", {}, el("span", { class: "pill " + (PILL[r._st] || "n"), text: cap(r._st) })), el("td", { text: day(tm(r.expiresAt)) }), el("td", {}, b))); });
+  $("tbl").replaceChildren(tb);
+}
+$("fs").append(el("option", { value: "", text: "All statuses" }), ...STS.map(s => el("option", { value: s, text: cap(s) })));
+$("fk").append(el("option", { value: "", text: "All licenses" }), ...KINDS.map(k => el("option", { value: k[0], text: k[1] })));
+$("n-kind").append(...KINDS.map(k => el("option", { value: k[0], text: k[1] })));
+["q", "fs", "fk"].forEach(i => $(i).addEventListener("input", draw));
+
+function tagList(items, onDel) { const d = el("div", { class: "tags" }); items.forEach((x, i) => { const b = el("button", { type: "button", "aria-label": "Remove", text: "x" }); b.addEventListener("click", () => onDel(i)); d.append(el("span", {}, line(x), b)); }); if (!items.length) d.append(el("span", { class: "empty", text: "None" })); return d; }
+
+function edit(id) {
+  const r = rows.find(x => x.id === id); if (!r) return; open = id;
+  const ref = doc(db, "professionalLicenses", id), k = keyOf(r), out = el("span", { class: "empty" });
+  const stat = el("select", { id: "e-st" }, STS.map(s => el("option", { value: s, text: cap(s) }))); stat.value = STS.includes(String(r.status || "").toLowerCase()) ? String(r.status).toLowerCase() : "active";
+  const num = el("input", { value: r.number || "", maxlength: "30" }), iss = el("input", { type: "date", value: iso(tm(r.issuedAt)) }), exp = el("input", { type: "date", value: iso(tm(r.expiresAt)) });
+  let rs = arr(r.restrictions).map(line), cn = arr(r.conditions).map(line);
+  const rsBox = el("div"), cnBox = el("div"), rsIn = el("input", { placeholder: "Add a restriction", maxlength: "200" }), cnIn = el("input", { placeholder: "Add a condition", maxlength: "200" });
+  const dr = () => { rsBox.replaceChildren(tagList(rs, i => { rs.splice(i, 1); dr(); })); cnBox.replaceChildren(tagList(cn, i => { cn.splice(i, 1); dr(); })); }; dr();
+  const addTo = (inp, a) => () => { const v = inp.value.trim(); if (v) { a.push(v); inp.value = ""; dr(); } };
+  const rsAdd = el("button", { class: "btn2 s", type: "button", text: "Add" }), cnAdd = el("button", { class: "btn2 s", type: "button", text: "Add" });
+  rsAdd.addEventListener("click", addTo(rsIn, rs)); cnAdd.addEventListener("click", addTo(cnIn, cn));
+  const save = el("button", { class: "btn2", type: "button", text: "Save changes" });
+  save.addEventListener("click", async () => {
+    if (rsIn.value.trim()) rs.push(rsIn.value.trim()); if (cnIn.value.trim()) cn.push(cnIn.value.trim());
+    if (!iss.value || !exp.value) { out.textContent = " Enter both dates."; return; }
+    const was = String(r.status || "active").toLowerCase(), up = { number: num.value.trim().slice(0, 30), status: stat.value, issuedAt: new Date(iss.value + "T12:00:00").toISOString(), expiresAt: new Date(exp.value + "T12:00:00").toISOString(), restrictions: rs, conditions: cn, updatedBy: ctx.id.pin, updatedAt: serverTimestamp() };
+    save.disabled = true; out.textContent = " Saving...";
+    try {
+      await updateDoc(ref, up);
+      await audit(ctx, "pro.update", r.pin, (KT[k] || "License") + (was !== stat.value ? ": " + was + " to " + stat.value : ": details updated"));
+      if (was !== stat.value) await logActivity(r.pin, "license.status", (KT[k] || "Professional license") + " is now " + stat.value, AGENCY);
+      out.textContent = " Saved."; await load(); edit(id);
+    } catch (e) { console.error(e); out.textContent = " Could not save. Check the Firestore rules."; save.disabled = false; }
+  });
+  /* disciplinary history */
+  const dh = arr(r.discipline).map(x => typeof x === "object" ? x : { description: String(x) }).sort((a, b) => tm(b.date) - tm(a.date));
+  const dt = dh.length ? el("table", { class: "dl" }, el("tr", {}, ["Date", "Action", "Details", "Case"].map(h => el("th", { text: h }))), ...dh.map(x => el("tr", {}, el("td", { text: day(tm(x.date)) }), el("td", { text: x.action ? cap(String(x.action)) : "" }), el("td", { text: x.description || "" }), el("td", { text: x.caseNumber || "" })))) : el("div", { class: "empty", text: "No disciplinary actions on record." });
+  const da = el("select", {}, ACTIONS.map(a => el("option", { value: a, text: a }))), dd = el("input", { type: "date", value: iso(Date.now()) }), dx = el("textarea", { rows: "2", maxlength: "400", placeholder: "What happened and what was decided" }), dc = el("input", { maxlength: "40", placeholder: "Case number (optional)" });
+  const sugg = el("select", {}, [["", "Leave the status as it is"], ["suspended", "Set status to Suspended"], ["revoked", "Set status to Revoked"], ["probationary", "Set status to Probationary"], ["active", "Set status to Active"]].map(([v, t]) => el("option", { value: v, text: t })));
+  const dgo = el("button", { class: "btn2", type: "button", text: "Record action" }), dout = el("span", { class: "empty" });
+  dgo.addEventListener("click", async () => {
+    if (!dx.value.trim()) { dout.textContent = " Describe the action."; return; }
+    const entry = { date: new Date(dd.value + "T12:00:00").toISOString(), action: da.value.toLowerCase(), description: dx.value.trim().slice(0, 400), recordedBy: String(ctx.id.pin) }; if (dc.value.trim()) entry.caseNumber = dc.value.trim();
+    dgo.disabled = true; dout.textContent = " Saving...";
+    try {
+      const up = { discipline: arrayUnion(entry), updatedBy: ctx.id.pin, updatedAt: serverTimestamp() }; if (sugg.value) up.status = sugg.value;
+      await updateDoc(ref, up);
+      await audit(ctx, "pro.discipline", r.pin, (KT[k] || "License") + ": " + da.value + (dc.value.trim() ? " (" + dc.value.trim() + ")" : "") + (sugg.value ? ", status " + sugg.value : ""));
+      await logActivity(r.pin, "license.discipline", (KT[k] || "Professional license") + ": " + da.value + " recorded" + (sugg.value ? ". Status is now " + sugg.value : ""), AGENCY);
+      dout.textContent = " Recorded."; await load(); edit(id);
+    } catch (e) { console.error(e); dout.textContent = " Could not save. Check the Firestore rules."; dgo.disabled = false; }
+  });
+  const fld = (l, c) => el("div", { class: "fld" }, el("label", { text: l }), c);
+  $("ed").replaceChildren(el("div", { class: "pc detail" }, el("h2", { text: r._name + ": " + (KT[k] || "Professional license") }), el("p", { class: "sub", text: "PIN " + r.pin }),
+    el("div", { class: "four" }, fld("Status", stat), fld("License number", num), fld("Issue date", iss), fld("Expiration date", exp)),
+    el("div", { class: "two" }, el("div", { class: "fld" }, el("label", { text: "Restrictions" }), rsBox, el("div", { class: "bar" }, rsIn, rsAdd)), el("div", { class: "fld" }, el("label", { text: "Conditions" }), cnBox, el("div", { class: "bar" }, cnIn, cnAdd))),
+    save, out,
+    el("h3", { class: "grp-h", text: "Disciplinary history" }), dt,
+    el("h3", { class: "grp-h", text: "Record a disciplinary action" }),
+    el("div", { class: "four" }, fld("Action", da), fld("Date", dd), fld("Case number", dc), fld("Status change", sugg)), fld("Details", dx), dgo, dout));
+}
+
+$("n-go").addEventListener("click", async () => {
+  const pin = $("n-pin").value.trim(), kind = $("n-kind").value, m = $("n-msg"), a = $("n-issue").value, e = $("n-exp").value;
+  if (!/^\d{4,20}$/.test(pin)) { m.textContent = " Enter a valid PIN."; return; } if (!a || !e) { m.textContent = " Enter both dates."; return; }
+  m.textContent = " Issuing...";
+  try {
+    const id = pin + "_" + kind; if ((await getDoc(doc(db, "professionalLicenses", id))).exists()) { m.textContent = " This person already has this license. Manage it from the list."; return; }
+    const p = await getPerson(pin).catch(() => null), med = kind.startsWith("medical-"), num = KP[kind] + "-" + String(Math.floor(100000 + Math.random() * 900000));
+    await setDoc(doc(db, "professionalLicenses", id), { pin, name: (p && p.name) || "", type: med ? "medical" : kind, ...(med ? { classification: kind.replace("medical-", "") } : {}), number: num, status: "active", issuedAt: new Date(a + "T12:00:00").toISOString(), expiresAt: new Date(e + "T12:00:00").toISOString(), restrictions: [], conditions: [], discipline: [], updatedBy: ctx.id.pin, updatedAt: serverTimestamp() });
+    await audit(ctx, "pro.issue", pin, KT[kind]); await logActivity(pin, "license.issued", "Issued: " + KT[kind], AGENCY);
+    m.textContent = " Issued as " + num + "."; await load(); edit(id);
+  } catch (er) { console.error(er); m.textContent = " Could not issue it. Check the Firestore rules."; }
+});
+const dflt = new Date(); $("n-issue").value = iso(dflt); dflt.setFullYear(dflt.getFullYear() + 2); $("n-exp").value = iso(dflt);
+await load();
+</script>
+</body>
+</html>

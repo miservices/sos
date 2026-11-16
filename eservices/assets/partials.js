@@ -25,7 +25,7 @@
       { k: "identification", t: "Identification", u: "identification/", d: "Your information, name changes, personal ID and REAL ID, birth certificate, citizenship and resident status." },
       { k: "licenses", t: "Driver Licensing", u: "licenses/", d: "Driver, motorcycle, chauffeur, and commercial license status and renewal." },
       { k: "driving-record", t: "Driving Record", u: "driving-record/", d: "View and request a certified copy of your record, and see who has accessed it." },
-      { k: "professional-licensing", t: "Professional Licensing", u: "professional-licensing/", d: "Apply for, renew, and check the status of a professional license." }
+      { k: "professional-licensing", t: "Professional Licensing", u: "professional-licensing/", d: "View your professional licenses, their status, and any conditions." }
     ] },
     { g: "Vehicles", items: [
       { k: "registration", t: "Vehicle Registration", u: "registration/", d: "See every vehicle registered to you, register a new one, and renew." },
@@ -68,6 +68,7 @@
     ] },
     { g: "Tools", items: [
       { k: "lookup", t: "Person Lookup", u: "lookup/", d: "Search for a person and open their file. Every lookup is recorded." },
+      { k: "professional-licenses", t: "Professional Licenses", u: "professional-licenses/", d: "Issue medical and bail bond licenses, change status, and record discipline." },
       { k: "notices", t: "Send Notices", u: "notices/", d: "Send an official notice to one person or to everyone." }
     ] },
     { g: "Administration", items: [
