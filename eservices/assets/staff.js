@@ -17,6 +17,7 @@
                   Public portal pages create these (status "open"); staff work them here.
      audit/{id}   { actorPin, actorName, role, bureau, action, target, detail, at } */
 import { boot, db, E, $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, logActivity, logAccess, charge, list, money, getRecord, setRecordStatus, applyNameToRecord, applyNameToMiGOVT, applyNameToCourts, statusOf, STATUSES, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { TYPES as BIZ_TYPES, plusYear } from "https://migovt.org/sos/eservices/assets/business.js";
 import { doc, getDoc, getDocs, addDoc, updateDoc, setDoc, collection, query, where, limit, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 export { $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, E, db, list, money, getRecord, setRecordStatus, applyNameToRecord, applyNameToMiGOVT, applyNameToCourts, statusOf, STATUSES, recordDate };
 
@@ -83,7 +84,7 @@ export const CASE_TYPES = {
   "insurer.license": ["Insurance license", "lara"], "professional.license": ["Professional license application", "lara"], "professional.renewal": ["Professional license renewal", "lara"],
   "record.copy": ["Certified record request", "lara"], "vital.request": ["Vital record request", "lara"],
   "voter.registration": ["Voter registration", "elections"], "candidate.filing": ["Candidate filing", "elections"], "finance.report": ["Campaign finance report", "elections"],
-  "business.registration": ["Business registration", "lara"], "notary.commission": ["Notary commission", "elections"],
+  "business.registration": ["Business registration", "lara"], "business.annual-report": ["Business annual report", "lara"], "business.amendment": ["Business amendment", "lara"], "business.dissolution": ["Business dissolution", "lara"], "business.reinstatement": ["Business reinstatement", "lara"], "notary.commission": ["Notary commission", "elections"],
   "appeal": ["Administrative appeal", "hearings"]
 };
 export const typeLabel = t => (CASE_TYPES[t] || [cap(String(t).replace(/\./g, " "))])[0];
@@ -182,6 +183,39 @@ async function applyElectionCase(ctx, r) {
   return "";
 }
 
+/* Approving a business filing creates or updates the business record at businesses/{id}. Fees are charged once. */
+async function applyBusinessCase(ctx, r) {
+  const d = r.detail || {}, now = new Date().toISOString(), by = { updatedBy: ctx.id.pin, updatedAt: serverTimestamp() };
+  const fee = parseFloat(String(d.fee || "").replace(/[^0-9.]/g, ""));
+  const bill = async desc => { desc = desc.slice(0, 120); if (fee > 0) { const prior = await list("transactions", r.pin, 100).catch(() => []); if (!prior.some(t => t.desc === desc)) await charge(r.pin, desc, fee); } };
+  if (r.type === "business.registration") {
+    const T = BIZ_TYPES[d.typeKey]; if (!T || !d.name) return "This registration has no business type or name, so no business was created.";
+    const dup = await getDocs(query(collection(db, "businesses"), where("caseId", "==", r.id), limit(1)));
+    if (!dup.empty) return "A business was already created from this application.";
+    const day = now.slice(0, 10), b = { name: d.name, type: d.typeKey, typeLabel: T.t, description: d.description || "", agent: String(d.agent || r.pin), owners: (Array.isArray(d.owners) && d.owners.length ? d.owners : [r.pin]).map(String), ownerPin: String(r.pin), status: "active", registeredAt: now, caseId: r.id, ...by };
+    if (T.report) b.dueDate = plusYear(day);
+    await addDoc(collection(db, "businesses"), b);
+    await audit(ctx, "business.register", r.pin, d.name + " (" + T.t + ")");
+    await logActivity(r.pin, "business.registered", "Business registered: " + d.name, AGENCY);
+    await bill("Business registration: " + d.name); return "";
+  }
+  if (!d.businessId) return "This filing is not linked to a business, so nothing was updated.";
+  const ref = doc(db, "businesses", d.businessId), snap = await getDoc(ref); if (!snap.exists()) return "The business no longer exists.";
+  const b = snap.data(), T = BIZ_TYPES[b.type] || {}, day = now.slice(0, 10);
+  if (r.type === "business.annual-report") {
+    const up = { description: d.description ?? b.description ?? "", agent: String(d.agent || b.agent), owners: Array.isArray(d.owners) && d.owners.length ? d.owners.map(String) : b.owners, lastReportAt: now, status: "active", dueDate: plusYear(b.dueDate && b.dueDate > day ? b.dueDate : (b.dueDate || day)), ...by };
+    await updateDoc(ref, up); await audit(ctx, "business.report", r.pin, b.name); await logActivity(r.pin, "business.report", "Annual report accepted: " + b.name, AGENCY); await bill("Annual report: " + b.name);
+  } else if (r.type === "business.amendment") {
+    await updateDoc(ref, { name: d.name || b.name, description: d.description ?? b.description ?? "", agent: String(d.agent || b.agent), owners: Array.isArray(d.owners) && d.owners.length ? d.owners.map(String) : b.owners, ...by });
+    await audit(ctx, "business.amend", r.pin, b.name + (d.name && d.name !== b.name ? " to " + d.name : "")); await logActivity(r.pin, "business.amended", "Business details updated: " + (d.name || b.name), AGENCY);
+  } else if (r.type === "business.dissolution") {
+    await updateDoc(ref, { status: "dissolved", dissolvedAt: now, ...by }); await audit(ctx, "business.dissolve", r.pin, b.name); await logActivity(r.pin, "business.dissolved", "Business dissolved: " + b.name, AGENCY);
+  } else if (r.type === "business.reinstatement") {
+    await updateDoc(ref, { status: "active", dueDate: plusYear(day), lastReportAt: now, ...by }); await audit(ctx, "business.reinstate", r.pin, b.name); await logActivity(r.pin, "business.reinstated", "Business reinstated: " + b.name, AGENCY); await bill("Business reinstatement: " + b.name);
+  }
+  return "";
+}
+
 /* Open a case for a person (staff). */
 export async function openCase(ctx, { pin, name, type, title, detail }) {
   const bureau = (CASE_TYPES[type] || [])[1] || ctx.bureau || "lara";
@@ -259,6 +293,9 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
     }
     if (result === "approved" && r.result !== "approved" && (r.type === "professional.license" || r.type === "professional.renewal")) {
       try { const w = await applyProfessionalCase(ctx, r); if (w) warns.push(w); } catch (e) { console.error(e); warns.push("The license record could not be saved. Check the Firestore rules for professionalLicenses."); }
+    }
+    if (result === "approved" && r.result !== "approved" && /^business\.(registration|annual-report|amendment|dissolution|reinstatement)$/.test(r.type)) {
+      try { const w = await applyBusinessCase(ctx, r); if (w) warns.push(w); } catch (e) { console.error(e); warns.push("The business record could not be saved. Check the Firestore rules for businesses."); }
     }
     if (result === "approved" && r.result !== "approved" && r.type === "candidate.filing") {
       try { const w = await applyElectionCase(ctx, r); if (w) warns.push(w); } catch (e) { console.error(e); warns.push("The election record could not be saved. Check the Firestore rules for voters and candidates."); }

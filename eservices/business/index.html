@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Business Services | SOS e-Services | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+<style>
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:760px){.two{grid-template-columns:1fr}}
+.fld select,.fld input,.fld textarea{width:100%}
+.bz{border:1px solid var(--line);border-radius:16px;padding:16px 18px;background:#fff;margin-top:12px}
+.bz h3{margin:0 0 2px;font-size:17px;font-weight:800}.bz .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.bz dl{display:grid;grid-template-columns:150px 1fr;gap:4px 12px;margin:10px 0}.bz dt{color:var(--muted,#5b6f74);font-size:13px}.bz dd{margin:0;font-weight:600;word-break:break-word}
+@media(max-width:600px){.bz dl{grid-template-columns:1fr}}
+.bz .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.fx{border-top:1px dashed var(--line);margin-top:12px;padding-top:12px}
+.chk{display:flex;gap:8px;align-items:flex-start;margin:10px 0;font-size:14px}.chk input{margin-top:3px;width:auto}
+</style>
+</head>
+<body>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header"></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="nav" data-page="business"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading business services...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">Business and Legal</div><h1>Business Services</h1><p>Register a business, file annual reports, amend your details, or close a business. Filings are reviewed by the Division of Business and Occupational Licensing.</p></div>
+  <div class="stats" id="stats"></div>
+
+  <div class="pc mt"><h2>Your businesses</h2><div id="mine"></div></div>
+
+  <div class="pc mt"><h2>Register a business</h2>
+    <p class="sub">The filing fee is charged only if your application is approved. <a class="l" href="https://migovt.org/sos/business/register/">Read the registration rules</a>.</p>
+    <div id="reg"></div>
+  </div>
+
+  <div class="pc mt"><h2>Your filings</h2><div class="rows" id="filings"></div></div>
+</div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
+<script type="module">
+import { boot, el, $, cap, when, fileCase, myCases, db } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { TYPES, LATE_FEE, EARLY_DAYS, money, isoDay, plusYear, daysBetween, parsePins, nameProblem, sameName, standing } from "https://migovt.org/sos/eservices/assets/business.js";
+import { getDocs, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+const ctx = await boot({ page: "business" });
+const pin = String(ctx.id.pin), today = isoDay(new Date());
+let mine = [], cases = [];
+try { mine = (await getDocs(query(collection(db, "businesses"), where("owners", "array-contains", pin), limit(100)))).docs.map(d => ({ id: d.id, ...d.data() })); } catch (e) { console.warn(e); }
+try { cases = (await myCases(pin, 100)).filter(r => /^business\./.test(r.type)); } catch (e) { console.warn(e); }
+const OPEN = ["open", "in-review"], openFor = id => cases.find(r => OPEN.includes(r.status) && r.detail && r.detail.businessId === id);
+const longDay = iso => { const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(iso || ""); return m ? new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "Not set"; };
+const clean = s => String(s || "").replace(/\s+/g, " ").trim();
+
+const live = mine.filter(b => b.status !== "dissolved");
+$("stats").append(...[["Your businesses", String(live.length)], ["Active", String(live.filter(b => standing(b).code === "active").length)], ["Need attention", String(live.filter(b => ["past-due", "admin-dissolved"].includes(standing(b).code)).length)], ["Open filings", String(cases.filter(r => OPEN.includes(r.status)).length)]]
+  .map(([a, b]) => el("div", { class: "stat" }, el("span", { text: a }), el("b", { text: b }))));
+
+/* One form for registering, amending, and filing a report. mode: register | amend | report | reinstate */
+function form(mode, b, onDone) {
+  const wrap = el("div", { class: "fx" }), msg = el("span", { class: "empty" });
+  const typeSel = el("select", {}, Object.entries(TYPES).map(([k, t]) => el("option", { value: k, text: t.t + " (" + money(t.fee) + ")" })));
+  const name = el("input", { maxlength: "80", autocomplete: "off", value: b ? b.name : "" });
+  const desc = el("textarea", { rows: "2", maxlength: "300", placeholder: "What the business does." }); desc.value = b ? (b.description || "") : "";
+  const agent = el("input", { inputmode: "numeric", maxlength: "20", autocomplete: "off", value: b ? (b.agent || pin) : pin });
+  const owners = el("input", { autocomplete: "off", placeholder: "PINs separated by commas", value: b ? (b.owners || []).filter(x => x !== pin).join(", ") : "" });
+  const operating = el("input", { type: "checkbox", checked: "" }), sure = el("input", { type: "checkbox" });
+  const hint = el("small", { class: "empty" }), fee = el("div", { class: "alert" });
+  const f = (l, c, h) => el("div", { class: "fld" }, el("label", { text: l }), c, h || "");
+  const typeKey = () => mode === "register" ? typeSel.value : b.type;
+  const refresh = () => {
+    const T = TYPES[typeKey()], st = b ? standing(b) : null; hint.textContent = mode === "reinstate" ? "" : T.hint;
+    if (mode === "register") fee.textContent = "Filing fee: " + money(T.fee) + ". " + (T.report ? "An annual report (" + money(T.reportFee) + ") is due every year." : "No annual report is required.");
+    else if (mode === "report") fee.textContent = "Annual report fee: " + money(T.reportFee) + (st && st.late > 0 ? " plus a " + money(LATE_FEE) + " late fee (" + st.late + " days late)." : ". Your next report will be due " + longDay(plusYear(b.dueDate)) + ".");
+    else if (mode === "reinstate") fee.textContent = "To reinstate, you pay the missed report fee (" + money(T.reportFee) + ") plus a " + money(LATE_FEE) + " late fee. Your business returns to Active and the next report is due one year after approval.";
+    else fee.textContent = "There is no fee to amend your details.";
+  };
+  typeSel.addEventListener("change", refresh);
+  const go = el("button", { class: "btn2", type: "button", text: { register: "Submit registration", amend: "Submit amendment", report: "File annual report", reinstate: "Request reinstatement" }[mode] });
+  const cancel = el("button", { class: "btn2 s", type: "button", text: "Cancel" }); cancel.addEventListener("click", () => wrap.remove());
+  wrap.append(
+    ...(mode === "register" ? [f("Business type", typeSel)] : []),
+    f("Business name", name, hint), f("What the business does", desc),
+    el("div", { class: "two" }, f("Registered agent (PIN)", agent), f("Other owners or officers (PINs)", owners)),
+    ...(mode === "report" ? [el("label", { class: "chk" }, operating, "The business is still operating.")] : []), fee,
+    el("label", { class: "chk" }, sure, "I confirm this information is true and I understand the fee."), go, " ", ...(mode === "register" ? [] : [cancel]), " ", msg);
+  if (mode === "report" || mode === "reinstate") name.disabled = true;
+  refresh();
+  go.addEventListener("click", async () => {
+    const key = typeKey(), T = TYPES[key], nm = clean(name.value), others = parsePins(owners.value), ag = agent.value.trim();
+    const all = [...new Set([pin, ...others])];
+    const bad = (!/^\d{4,20}$/.test(ag) && "The registered agent has to be a PIN.") || others.find(x => !/^\d{4,20}$/.test(x)) && "Owners are listed by PIN, numbers only."
+      || (mode !== "report" && mode !== "reinstate" && nameProblem(key, nm)) || (all.length < T.min && "A " + T.t.toLowerCase() + " needs at least " + T.min + " owners or partners, including you.")
+      || (all.length > T.max && "A " + T.t.toLowerCase() + " can have at most " + T.max + " owners.") || (!sure.checked && "Tick the box to confirm.") || (mode === "report" && !operating.checked && "If the business is not operating, dissolve it instead.");
+    if (bad) { msg.textContent = " " + bad; return; }
+    go.disabled = true; msg.textContent = " Checking...";
+    try {
+      if (mode === "register" || (mode === "amend" && !sameName(nm, b.name))) {
+        const taken = (await getDocs(query(collection(db, "businesses"), where("status", "==", "active"), limit(1000)))).docs.map(d => d.data()).find(x => x.type === key && sameName(x.name, nm) && !(b && x.name === b.name));
+        if (taken) { msg.textContent = " That name is already used by an active " + T.t.toLowerCase() + "."; go.disabled = false; return; }
+      }
+      const base = { name: nm, description: clean(desc.value).slice(0, 300), agent: ag, owners: all };
+      if (mode === "register") { await fileCase(ctx, "business.registration", "Register: " + nm, { ...base, typeKey: key, typeLabel: T.t, fee: T.fee.toFixed(2) }, "lara"); }
+      else if (mode === "amend") { await fileCase(ctx, "business.amendment", "Amend: " + b.name, { ...base, businessId: b.id, oldName: b.name, fee: "0.00" }, "lara"); }
+      else { const st = standing(b), owed = (T.reportFee + (st.late > 0 ? LATE_FEE : 0)).toFixed(2);
+        await fileCase(ctx, mode === "report" ? "business.annual-report" : "business.reinstatement", (mode === "report" ? "Annual report: " : "Reinstate: ") + b.name,
+          { ...base, name: b.name, businessId: b.id, fee: owed, late: st.late > 0 ? st.late : 0 }, "lara"); }
+      msg.textContent = " Filed. The Division will review it."; setTimeout(() => location.reload(), 900);
+    } catch (e) { console.error(e); msg.textContent = " Could not file. Try again."; go.disabled = false; }
+  });
+  return wrap;
+}
+
+/* ---- your businesses ---- */
+const box = $("mine");
+if (!mine.length) box.append(el("div", { class: "empty", text: "You do not own a registered business yet. Register one below." }));
+mine.sort((a, b) => String(a.name).localeCompare(String(b.name))).forEach(b => {
+  const T = TYPES[b.type] || { t: b.typeLabel || b.type, report: false }, st = standing(b), pend = openFor(b.id), dis = st.code === "dissolved";
+  const row = (k, v) => [el("dt", { text: k }), el("dd", { text: v })];
+  const card = el("div", { class: "bz" });
+  const acts = el("div", { class: "acts" });
+  const add = (label, mode, primary) => { const x = el("button", { class: primary ? "btn2" : "btn2 s", type: "button", text: label }); x.addEventListener("click", () => { card.querySelectorAll(".fx").forEach(n => n.remove()); card.append(form(mode, b)); }); acts.append(x); };
+  if (!dis && !pend) {
+    if (st.code === "admin-dissolved") add("Request reinstatement", "reinstate", true);
+    else { if (T.report) { const opens = isoDay(new Date(new Date(b.dueDate + "T00:00:00").getTime() - EARLY_DAYS * 864e5)); if (today >= opens) add("File annual report", "report", true); }
+      add("Amend details", "amend", false); }
+    if (st.code !== "admin-dissolved") { const d = el("button", { class: "btn2 s", type: "button", text: "Dissolve" }); d.addEventListener("click", () => dissolve(b, card)); acts.append(d); }
+  }
+  card.append(el("div", { class: "top" }, el("div", {}, el("h3", { text: b.name }), el("small", { text: T.t })), el("span", { class: "pill " + st.cls, text: st.label })),
+    el("dl", {}, ...row("Registered", b.registeredAt ? longDay(String(b.registeredAt).slice(0, 10)) : "Not set"),
+      ...(T.report ? row("Annual report due", longDay(b.dueDate) + (st.late > 0 ? " (" + st.late + " days late)" : "")) : row("Annual report", "Not required")),
+      ...row("Registered agent", "PIN " + (b.agent || "")), ...row("Owners", (b.owners || []).map(p => "PIN " + p).join(", ")), ...(b.description ? row("Description", b.description) : [])));
+  if (st.code === "past-due") card.append(el("div", { class: "alert warn" }, el("b", { text: "Your annual report is past due. " }), "File it by " + longDay(isoDay(new Date(new Date(b.dueDate + "T00:00:00").getTime() + 30 * 864e5))) + " or the business will be administratively dissolved."));
+  if (st.code === "admin-dissolved") card.append(el("div", { class: "alert warn" }, el("b", { text: "This business was administratively dissolved. " }), "Its good standing is lost and its name can be registered by someone else. Request reinstatement to restore it."));
+  if (pend) card.append(el("div", { class: "alert" }, "A filing is already under review: " + pend.title + "."));
+  card.append(acts); box.append(card);
+});
+function dissolve(b, card) {
+  card.querySelectorAll(".fx").forEach(n => n.remove());
+  const sure = el("input", { type: "checkbox" }), go = el("button", { class: "btn2", type: "button", text: "Request dissolution" }), msg = el("span", { class: "empty" });
+  card.append(el("div", { class: "fx" }, el("div", { class: "alert warn" }, "Dissolving closes the business. It stops being active and no annual report is needed. This cannot be undone, though you can register again."), el("label", { class: "chk" }, sure, "I want to dissolve " + b.name + "."), go, " ", msg));
+  go.addEventListener("click", async () => { if (!sure.checked) { msg.textContent = " Tick the box to confirm."; return; } go.disabled = true;
+    try { await fileCase(ctx, "business.dissolution", "Dissolve: " + b.name, { businessId: b.id, name: b.name, fee: "0.00" }, "lara"); msg.textContent = " Filed. The Division will review it."; setTimeout(() => location.reload(), 900); }
+    catch (e) { console.error(e); msg.textContent = " Could not file."; go.disabled = false; } });
+}
+
+/* ---- register ---- */
+$("reg").append(form("register", null));
+
+/* ---- filings ---- */
+const fl = $("filings");
+if (!cases.length) fl.append(el("div", { class: "empty", text: "You have not filed anything yet." }));
+cases.forEach(r => { const act = OPEN.includes(r.status), res = r.result || "";
+  fl.append(el("div", {}, el("div", {}, el("b", { text: r.title }), el("small", { text: "Filed " + when(r.createdAt) })), el("div", { class: "r" }, el("span", { class: "pill " + (res === "approved" ? "g" : act ? "o" : "n"), text: act ? (r.status === "open" ? "Submitted" : "Under review") : cap(res || r.status) })))); });
+</script>
+</body>
+</html>
