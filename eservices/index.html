@@ -3,35 +3,52 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SOS e-Services | Michigan Secretary of State</title>
+<title>SOS e-Services Sign In | Michigan Secretary of State</title>
 <link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://migovt.org/sos/shared.css">
-</head>
+<style>
+.lg{min-height:calc(100vh - 300px);display:grid;place-items:center;padding:56px 20px;background:radial-gradient(1000px 420px at 50% -80px,#d9f0f2,transparent),linear-gradient(180deg,#f3fafb,#fff)}
+.lgc{width:100%;max-width:440px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:38px 34px 30px;box-shadow:0 24px 60px rgba(14,124,134,.14);text-align:center}
+.lgc .mk{width:56px;height:56px;border-radius:16px;background:var(--teal);display:grid;place-items:center;margin:0 auto 18px}
+.lgc .mk svg{width:30px;height:30px}
+.lgc .ey{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--teal)}
+.lgc h1{font-size:28px;letter-spacing:-.02em;margin:6px 0 8px}
+.lgc p{color:var(--muted);font-size:15.5px;line-height:1.55;margin:0}
+.lgc .go{display:block;width:100%;margin:26px 0 0;padding:15px 20px;border-radius:12px;background:var(--teal);color:#fff;font-weight:700;font-size:16px;border:0;cursor:pointer;text-align:center}
+.lgc .go:hover{background:var(--teal2)}
+.lgc .or{display:flex;align-items:center;gap:12px;margin:22px 0 14px;color:#8aa0a6;font-size:13px}
+.lgc .or:before,.lgc .or:after{content:"";flex:1;height:1px;background:var(--line)}
+.lgc .how{text-align:left;font-size:14px;color:var(--muted);background:#f3fafb;border-radius:12px;padding:14px 16px;line-height:1.55}
+.lgc .how b{color:var(--ink)}
+.lgc .sub{margin-top:20px;font-size:13.5px;color:var(--muted)}
+.lgc .sub a{color:var(--teal2);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.lgc .chk{margin-top:14px;font-size:14px;color:var(--teal2);font-weight:600}
+</style></head>
 <body>
 <script src="https://migovt.org/sos/partials.js" data-part="header"></script>
-<section class="phead"><div class="in"><div class="crumbs"><a href="https://migovt.org/sos/">Home</a><span>/</span><b>SOS e-Services</b></div><h1>SOS e-Services</h1><p>Your online portal for Secretary of State services. Sign in with your MiGOVT account to get started.</p><div class="acts"><a class="btn2 " href="https://migovt.org/login/?redirect_uri=https%3A%2F%2Fmigovt.org%2Fsos%2Feservices%2Fhome%2F&site_name=SOS%20e-Services">Login with MiGOVT</a></div></div></section>
-<div class="pg"><div class="prose">
-<h2>How sign-in works</h2>
-<ol class="steps">
-<li><b>Choose Login with MiGOVT</b>You are sent to MiGOVT Login, the single sign-in used across Michigan services.</li>
-<li><b>Sign in</b>Use Roblox, Discord, Google, or your email and password.</li>
-<li><b>Your account is created for you</b>The first time you sign in, SOS e-Services creates your account automatically. There is nothing else to fill out.</li></ol>
-<h2>What you can do in e-Services</h2>
-<ul><li>Take your driver's, motorcycle, and chauffeur's tests online</li><li>Contest points added to your driving record</li><li>Manage licenses, vehicles, vital records, and business filings as these services open</li></ul>
-<div class="note">Your name, PIN, and date of birth come from your MiGOVT account, which pulls them from the Department of State's vital records.</div>
-<p id="status" style="color:var(--muted)" hidden>Signing you in...</p>
 
+<main class="lg"><div class="lgc">
+<div class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+<div class="ey">Michigan Secretary of State</div>
+<h1>SOS e-Services</h1>
+<p>Sign in to take tests, manage your license, and use other Department services online.</p>
+<a class="go" id="go" href="https://migovt.org/login/?redirect_uri=https%3A%2F%2Fmigovt.org%2Fsos%2Feservices%2Fhome%2F&site_name=SOS%20e-Services">Login with MiGOVT</a>
+<div class="chk" id="status" hidden>Signing you in...</div>
+<div class="or">One account for all of Michigan</div>
+<div class="how"><b>New here?</b> Your SOS e-Services account is created automatically the first time you sign in. You do not need to fill anything out.</div>
+<div class="sub">No MiGOVT account? <a href="https://migovt.org/signup/">Create one</a></div>
+</div></main>
 <script>
 (function(){
   var HOME="https://migovt.org/sos/eservices/home/";
   try{
     if(location.search.indexOf("mipass_pin=")>-1){location.replace(HOME+location.search);return}
     var o=JSON.parse(localStorage.getItem("sos_session")||"null");
-    if(o&&o.pin&&o.exp>Date.now()){var s=document.getElementById("status");if(s)s.hidden=false;location.replace(HOME)}
+    if(o&&o.pin&&o.exp>Date.now()){document.getElementById("status").hidden=false;location.replace(HOME)}
   }catch(e){}
 })();
-</script></div><aside class="side"><div class="card cta"><h3>Sign in</h3><p>Use your MiGOVT account to continue.</p><a class="btn2 " href="https://migovt.org/login/?redirect_uri=https%3A%2F%2Fmigovt.org%2Fsos%2Feservices%2Fhome%2F&site_name=SOS%20e-Services">Login with MiGOVT</a></div><div class="card"><h3>Helpful pages</h3><div class="kv"><div><a href="https://migovt.org/sos/licenses/">Licenses &amp; IDs</a></div><div><a href="https://migovt.org/sos/licenses/testing/">Online testing</a></div><div><a href="https://migovt.org/sos/vital-records/">Vital Records</a></div></div></div></aside></div>
+</script>
 <script src="https://migovt.org/sos/partials.js" data-part="footer"></script>
 </body>
 </html>
