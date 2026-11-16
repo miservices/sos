@@ -203,7 +203,15 @@ function detailRows(r) {
   const d = r.detail && typeof r.detail === "object" ? r.detail : {};
   const order = r.type && r.type.startsWith("business.") ? ["name", "tradeName", "typeLabel", "industry", "description", "address", "website", "discord", "owners", "agent", "certified", "signature", "fee", "late", "oldName", "businessId"] : [];
   const keys = [...order.filter(k => k in d), ...Object.keys(d).filter(k => !order.includes(k) && k !== "typeKey")];
-  return keys.map(k => [DETAIL_LABELS[k] || cap(String(k).replace(/([A-Z])/g, " $1").toLowerCase()), detailValue(k, d[k])]).filter(([, v]) => v !== "");
+  return keys.map(k => [DETAIL_LABELS[k] || cap(String(k).replace(/([A-Z])/g, " $1").toLowerCase()), detailValue(k, d[k]), k]).filter(([, v]) => v !== "");
+}
+/* Groups the rows under headings so a long filing reads as sections, not one endless list. */
+const BIZ_GROUPS = [["Business", ["name", "tradeName", "typeLabel", "industry", "description", "oldName"]], ["Address and contact", ["address", "website", "discord"]], ["People", ["owners", "agent"]], ["Certification", ["certified", "signature"]], ["Fees", ["fee", "late"]]];
+function detailGroups(r) {
+  const rows = detailRows(r); if (!rows.length) return [];
+  if (!(r.type && r.type.startsWith("business."))) return [["Details", rows]];
+  const used = new Set(), out = BIZ_GROUPS.map(([t, ks]) => [t, rows.filter(x => ks.includes(x[2]) && used.add(x[2]))]).filter(([, g]) => g.length);
+  const rest = rows.filter(x => !used.has(x[2]) && x[2] !== "businessId"); if (rest.length) out.push(["Other", rest]); return out;
 }
 
 /* Approving a business filing creates or updates the business record at businesses/{id}. Fees are charged once. */
@@ -344,6 +352,9 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
     Object.assign(r, { status, result, assignee: up.assignee ?? r.assignee, assigneeName: up.assigneeName ?? r.assigneeName, notes: nn ? [...(Array.isArray(r.notes) ? r.notes : []), nn] : r.notes, updatedAt: Date.now() });
   }
 
+  const VERBS = { Approve: "approved", Deny: "denied", Uphold: "upheld", Overturn: "overturned", Dismiss: "dismissed" };
+  const doneFor = (r, label) => { const who = r.name || "PIN " + r.pin, verb = VERBS[label]; return { title: verb ? "Case " + verb : "Case updated", body: r._warn || (verb ? typeLabel(r.type) + " for " + who + " was " + verb + ". They have been notified." : "Your change was saved. " + who + " is notified of any status change.") }; };
+
   /* The buttons that make sense for this case right now. */
   function actionsFor(r) {
     const h = r.bureau === "hearings", a = [];
@@ -368,7 +379,8 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
           e.stopPropagation();
           if (v.ok && !confirm(label + " this case for " + (r.name || "PIN " + r.pin) + "?")) return;
           b.disabled = true;
-          try { await act(r, v); if (r._warn) alert(r._warn); draw(); if (panel.firstChild) detail(r); } catch (err) { console.error(err); b.disabled = false; b.textContent = "Failed"; }
+          const ok = await submit({ working: "Saving", reload: false, work: () => act(r, v), done: () => doneFor(r, label) });
+          if (ok) { draw(); if (panel.firstChild) detail(r); } else b.disabled = false;
         });
         qa.append(b);
       });
@@ -385,30 +397,32 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
   }
 
   function detail(r) {
-    const canWork = canWorkOn(r);
-    const box = el("div", { class: "pc detail" }, el("h3", { text: typeLabel(r.type) + ": " + (r.title || "") }),
-      el("p", { class: "sub", text: (r.name || "PIN " + r.pin) + " | Opened " + when(r.createdAt) + " | " + (BUREAUS[r.bureau] || "") + " | " + (mineOf(r) ? "Assigned to you" : r.assigneeName ? "Assigned to " + r.assigneeName : "Unassigned") }),
-      el("p", {}, el("span", { class: "pill " + statusClass(r), text: stateText(r) })));
-    if (r._warn) box.append(el("div", { class: "alert", text: r._warn }));
-    const det = detailRows(r);
-    if (det.length) { const kv = el("div", { class: "kv2" }); det.forEach(([k, v]) => kv.append(el("div", {}, el("span", { text: k }), el("b", { text: v, style: "white-space:pre-line" })))); box.append(kv); }
-    box.append(el("h4", { class: "grp-h", text: "Notes" }));
+    const canWork = canWorkOn(r), who = r.name || "PIN " + r.pin;
+    const box = el("div", { class: "pc detail cs" });
+    const closeBtn = el("button", { class: "btn2 s", type: "button", text: "Close" }); closeBtn.addEventListener("click", () => panel.replaceChildren());
+    box.append(el("div", { class: "cs-head" }, el("div", {}, el("div", { class: "cs-eb" }, typeLabel(r.type), el("span", { class: "pill " + statusClass(r), text: stateText(r) })), el("h3", { text: r.title || typeLabel(r.type) })), closeBtn));
+    box.append(el("div", { class: "cs-chips" }, el("span", {}, el("small", { text: "Person" }), who + " (PIN " + r.pin + ")"), el("span", {}, el("small", { text: "Opened" }), when(r.createdAt)),
+      el("span", {}, el("small", { text: "Bureau" }), BUREAUS[r.bureau] || "None"), el("span", {}, el("small", { text: "Assigned to" }), mineOf(r) ? "You" : r.assigneeName || "Nobody yet")));
+    if (r._warn) box.append(el("div", { class: "alert warn", text: r._warn }));
+    const main = el("div", { class: "cs-main" }), side = el("div", { class: "cs-side" });
+    detailGroups(r).forEach(([title, items]) => { const g = el("div", { class: "dgrid" });
+      items.forEach(([k, v]) => g.append(el("div", { class: "dk" + (v.length > 44 || v.includes("\n") ? " wide" : "") }, el("small", { text: k }), el("div", { class: "dv", text: v }))));
+      main.append(el("h4", { class: "cs-h", text: title }), g); });
+    main.append(el("h4", { class: "cs-h", text: "Notes" }));
     const notes = Array.isArray(r.notes) ? r.notes : [];
-    if (!notes.length) box.append(el("div", { class: "empty", text: "No notes yet." }));
-    notes.forEach(n => box.append(el("div", { class: "notice" }, el("b", { text: n.name || "Staff" }), el("span", { text: n.text }), el("small", { class: "empty", text: " " + when(n.at) }))));
+    if (!notes.length) main.append(el("div", { class: "empty", text: "No notes yet." }));
+    notes.forEach(n => main.append(el("div", { class: "cs-note" }, el("div", {}, el("b", { text: n.name || "Staff" }), el("small", { text: when(n.at) })), el("p", { text: n.text }))));
     if (canWork) {
       const note = el("textarea", { rows: "3", placeholder: "Add a note (optional). It is saved with whichever button you press.", "aria-label": "Note" });
       const msg = el("div", { class: "empty" });
       const run = async (label, v, btn) => {
-        if (v.ok && !confirm(label + " this case for " + (r.name || "PIN " + r.pin) + "?")) return;
+        if (v.ok && !confirm(label + " this case for " + who + "?")) return;
         box.querySelectorAll("button").forEach(b => b.disabled = true); msg.textContent = "";
-        const who = r.name || "PIN " + r.pin, verb = { Approve: "approved", Deny: "denied", Uphold: "upheld", Overturn: "overturned", Dismiss: "dismissed" }[label];
-        const ok = await submit({ working: "Saving", reload: false, work: () => act(r, { ...v, note: note.value }),
-          done: () => ({ title: verb ? "Case " + verb : "Case updated", body: r._warn || (verb ? typeLabel(r.type) + " for " + who + " was " + verb + ". They have been notified." : "Your change was saved and " + who + " has been notified of any status change.") }) });
+        const ok = await submit({ working: "Saving", reload: false, work: () => act(r, { ...v, note: note.value }), done: () => doneFor(r, label) });
         if (ok) { draw(); detail(r); } else box.querySelectorAll("button").forEach(b => b.disabled = false);
       };
-      const qa = el("div", { class: "bar" });
-      actionsFor(r).forEach(([label, v]) => { const b = el("button", { class: "btn2" + (v.ok ? "" : " s"), type: "button", text: label }); b.addEventListener("click", () => run(label, v, b)); qa.append(b); });
+      const qa = el("div", { class: "cs-acts" });
+      actionsFor(r).forEach(([label, v]) => { const b = el("button", { class: "btn2" + (v.ok && label === "Approve" ? "" : " s") + (label === "Deny" || label === "Overturn" ? " deny" : ""), type: "button", text: label }); b.addEventListener("click", () => run(label, v, b)); qa.append(b); });
       const st = el("select", { id: "cs" }, statusesFor(r.bureau).map(s => el("option", { value: s, text: STATUS[s] }))); st.value = r.status;
       const rs = el("select", { id: "cr" }, [el("option", { value: "", text: "No result yet" }), ...resultsFor(r.bureau).map(x => el("option", { value: x, text: RESULT[x] }))]); rs.value = r.result || "";
       if (r.result && !resultsFor(r.bureau).includes(r.result)) rs.append(el("option", { value: r.result, text: RESULT[r.result] || cap(r.result) })), rs.value = r.result;
@@ -418,17 +432,12 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
       const mine = el("input", { type: "checkbox", id: "ca" }); mine.checked = true;
       const save = el("button", { class: "btn2 s", type: "button", text: "Save changes" });
       save.addEventListener("click", () => { if (st.value === "closed" && !rs.value) { msg.textContent = "Pick a result to close this case."; return; } run("Save", { status: st.value, result: rs.value, take: mine.checked, release: !mine.checked }, save); });
-      box.append(el("h4", { class: "grp-h", text: "Work this case" }),
-        el("div", { class: "fld" }, el("label", { text: "Note" }), note),
-        el("div", { class: "fld" }, el("label", { text: "Quick actions" }), qa),
-        el("p", { class: "empty", text: "Any action assigns this case to you" + (r.assignee && !mineOf(r) ? " (it is currently with " + (r.assigneeName || "someone else") + ")" : "") + "." }),
-        el("h4", { class: "grp-h", text: "Set manually" }),
-        el("div", { class: "bar" }, el("div", { class: "fld" }, el("label", { for: "cs", text: "Status" }), st), el("div", { class: "fld" }, el("label", { for: "cr", text: "Result" }), rs)),
-        el("div", { class: "fld" }, el("label", { for: "ca" }, mine, " Assign to me")),
-        save, msg);
-    } else box.append(el("div", { class: "empty mt", text: "You can view this case but not change it." }));
-    const close = el("button", { class: "btn2 s mt", type: "button", text: "Close panel" }); close.addEventListener("click", () => panel.replaceChildren());
-    box.append(el("p", {}, close));
+      side.append(el("div", { class: "decide" }, el("h4", { class: "cs-h first", text: "Decision" }), el("div", { class: "fld" }, el("label", { text: "Note" }), note), qa,
+        el("p", { class: "empty", text: "Any action assigns this case to you" + (r.assignee && !mineOf(r) ? " (it is with " + (r.assigneeName || "someone else") + " now)" : "") + "." }),
+        el("details", {}, el("summary", { text: "Set status manually" }), el("div", { class: "fld" }, el("label", { for: "cs", text: "Status" }), st), el("div", { class: "fld" }, el("label", { for: "cr", text: "Result" }), rs),
+          el("label", { class: "chk", for: "ca" }, mine, " Assign to me"), save), msg));
+    } else side.append(el("div", { class: "decide" }, el("div", { class: "empty", text: "You can view this case but not change it." })));
+    box.append(el("div", { class: "cs-grid" }, main, side));
     panel.replaceChildren(box); box.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
   sel.addEventListener("change", () => { state.filter = sel.value; draw(); });

@@ -24,6 +24,7 @@
 </div>
 <script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
 <script type="module">
+import { submit } from "https://migovt.org/sos/eservices/assets/feedback.js";
 import { bootStaff, $, el, cap, when, BUREAUS, ROLE_LABELS, getAccount, getPerson, saveAccount, listStaff, STAFF_ROLES, PERM_LABELS, getRecord, setRecordStatus, statusOf, STATUSES, audit } from "https://migovt.org/sos/eservices/assets/staff.js";
 const ctx = await bootStaff({ page: "accounts", cap: "accounts.manage" });
 const PERMS = Object.keys(PERM_LABELS);
@@ -48,13 +49,12 @@ async function load(pin) {
       const perms = [...checks.querySelectorAll("input:checked")].map(c => c.value); const np = newp.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, ""); if (np && !perms.includes(np)) perms.push(np);
       const f = { bureau: role.value === "basic" ? "" : bur.value, division: role.value === "basic" ? "" : div.value.trim(), specialPermissions: perms };
       if (ctx.can("accounts.roles")) f.role = role.value;
-      save.disabled = true; out.textContent = " Saving...";
-      try {
+      save.disabled = true; out.textContent = "";
+      const ok = await submit({ working: "Saving the account", reload: false, work: async () => {
         await saveAccount(ctx, pin, f);
-        if (rec && cit.value !== curStatus) { await setRecordStatus(pin, cit.value); await audit(ctx, "status.update", pin, curStatus + " to " + cit.value); }
-        out.textContent = " Saved."; loadStaff();
-      } catch (er) { console.error(er); out.textContent = " Could not save. Check the Firestore rules."; }
-      save.disabled = false;
+        if (rec && cit.value !== curStatus) { await setRecordStatus(pin, cit.value); await audit(ctx, "status.update", pin, curStatus + " to " + cit.value); } },
+        done: { title: "Account saved", body: "The changes to " + ((p && p.name) || "PIN " + pin) + " were saved." } });
+      save.disabled = false; if (ok) loadStaff();
     });
     $("ed").replaceChildren(el("div", { class: "pc detail" }, el("h2", { text: (p && p.name) || "PIN " + pin }), el("p", { class: "sub", text: "PIN " + pin + (ctx.can("accounts.roles") ? "" : " | Only a System Administrator can change roles") }),
       el("div", { class: "fld" }, el("label", { for: "cit", text: "Citizenship status" }), cit, el("small", { class: "empty", text: rec ? "Saved on the person's vital record." : "No vital record for this PIN, so the status cannot be set." })), el("div", { class: "fld" }, el("label", { for: "role", text: "Role" }), role), el("div", { class: "fld" }, el("label", { for: "bur", text: "Bureau" }), bur), el("div", { class: "fld" }, el("label", { for: "div", text: "Division" }), div),
