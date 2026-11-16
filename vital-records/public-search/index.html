@@ -29,14 +29,15 @@
 <p>Look up a person by PIN, name, date of birth, or city of birth. Fill in any of the boxes. Everything you enter has to match. You can then open a result to see their details, including their name change history.</p>
 <div id="gate"></div>
 <div id="app" hidden>
-<form id="f"><div class="fm3">
+<div id="sv"><form id="f"><div class="fm3">
 <div><label for="q-pin">PIN</label><input id="q-pin" inputmode="numeric" maxlength="20" autocomplete="off"></div>
 <div><label for="q-first">First name</label><input id="q-first" maxlength="40" autocomplete="off"></div>
 <div><label for="q-last">Last name</label><input id="q-last" maxlength="40" autocomplete="off"></div>
 <div><label for="q-dob">Date of birth</label><input id="q-dob" type="date"></div>
 <div><label for="q-city">City of birth</label><input id="q-city" maxlength="60" autocomplete="off"></div>
 <div style="align-self:end"><button class="btn2" type="submit" style="border:0;cursor:pointer">Search</button></div></div></form>
-<div id="out"></div><div id="detail"></div>
+<div id="out"></div></div>
+<div id="detail"></div>
 </div>
 <div class="note warn"><b>People are told when they are looked up.</b> Two different entries appear in a person's history: one when they show up in your search results, and a separate one when you open their result. Both show your name.</div>
 <h2>What you can see</h2>
@@ -59,9 +60,12 @@ const namesOf = p => [p, ...previousNamesOf(p)].map(n => ({ first: norm(n.first 
 
 /* ---- sign in: every lookup is recorded under the searcher's name ---- */
 const gate = $("gate");
-async function start() { ctx = await boot({ page: "public-search" }); gate.hidden = true; $("app").hidden = false; }
+async function start() { ctx = await boot({ page: "public-search" }); gate.hidden = true; $("app").hidden = false;
+  try { const k = sessionStorage.getItem("ps_pin"); if (k && !location.hash) { sessionStorage.removeItem("ps_pin"); location.hash = k; } } catch {}
+  route(); }
 if (loadSession() || new URLSearchParams(location.search).has("mipass_pin")) await start();
-else gate.append(el("div", { class: "res" }, el("b", { text: "Sign in to search" }), "Searches are recorded under your name, so you have to sign in with your MiGOVT account first. ", el("br"), el("a", { class: "btn2", href: loginUrl(), text: "Sign in with MiGOVT", style: "margin-top:10px;display:inline-block" })));
+else { try { if (location.hash.length > 1) sessionStorage.setItem("ps_pin", location.hash.slice(1)); } catch {}
+ gate.append(el("div", { class: "res" }, el("b", { text: "Sign in to search" }), "Searches are recorded under your name, so you have to sign in with your MiGOVT account first. ", el("br"), el("a", { class: "btn2", href: loginUrl(), text: "Sign in with MiGOVT", style: "margin-top:10px;display:inline-block" }))); }
 
 async function everyone() {
   if (people) return people;
@@ -69,7 +73,18 @@ async function everyone() {
   return people = s.docs.map(d => ({ pin: d.id, ...d.data() }));
 }
 const me = () => ({ pin: ctx.id.pin, name: ctx.id.name, kind: "person" });
-const seen = new Set(), opened = new Set();
+const seen = new Set(), opened = new Set(), cache = {};
+window.addEventListener("hashchange", () => { if (ctx) route(); });
+async function route() {
+  const pin = decodeURIComponent(location.hash.slice(1)).trim(), sv = $("sv"), box = $("detail");
+  if (!/^\d{4,20}$/.test(pin)) { sv.hidden = false; box.replaceChildren(); return; }
+  sv.hidden = true; box.replaceChildren(el("div", { class: "empty", text: "Opening..." })); window.scrollTo(0, 0);
+  let p = cache[pin];
+  try { p = p || await getRecord(pin); } catch (er) { console.error(er); }
+  if (!p) { box.replaceChildren(back(), el("div", { class: "empty", text: "No record was found for PIN " + pin + "." })); return; }
+  open(p);
+}
+function back() { const a = el("a", { class: "btn2 s", href: "#", text: "Back to search", style: "display:inline-block;margin-bottom:6px" }); a.addEventListener("click", e => { e.preventDefault(); location.hash = ""; }); return a; }
 
 $("f").addEventListener("submit", async e => {
   e.preventDefault(); const out = $("out"); $("detail").replaceChildren();
@@ -87,7 +102,7 @@ $("f").addEventListener("submit", async e => {
     if (!hits.length) return msg("No one matched. Check what you entered, or try fewer boxes.");
     out.append(el("p", { class: "sub", text: hits.length + (hits.length === 25 ? "+ results" : hits.length === 1 ? " result" : " results") }));
     hits.forEach(p => {
-      const b = el("button", { class: "btn2 s", type: "button", text: "View details" }); b.addEventListener("click", () => open(p));
+      const b = el("button", { class: "btn2 s", type: "button", text: "View details" }); b.addEventListener("click", () => { cache[p.pin] = p; location.hash = p.pin; });
       out.append(el("div", { class: "sr" }, el("div", {}, el("b", { text: fullName(p) }), el("small", { text: "PIN " + p.pin + " | Born " + recordDate(p.dob) + (p.cityOfBirth ? " in " + p.cityOfBirth : "") })), b));
       if (p.pin !== String(ctx.id.pin) && !seen.has(p.pin)) { seen.add(p.pin); logAccess(p.pin, "search", me()); }
     });
@@ -95,12 +110,12 @@ $("f").addEventListener("submit", async e => {
 });
 
 async function open(p) {
-  const box = $("detail"); box.replaceChildren(el("div", { class: "empty", text: "Opening..." })); box.scrollIntoView({ behavior: "smooth" });
+  const box = $("detail");
   if (p.pin !== String(ctx.id.pin) && !opened.has(p.pin)) { opened.add(p.pin); logAccess(p.pin, "open", me()); }
   const row = (k, v) => [el("dt", { text: k }), el("dd", { text: v })];
   const place = [p.cityOfBirth, p.countyOfBirth ? p.countyOfBirth + " County" : "", p.stateOfBirth].filter(Boolean).join(", ");
   const d = el("div", { class: "dt" }, el("h3", { text: fullName(p) }), el("dl", {}, ...row("PIN", p.pin), ...row("Date of birth", recordDate(p.dob)), ...row("Born in", place || "Not on file"), ...row("Citizenship status", statusOf(p)), ...row("Name at birth", birthNameOf(p))));
-  box.replaceChildren(d);
+  box.replaceChildren(back(), d);
   const prev = previousNamesOf(p);
   d.append(el("h3", { text: "Name history" }));
   if (!prev.length) d.append(el("p", { text: "This person has not changed their name." }));
