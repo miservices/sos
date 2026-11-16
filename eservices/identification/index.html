@@ -34,8 +34,8 @@
   <div class="pc" id="info"><h2>Your information</h2><div class="kv2" id="kv"></div>
     <p class="mt sub">Contact details come from your MiGOVT account, which you manage at <a href="https://migovt.org/account/" style="text-decoration:underline">migovt.org/account</a>.</p></div>
 
-  <div class="pc mt" id="name-change"><h2>Change your name</h2>
-    <p class="sub">You can change your name for any reason. Your current name is filled in below. Edit any part and the fee updates. Your <b>date of birth can never be changed</b>.</p>
+  <div class="pc mt" id="name-change"><h2>Apply for a name change</h2>
+    <p class="sub">You can apply to change your name for any reason. Your current name is filled in below. Edit any part and the fee updates. The Department reviews each application, and you can have <b>only one open application at a time</b>. Your <b>date of birth can never be changed</b>.</p>
     <div class="three">
       <div class="fld"><label for="nf">First name</label><input id="nf" maxlength="40" autocomplete="off"></div>
       <div class="fld"><label for="nm">Middle name</label><input id="nm" maxlength="40" autocomplete="off"></div>
@@ -43,9 +43,10 @@
     </div>
     <div class="price"><b id="nfee">$0.00</b><span id="nsum">Change a name to see the fee.</span></div>
     <p class="sub">Fees: <b>$650.00</b> for one name, then <b>$500.00</b> for each additional name you change.</p>
-    <label class="chk"><input type="checkbox" id="nk"><span>I understand the fee is charged when I save, and that my date of birth cannot be changed.</span></label>
-    <button class="btn2" id="nsub" type="button">Save new name</button> <span class="empty" id="nmsg"></span>
-    <h3 class="grp-h">Previous name changes</h3>
+    <label class="chk"><input type="checkbox" id="nk"><span>I understand the fee is charged if my application is approved, and that my date of birth cannot be changed.</span></label>
+    <div id="nopen"></div>
+    <button class="btn2" id="nsub" type="button">Submit application</button> <span class="empty" id="nmsg"></span>
+    <h3 class="grp-h">Your name change applications</h3>
     <div class="rows" id="nhist"></div>
   </div>
 
@@ -66,7 +67,7 @@
 </div>
 <script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
 <script type="module">
-import { boot, el, $, cap, when, money, longDate, list, changeName, getRecord, statusOf, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { boot, el, $, cap, when, money, longDate, list, fileCase, myCases, getRecord, statusOf, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { showCertificate } from "https://migovt.org/sos/eservices/assets/certificate.js";
 
 /* Name change fees */
@@ -107,26 +108,43 @@ function preview() {
 }
 function fillName() { const c = current(); $("nf").value = c.first; $("nm").value = c.middle; $("nl").value = c.last; preview(); }
 ["nf", "nm", "nl"].forEach(k => $(k).addEventListener("input", preview));
+/* Only one application can be outstanding at a time. */
+let outstanding = null;
+const ACTIVE_ST = ["open", "in-review", "scheduled"];
+const stateOf = r => r.status === "open" ? "Submitted" : ACTIVE_ST.includes(r.status) ? "Under review" : (r.result || r.status) === "approved" ? "Approved" : (r.result || r.status) === "denied" ? "Denied" : (r.result === "withdrawn" ? "Withdrawn" : "Closed");
+const approved = r => (r.result || r.status) === "approved";
+async function checkOutstanding() {
+  const rows = (await myCases(ctx.id.pin, 100)).filter(r => r.type === "name.change");
+  outstanding = rows.find(r => ACTIVE_ST.includes(r.status)) || null;
+  return rows;
+}
+function lockForm() {
+  const on = !!outstanding;
+  ["nf", "nm", "nl", "nk", "nsub"].forEach(k => $(k).disabled = on);
+  $("nopen").replaceChildren(...(on ? [el("div", { class: "notice" }, el("b", { text: "You already have an application in progress." }), el("span", { text: " Submitted " + when(outstanding.createdAt) + ". You can apply again once it has been decided." }))] : []));
+}
 $("nsub").addEventListener("click", async () => {
   const msg = $("nmsg"), p = parts(), ch = changed(p);
   if (!okName(p.first) || !okName(p.last) || (p.middle && !okName(p.middle))) { msg.textContent = " Use letters, spaces, hyphens, and apostrophes only. First and last names are required."; return; }
   if (!ch.length) { msg.textContent = " Change at least one name."; return; }
   if (!$("nk").checked) { msg.textContent = " Check the box to confirm."; return; }
-  const fee = feeFor(ch.length);
-  $("nsub").disabled = true; msg.textContent = " Saving...";
+  const fee = feeFor(ch.length), to = [p.first, p.middle, p.last].filter(Boolean).join(" ");
+  $("nsub").disabled = true; msg.textContent = " Submitting...";
   try {
-    const name = await changeName(ctx, p, fee);
-    msg.textContent = " Saved. Your name is now " + name + ". " + money(fee) + " was charged.";
-    $("nk").checked = false; drawInfo(); fillName(); drawVital(); await drawHistory();
-  } catch (e) { console.error(e); msg.textContent = " Could not save the change. Try again."; }
-  $("nsub").disabled = false;
+    await checkOutstanding();
+    if (outstanding) { lockForm(); await drawHistory(); msg.textContent = " You already have an application in progress."; return; }
+    await fileCase(ctx, "name.change", "Name change to " + to, { from: ctx.id.name || "", to, first: p.first, middle: p.middle, last: p.last, fee: money(fee), names: String(ch.length) });
+    msg.textContent = " Application submitted. " + money(fee) + " will be charged if it is approved.";
+    $("nk").checked = false; await checkOutstanding(); lockForm(); await drawHistory();
+  } catch (e) { console.error(e); msg.textContent = " Could not submit the application. Try again."; }
+  if (!outstanding) $("nsub").disabled = false;
 });
 async function drawHistory() {
   const box = $("nhist"); box.replaceChildren();
   try {
-    const rows = (await list("activity", ctx.id.pin, 100)).filter(r => r.type === "account.name").slice(0, 8);
-    if (!rows.length) { box.append(el("div", { class: "empty", text: "No name changes yet." })); return; }
-    rows.forEach(r => box.append(el("div", {}, el("div", {}, el("b", { text: r.summary }), el("small", { text: when(r.at) })))));
+    const rows = (await checkOutstanding()).slice(0, 8); lockForm();
+    if (!rows.length) { box.append(el("div", { class: "empty", text: "No applications yet." })); return; }
+    rows.forEach(r => box.append(el("div", {}, el("div", {}, el("b", { text: (r.detail && r.detail.from ? r.detail.from + " to " + r.detail.to : r.title) }), el("small", { text: "Filed " + when(r.createdAt) + (r.detail && r.detail.fee ? " | Fee " + r.detail.fee : "") })), el("div", { class: "r" }, el("span", { class: "pill " + (approved(r) ? "g" : ACTIVE_ST.includes(r.status) ? "o" : "n"), text: stateOf(r) })))));
   } catch (e) { console.error(e); box.append(el("div", { class: "empty", text: "Could not load." })); }
 }
 

@@ -16,7 +16,7 @@
      cases/{id}   { pin, name?, type, title, detail{}, status, bureau, assignee?, assigneeName?, notes[], createdAt, updatedAt, updatedBy? }
                   Public portal pages create these (status "open"); staff work them here.
      audit/{id}   { actorPin, actorName, role, bureau, action, target, detail, at } */
-import { boot, db, E, $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, logActivity, logAccess, list, money, getRecord, setRecordStatus, statusOf, STATUSES, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { boot, db, E, $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, logActivity, logAccess, charge, list, money, getRecord, setRecordStatus, statusOf, STATUSES, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { doc, getDoc, getDocs, addDoc, updateDoc, collection, query, where, limit, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 export { $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, E, db, list, money, getRecord, setRecordStatus, statusOf, STATUSES, recordDate };
 
@@ -166,6 +166,8 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
     if (result === "approved" && r.result !== "approved" && r.type === "name.change" && r.detail && r.detail.first && r.detail.last) {
       await updateDoc(doc(db, "accounts", r.pin), { name: r.detail.to || [r.detail.first, r.detail.middle, r.detail.last].filter(Boolean).join(" "), firstName: r.detail.first, middleName: r.detail.middle || "", lastName: r.detail.last, updatedBy: ctx.id.pin, updatedAt: serverTimestamp() });
       await logActivity(r.pin, "account.name", "Your name was changed to " + (r.detail.to || ""), AGENCY);
+      const fee = parseFloat(String(r.detail.fee || "").replace(/[^0-9.]/g, ""));
+      if (fee > 0) await charge(r.pin, "Name change", fee);
     }
     const before = stateText(r), after = stateText({ status, result });
     if (before !== after) { await audit(ctx, "case.status", r.pin, typeLabel(r.type) + ": " + before + " to " + after); await logActivity(r.pin, "case.status", typeLabel(r.type) + ": " + after, AGENCY); }
