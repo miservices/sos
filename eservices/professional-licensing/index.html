@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Professional Licensing | SOS e-Services | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+<style>
+.lic{border:1px solid var(--line);border-radius:18px;padding:20px 22px;background:#fff;margin-top:14px}
+.lic:first-of-type{margin-top:0}
+.lic.on{border-left:5px solid var(--teal)}
+.lic.bad{border-left:5px solid var(--accent,#ff7a3d)}
+.lic-h{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}
+.lic-h h3{font-size:18px;font-weight:800;margin:0}
+.lic-h small{display:block;color:var(--muted);font-size:13.5px;margin-top:2px}
+.num{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.04em}
+.lic .acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center}
+.lst{margin:6px 0 0;padding-left:20px;font-size:14.5px}
+.lst li{margin:3px 0}
+.sec{font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;color:var(--muted);margin:16px 0 4px}
+details.dh{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+details.dh summary{cursor:pointer;font-weight:700;font-size:14.5px}
+.dtl{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+.dtl th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line)}
+.dtl td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.empty-hero{text-align:center;padding:34px 22px;border:2px dashed var(--line);border-radius:20px;background:linear-gradient(180deg,#fff,var(--sky))}
+.empty-hero h2{margin:0 0 6px;font-size:22px}
+.empty-hero p{color:var(--muted);max-width:540px;margin:0 auto 16px}
+.get{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.get .lic{margin:0;display:flex;flex-direction:column}
+.get .lic p{margin:6px 0 14px;color:var(--muted);font-size:14px;flex:1}
+.leg{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px 22px}
+.leg div{font-size:14px;color:var(--muted)}
+.leg .pill{margin-right:8px}
+</style>
+</head>
+<body>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header"></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="nav" data-page="professional-licensing"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading your professional licenses...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">Identity and Licensing</div><h1>Professional Licensing</h1><p>Medical licenses and bail bond agent licenses: your license number, status, expiration, restrictions and conditions, and disciplinary history. Attorney licensing is handled by the courts.</p></div>
+
+  <div class="stats" id="stats"></div>
+  <div id="banner"></div>
+
+  <div class="pc mt" id="licenses"><h2>Your professional licenses</h2><div id="mine"></div></div>
+
+  <div class="pc mt" id="renew"><h2>Renew</h2>
+    <p class="sub">Renewal opens <span id="win">60</span> days before a license expires, and an expired license can be renewed any time. The Department reviews each renewal. Suspended and revoked licenses cannot be renewed here.</p>
+    <div class="rows" id="rn"></div>
+  </div>
+
+  <div class="pc mt" id="apply"><h2>Apply for a license</h2>
+    <p class="sub">Applications are reviewed by the Department of State. You can have one application open for each license at a time.</p>
+    <h3 class="grp-h">Medical license</h3>
+    <div class="get" id="ap-med"></div>
+    <h3 class="grp-h">Bail bond agent</h3>
+    <div class="get" id="ap-bail"></div>
+  </div>
+
+  <div class="pc mt" id="status-key"><h2>What the statuses mean</h2>
+    <div class="leg" id="leg"></div>
+  </div>
+
+  <div class="pc mt" id="reqs"><h2>Your applications and renewals</h2><div class="rows" id="rq"></div></div>
+</div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
+<script type="module">
+import { boot, el, $, cap, when, money, fileCase, myCases } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { getDocs, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { db } from "https://migovt.org/sos/eservices/assets/shared.js";
+
+const RENEW_WINDOW_DAYS = 60, DAY = 864e5;
+/* One entry per license a person can hold. A medical license has four classifications. */
+const KINDS = [
+  { k: "medical-physician", t: "Medical License: Physician", group: "med", short: "Physician" },
+  { k: "medical-paramedic", t: "Medical License: Paramedic", group: "med", short: "Paramedic" },
+  { k: "medical-aemt", t: "Medical License: Advanced Emergency Medical Technician", group: "med", short: "Advanced EMT" },
+  { k: "medical-emt", t: "Medical License: Emergency Medical Technician", group: "med", short: "EMT" },
+  { k: "bail-bond", t: "Bail Bond Agent License", group: "bail", short: "Bail Bond Agent" }
+];
+const STATUSES = {
+  active: ["Active", "g", "In good standing. The holder may practice."],
+  inactive: ["Inactive", "n", "Held, but not in use. The holder may not practice until it is reactivated."],
+  probationary: ["Probationary", "o", "May practice while meeting the terms of probation."],
+  conditional: ["Conditional", "o", "May practice only within the listed conditions."],
+  suspended: ["Suspended", "o", "Temporarily not allowed to practice."],
+  revoked: ["Revoked", "o", "Permanently removed. The holder may not practice."],
+  expired: ["Expired", "o", "Past its expiration date. Renew to practice again."]
+};
+const BAD = ["suspended", "revoked", "expired"], CANNOT = ["suspended", "revoked"];
+const ACTIVE_ST = ["open", "in-review", "scheduled"];
+const tm = v => v && v.toMillis ? v.toMillis() : typeof v === "string" ? (Date.parse(v) || 0) : (+v || 0);
+const day = t => t ? new Date(t).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "Not recorded";
+const arr = v => Array.isArray(v) ? v.filter(x => x != null && String(typeof x === "object" ? (x.text || x.description || "") : x).trim() !== "") : (v ? [v] : []);
+const line = x => typeof x === "object" ? (x.text || x.description || "") : String(x);
+
+const ctx = await boot({ page: "professional-licensing" });
+const now = Date.now();
+$("win").textContent = RENEW_WINDOW_DAYS;
+
+/* ---- load: professionalLicenses where pin == this person ---- */
+let held = [], cases = [];
+try {
+  const s = await getDocs(query(collection(db, "professionalLicenses"), where("pin", "==", String(ctx.id.pin)), limit(50)));
+  held = s.docs.map(d => ({ id: d.id, ...d.data() }));
+} catch (e) { console.warn("Could not load professional licenses", e); }
+const keyOf = l => l.type === "medical" ? "medical-" + String(l.classification || "").toLowerCase() : String(l.type || "").toLowerCase();
+const kindOf = l => KINDS.find(x => x.k === keyOf(l));
+/* what state is it really in: an active license past its expiration is expired */
+function view(l) {
+  let st = String(l.status || "active").toLowerCase(); if (!STATUSES[st]) st = "active";
+  const exp = tm(l.expiresAt);
+  if (st === "active" && exp && exp < now) st = "expired";
+  return { l, st, exp, issued: tm(l.issuedAt), kind: kindOf(l) };
+}
+const V = held.map(view).sort((a, b) => (a.kind ? KINDS.indexOf(a.kind) : 99) - (b.kind ? KINDS.indexOf(b.kind) : 99));
+const daysLeft = t => Math.ceil((t - now) / DAY);
+
+/* ---- summary ---- */
+const stat = (a, b) => el("div", { class: "stat" }, el("span", { text: a }), el("b", { text: b }));
+const nextExp = V.filter(v => v.exp && v.exp > now && !CANNOT.includes(v.st)).sort((a, b) => a.exp - b.exp)[0];
+$("stats").append(
+  stat("Licenses held", String(V.length)),
+  stat("Active", String(V.filter(v => v.st === "active").length)),
+  stat("Next expiration", nextExp ? day(nextExp.exp) : "None"),
+  stat("Needs attention", String(V.filter(v => ["suspended", "revoked", "expired", "probationary", "conditional"].includes(v.st) || (v.exp && v.exp > now && daysLeft(v.exp) <= RENEW_WINDOW_DAYS)).length)));
+
+/* ---- banner ---- */
+(function () {
+  const b = $("banner");
+  V.forEach(v => {
+    const name = v.kind ? v.kind.t : "License " + (v.l.number || "");
+    if (v.st === "suspended" || v.st === "revoked") b.append(el("div", { class: "alert warn mt" }, el("b", { text: "Your " + name + " is " + v.st + "." }), "You may not practice under this license. See the disciplinary history below."));
+    else if (v.st === "expired") b.append(el("div", { class: "alert warn mt" }, el("b", { text: "Your " + name + " expired on " + day(v.exp) + "." }), "Renew it below to practice again."));
+    else if (v.exp && daysLeft(v.exp) <= RENEW_WINDOW_DAYS) b.append(el("div", { class: "alert warn mt" }, el("b", { text: "Your " + name + " expires in " + daysLeft(v.exp) + " day" + (daysLeft(v.exp) === 1 ? "" : "s") + "." }), "Renewal is open. Renew it below."));
+  });
+})();
+
+/* ---- your licenses ---- */
+const pillFor = st => el("span", { class: "pill " + STATUSES[st][1], text: STATUSES[st][0] });
+function drawMine() {
+  const box = $("mine"); box.replaceChildren();
+  if (!V.length) {
+    box.append(el("div", { class: "empty-hero" }, el("h2", { text: "You do not hold a professional license" }), el("p", { text: "The Department licenses physicians, paramedics, advanced EMTs, EMTs and bail bond agents. Apply below." }), el("a", { class: "btn2", href: "#apply", text: "Apply for a license" })));
+    return;
+  }
+  V.forEach(v => {
+    const l = v.l, c = el("div", { class: "lic " + (BAD.includes(v.st) ? "bad" : "on") });
+    c.append(el("div", { class: "lic-h" }, el("div", {}, el("h3", { text: v.kind ? v.kind.t : "Professional license" }), el("small", { class: "num", text: "License No. " + (l.number || "Not assigned") })), pillFor(v.st)));
+    const kv = el("div", { class: "kv2" });
+    [["Status", STATUSES[v.st][0]], ["Issued", day(v.issued)], ["Expires", v.exp ? day(v.exp) : "Not recorded"]].forEach(([k, x]) => kv.append(el("div", {}, el("span", { text: k }), el("b", { text: x }))));
+    c.append(kv);
+    const rs = arr(l.restrictions), cn = arr(l.conditions);
+    c.append(el("div", { class: "sec", text: "Restrictions" }), rs.length ? el("ul", { class: "lst" }, rs.map(x => el("li", { text: line(x) }))) : el("div", { class: "empty", text: "None" }));
+    c.append(el("div", { class: "sec", text: "Conditions" }), cn.length ? el("ul", { class: "lst" }, cn.map(x => el("li", { text: line(x) }))) : el("div", { class: "empty", text: "None" }));
+    const dh = arr(l.discipline).map(x => typeof x === "object" ? x : { description: String(x) }).sort((a, b) => tm(b.date) - tm(a.date));
+    const det = el("details", { class: "dh" }, el("summary", { text: "Disciplinary history (" + dh.length + ")" }));
+    if (!dh.length) det.append(el("div", { class: "empty mt", text: "No disciplinary actions on record." }));
+    else { det.setAttribute("open", ""); const t = el("table", { class: "dtl" }, el("tr", {}, ["Date", "Action", "Details", "Case"].map(h => el("th", { text: h })))); dh.forEach(x => t.append(el("tr", {}, el("td", { text: x.date ? day(tm(x.date)) : "" }), el("td", { text: x.action ? cap(String(x.action)) : "" }), el("td", { text: x.description || "" }), el("td", { text: x.caseNumber || "" })))); det.append(t); }
+    c.append(det);
+    box.append(c);
+  });
+}
+
+/* ---- requests: one open application or renewal per license ---- */
+const openReq = (type, k) => cases.find(r => r.type === type && r.detail && r.detail.kind === k && ACTIVE_ST.includes(r.status));
+async function request(type, x, label, msg, btn, extra) {
+  btn.disabled = true; msg.textContent = " Submitting...";
+  try {
+    cases = await myCases(ctx.id.pin, 100);
+    if (openReq(type, x.k)) { msg.textContent = " You already have this open."; drawAll(); return; }
+    await fileCase(ctx, type, label + ": " + x.t, { kind: x.k, license: x.t, ...(extra || {}) });
+    cases = await myCases(ctx.id.pin, 100); drawAll();
+  } catch (e) { console.error(e); msg.textContent = " Could not submit. Try again."; btn.disabled = false; }
+}
+function drawRenew() {
+  const box = $("rn"); box.replaceChildren();
+  if (!V.length) { box.append(el("div", { class: "empty", text: "You do not hold a license to renew." })); return; }
+  V.forEach(v => {
+    const x = v.kind || { k: keyOf(v.l), t: "Professional license" }, pend = openReq("professional.renewal", x.k), msg = el("small", { class: "empty" }), right = el("div", { class: "r" });
+    const open = !v.exp || v.exp - now <= RENEW_WINDOW_DAYS * DAY;
+    if (pend) right.append(el("span", { class: "pill o", text: pend.status === "open" ? "Submitted" : "Under review" }));
+    else if (CANNOT.includes(v.st)) right.append(el("span", { class: "pill n", text: STATUSES[v.st][0] }));
+    else if (v.st === "inactive") right.append(el("span", { class: "pill n", text: "Inactive" }));
+    else if (!open) right.append(el("span", { class: "pill n", text: "Opens " + day(v.exp - RENEW_WINDOW_DAYS * DAY) }));
+    else { const b = el("button", { class: "btn2", type: "button", text: "Renew" }); b.addEventListener("click", () => request("professional.renewal", x, "Renewal", msg, b, { number: v.l.number || "" })); right.append(b); }
+    box.append(el("div", {}, el("div", {}, el("b", { text: x.t }), el("small", { text: "No. " + (v.l.number || "not assigned") + " | " + (v.exp ? (v.st === "expired" ? "Expired " : "Expires ") + day(v.exp) : "No expiration recorded") }), msg), right));
+  });
+}
+
+/* ---- apply ---- */
+function drawApply() {
+  [["ap-med", "med"], ["ap-bail", "bail"]].forEach(([id, g]) => {
+    const box = $(id); box.replaceChildren();
+    KINDS.filter(x => x.group === g).forEach(x => {
+      const have = V.find(v => v.kind && v.kind.k === x.k), pend = openReq("professional.license", x.k), msg = el("small", { class: "empty" });
+      const c = el("div", { class: "lic" }, el("div", { class: "lic-h" }, el("div", {}, el("h3", { text: x.short }), el("small", { text: g === "med" ? "Medical license" : "Bail bond agent license" }))));
+      let right;
+      if (have) { c.append(el("p", { text: "You hold this license. No. " + (have.l.number || "not assigned") + "." })); right = pillFor(have.st); }
+      else if (pend) { c.append(el("p", { text: "Your application was filed " + when(pend.createdAt) + "." })); right = el("span", { class: "pill o", text: pend.status === "open" ? "Submitted" : "Under review" }); }
+      else { c.append(el("p", { text: "Submit an application for the Department to review." })); const b = el("button", { class: "btn2", type: "button", text: "Apply" }); b.addEventListener("click", () => request("professional.license", x, "Application", msg, b)); right = b; }
+      c.append(el("div", {}, right, msg));
+      box.append(c);
+    });
+  });
+}
+
+function drawReqs() {
+  const box = $("rq"); box.replaceChildren();
+  const rows = cases.filter(r => /^professional\./.test(r.type)).slice(0, 10);
+  if (!rows.length) { box.append(el("div", { class: "empty", text: "No applications or renewals yet." })); return; }
+  rows.forEach(r => {
+    const act = ACTIVE_ST.includes(r.status), res = r.result || (r.status === "approved" || r.status === "denied" ? r.status : "");
+    box.append(el("div", {}, el("div", {}, el("b", { text: r.title }), el("small", { text: "Filed " + when(r.createdAt) })), el("div", { class: "r" }, el("span", { class: "pill " + (res === "approved" ? "g" : act ? "o" : "n"), text: act ? (r.status === "open" ? "Submitted" : "Under review") : cap(res || "closed") }))));
+  });
+}
+$("leg").append(...Object.values(STATUSES).map(([t, c, d]) => el("div", {}, el("span", { class: "pill " + c, text: t }), d)));
+function drawAll() { drawMine(); drawRenew(); drawApply(); drawReqs(); }
+try { cases = await myCases(ctx.id.pin, 100); } catch (e) { console.error(e); }
+drawAll();
+if (location.hash) { const t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }
+</script>
+</body>
+</html>

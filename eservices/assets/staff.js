@@ -80,7 +80,7 @@ export async function loadAudit(ctx, n = 150, actorPin) {
 export const CASE_TYPES = {
   "license.contest": ["Contest points", "lara"], "license.application": ["License application", "lara"], "license.reinstatement": ["Reinstatement request", "lara"],
   "id.application": ["ID application", "lara"], "license.renewal": ["License renewal", "lara"], "license.card": ["Card request", "lara"], "name.change": ["Name change", "lara"], "dealer.license": ["Dealership license", "lara"],
-  "insurer.license": ["Insurance license", "lara"], "professional.license": ["Professional license", "lara"],
+  "insurer.license": ["Insurance license", "lara"], "professional.license": ["Professional license application", "lara"], "professional.renewal": ["Professional license renewal", "lara"],
   "record.copy": ["Certified record request", "lara"], "vital.request": ["Vital record request", "lara"],
   "voter.registration": ["Voter registration", "elections"], "candidate.filing": ["Candidate filing", "elections"], "finance.report": ["Campaign finance report", "elections"],
   "business.registration": ["Business registration", "elections"], "notary.commission": ["Notary commission", "elections"],
@@ -216,6 +216,9 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
     }
     if (result === "approved" && r.result !== "approved" && (r.type === "license.renewal" || r.type === "license.card")) {
       try { const w = await applyLicenseCase(ctx, r); if (w) warns.push(w); } catch (e) { console.error(e); warns.push("The license could not be updated. Check the Firestore rules for licenses."); }
+    }
+    if (result === "approved" && r.result !== "approved" && (r.type === "professional.license" || r.type === "professional.renewal")) {
+      warns.push("Approved. Create or update this person's record in professionalLicenses (number, issue and expiration dates, status) so it shows on their page.");
     }
     const before = stateText(r), after = stateText({ status, result });
     if (before !== after) { await audit(ctx, "case.status", r.pin, typeLabel(r.type) + ": " + before + " to " + after); await logActivity(r.pin, "case.status", typeLabel(r.type) + ": " + after, AGENCY); }
