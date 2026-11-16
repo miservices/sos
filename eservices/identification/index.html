@@ -69,6 +69,7 @@
 </div>
 <script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
 <script type="module">
+import { submit } from "https://migovt.org/sos/eservices/assets/feedback.js";
 import { boot, el, $, cap, ms, when, money, longDate, list, fileCase, myCases, getRecord, birthNameOf, previousNamesOf, nameOf, statusOf, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { showCertificate } from "https://migovt.org/sos/eservices/assets/certificate.js";
 
@@ -138,15 +139,15 @@ $("nsub").addEventListener("click", async () => {
   if (!ch.length) { msg.textContent = " Change at least one name."; return; }
   if (!$("nk").checked) { msg.textContent = " Check the box to confirm."; return; }
   const fee = feeFor(ch.length), to = [p.first, p.middle, p.last].filter(Boolean).join(" ");
-  $("nsub").disabled = true; msg.textContent = " Submitting...";
-  try {
-    await checkOutstanding();
-    if (outstanding || waitUntil) { lockForm(); await drawHistory(); msg.textContent = outstanding ? " You already have an application in progress." : " You can apply again on " + dayText(waitUntil) + "."; return; }
-    await fileCase(ctx, "name.change", "Name change to " + to, { from: ctx.id.name || "", to, first: p.first, middle: p.middle, last: p.last, fee: money(fee), names: String(ch.length) });
-    msg.textContent = " Application submitted. " + money(fee) + " will be charged if it is approved.";
-    $("nk").checked = false; await checkOutstanding(); lockForm(); await drawHistory();
-  } catch (e) { console.error(e); msg.textContent = " Could not submit the application. Try again."; }
-  if (!outstanding && !waitUntil) $("nsub").disabled = false;
+  $("nsub").disabled = true; msg.textContent = " Checking...";
+  try { await checkOutstanding(); } catch (e) { console.error(e); msg.textContent = " Could not check your account. Try again."; $("nsub").disabled = false; return; }
+  if (outstanding || waitUntil) { lockForm(); await drawHistory(); msg.textContent = outstanding ? " You already have an application in progress." : " You can apply again on " + dayText(waitUntil) + "."; return; }
+  msg.textContent = "";
+  const ok = await submit({ working: "Submitting your name change application",
+    work: () => fileCase(ctx, "name.change", "Name change to " + to, { from: ctx.id.name || "", to, first: p.first, middle: p.middle, last: p.last, fee: money(fee), names: String(ch.length) }),
+    done: r => ({ title: "Application submitted", body: "Your request to change your name to " + to + " is with the Department.", ref: r && r.id,
+      next: ["The Department reviews it. You will get a notice when it is decided.", money(fee) + " is charged only if it is approved.", "You can have one open application at a time."] }) });
+  if (!ok) $("nsub").disabled = false;
 });
 function drawPrev() {
   const box = $("nprev"); box.replaceChildren();

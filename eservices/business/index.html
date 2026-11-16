@@ -45,6 +45,7 @@
 </div>
 <script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
 <script type="module">
+import { submit } from "https://migovt.org/sos/eservices/assets/feedback.js";
 import { boot, el, $, cap, when, fileCase, myCases, getRecord, db } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { TYPES, INDUSTRIES, CERTS, LATE_FEE, EARLY_DAYS, money, isoDay, plusYear, nameProblem, sameName, standing, isoDob, zipOk, fullNameOk, siteNorm, discordNorm } from "https://migovt.org/sos/eservices/assets/business.js";
 import { getDocs, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
@@ -174,12 +175,20 @@ function form(mode, b) {
         address: { street: clean(street.value), city: clean(city.value), state: "MI", zip: zip.value.trim() }, website: siteNorm(site.value) || "", discord: discordNorm(disc.value) || "",
         owners: rows.map(r => ({ name: clean(r.name.value), dob: r.dob.value, pin: r.pin.value.trim(), percent: String(parseFloat(r.pct.value)) })),
         agent: { name: clean(aName.value), dob: aDob.value, pin: aPin.value.trim() }, certified: CERTS.map(c => c[0]), signature: { name: clean(sig.value), date: today } };
-      if (mode === "register") await fileCase(ctx, "business.registration", "Register: " + nm, { ...base, fee: T.fee.toFixed(2) }, "lara");
-      else if (mode === "amend") await fileCase(ctx, "business.amendment", "Amend: " + b.name, { ...base, businessId: b.id, oldName: b.name, fee: "0.00" }, "lara");
-      else { const st = standing(b), owed = (T.reportFee + (st.late > 0 ? LATE_FEE : 0)).toFixed(2);
-        await fileCase(ctx, mode === "report" ? "business.annual-report" : "business.reinstatement", (mode === "report" ? "Annual report: " : "Reinstate: ") + b.name, { ...base, name: b.name, businessId: b.id, fee: owed, late: st.late > 0 ? st.late : 0 }, "lara"); }
-      msg.textContent = " Filed. The Division will review it."; setTimeout(() => location.reload(), 900);
-    } catch (e) { console.error(e); msg.textContent = " Could not file. Try again."; go.disabled = false; }
+      const T2 = TYPES[key], st2 = b ? standing(b) : null;
+      const label = { register: "registration", amend: "amendment", report: "annual report", reinstate: "reinstatement request" }[mode];
+      msg.textContent = "";
+      const ok = await submit({ working: "Submitting your " + label,
+        work: async () => {
+          if (mode === "register") return fileCase(ctx, "business.registration", "Register: " + nm, { ...base, fee: T.fee.toFixed(2) }, "lara");
+          if (mode === "amend") return fileCase(ctx, "business.amendment", "Amend: " + b.name, { ...base, businessId: b.id, oldName: b.name, fee: "0.00" }, "lara");
+          const owed = (T.reportFee + (st2.late > 0 ? LATE_FEE : 0)).toFixed(2);
+          return fileCase(ctx, mode === "report" ? "business.annual-report" : "business.reinstatement", (mode === "report" ? "Annual report: " : "Reinstate: ") + b.name, { ...base, name: b.name, businessId: b.id, fee: owed, late: st2.late > 0 ? st2.late : 0 }, "lara");
+        },
+        done: r => ({ title: "Your " + label + " was submitted", body: (mode === "register" ? nm : b.name) + " is now with the Division of Business and Occupational Licensing.", ref: r && r.id,
+          next: ["The Division reviews it. You will get a notice when it is decided.", mode === "amend" ? "There is no fee for an amendment." : "You are only charged the fee if it is approved.", "Follow it under Your filings on this page."] }) });
+      if (!ok) { go.disabled = false; msg.textContent = ""; }
+    } catch (e) { console.error(e); msg.textContent = " Could not check the form. Try again."; go.disabled = false; }
   });
   return wrap;
 }
@@ -216,8 +225,10 @@ function dissolve(b, card) {
   const sure = el("input", { type: "checkbox" }), go = el("button", { class: "btn2", type: "button", text: "Request dissolution" }), msg = el("span", { class: "empty" });
   card.append(el("div", { class: "fx" }, el("div", { class: "alert warn" }, "Dissolving closes the business. It stops being active and no annual report is needed. This cannot be undone, though you can register again."), el("label", { class: "chk" }, sure, "I want to dissolve " + b.name + "."), go, " ", msg));
   go.addEventListener("click", async () => { if (!sure.checked) { msg.textContent = " Tick the box to confirm."; return; } go.disabled = true;
-    try { await fileCase(ctx, "business.dissolution", "Dissolve: " + b.name, { businessId: b.id, name: b.name, fee: "0.00" }, "lara"); msg.textContent = " Filed. The Division will review it."; setTimeout(() => location.reload(), 900); }
-    catch (e) { console.error(e); msg.textContent = " Could not file."; go.disabled = false; } });
+    msg.textContent = "";
+    const ok = await submit({ working: "Submitting your dissolution request", work: () => fileCase(ctx, "business.dissolution", "Dissolve: " + b.name, { businessId: b.id, name: b.name, fee: "0.00" }, "lara"),
+      done: r => ({ title: "Dissolution request submitted", body: b.name + " stays active until the Division approves it.", ref: r && r.id, next: ["The Division reviews it and you will get a notice.", "There is no fee."] }) });
+    if (!ok) go.disabled = false; });
 }
 
 /* ---- register ---- */

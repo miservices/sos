@@ -69,6 +69,7 @@
 </div>
 <script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
 <script type="module">
+import { submit } from "https://migovt.org/sos/eservices/assets/feedback.js";
 import { boot, db, el, $, cap, ms, when, money, list, fileCase, myCases, getRecord, statusOf, visible } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
@@ -163,14 +164,16 @@ function drawMine() {
 /* ---- renew + cards: one open request per license at a time ---- */
 const openReq = (type, k) => cases.find(r => r.type === type && r.detail && r.detail.kind === k && ACTIVE_ST.includes(r.status));
 async function request(type, x, title, fee, msg, btn) {
-  btn.disabled = true; msg.textContent = " Submitting...";
-  try {
-    cases = await myCases(ctx.id.pin, 100);
-    if (openReq(type, x.k)) { msg.textContent = " You already have this request open."; drawAll(); return; }
-    const detail = { kind: x.k, license: x.t }; if (fee > 0) detail.fee = money(fee);
-    await fileCase(ctx, type, title + ": " + x.t, detail);
-    cases = await myCases(ctx.id.pin, 100); drawAll();
-  } catch (e) { console.error(e); msg.textContent = " Could not submit. Try again."; btn.disabled = false; }
+  btn.disabled = true; msg.textContent = " Checking...";
+  try { cases = await myCases(ctx.id.pin, 100); } catch (e) { console.error(e); msg.textContent = " Could not check your requests. Try again."; btn.disabled = false; return; }
+  if (openReq(type, x.k)) { msg.textContent = " You already have this request open."; drawAll(); return; }
+  msg.textContent = "";
+  const detail = { kind: x.k, license: x.t }; if (fee > 0) detail.fee = money(fee);
+  const renew = type === "license.renewal";
+  const ok = await submit({ working: "Submitting your " + (renew ? "renewal" : "card request"), work: () => fileCase(ctx, type, title + ": " + x.t, detail),
+    done: r => ({ title: (renew ? "Renewal" : "Card request") + " submitted", body: x.t + " is with the Department.", ref: r && r.id,
+      next: ["The Department reviews it. You will get a notice when it is decided.", fee > 0 ? money(fee) + " is charged only if it is approved." : "There is no fee.", "Follow it in this page under your requests."] }) });
+  if (!ok) btn.disabled = false;
 }
 function rowFor(x, type, label, fee, ready, whyNot) {
   const pend = openReq(type, x.k), msg = el("small", { class: "empty" });

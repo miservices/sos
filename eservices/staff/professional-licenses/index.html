@@ -44,6 +44,7 @@
 <script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
 <script type="module">
 import { bootStaff, $, el, cap, db, getPerson, audit, AGENCY } from "https://migovt.org/sos/eservices/assets/staff.js";
+import { submit } from "https://migovt.org/sos/eservices/assets/feedback.js";
 import { logActivity } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, limit, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 const ctx = await bootStaff({ page: "professional-licenses" });
@@ -103,13 +104,13 @@ function edit(id) {
     if (rsIn.value.trim()) rs.push(rsIn.value.trim()); if (cnIn.value.trim()) cn.push(cnIn.value.trim());
     if (!iss.value || !exp.value) { out.textContent = " Enter both dates."; return; }
     const was = String(r.status || "active").toLowerCase(), up = { number: num.value.trim().slice(0, 30), status: stat.value, issuedAt: new Date(iss.value + "T12:00:00").toISOString(), expiresAt: new Date(exp.value + "T12:00:00").toISOString(), restrictions: rs, conditions: cn, updatedBy: ctx.id.pin, updatedAt: serverTimestamp() };
-    save.disabled = true; out.textContent = " Saving...";
-    try {
+    save.disabled = true; out.textContent = "";
+    const ok = await submit({ working: "Saving the license", reload: false, work: async () => {
       await updateDoc(ref, up);
       await audit(ctx, "pro.update", r.pin, (KT[k] || "License") + (was !== stat.value ? ": " + was + " to " + stat.value : ": details updated"));
-      if (was !== stat.value) await logActivity(r.pin, "license.status", (KT[k] || "Professional license") + " is now " + stat.value, AGENCY);
-      out.textContent = " Saved."; await load(); edit(id);
-    } catch (e) { console.error(e); out.textContent = " Could not save. Check the Firestore rules."; save.disabled = false; }
+      if (was !== stat.value) await logActivity(r.pin, "license.status", (KT[k] || "Professional license") + " is now " + stat.value, AGENCY); },
+      done: { title: "License saved", body: (KT[k] || "The license") + " for " + r._name + (was !== stat.value ? " is now " + stat.value + ". They have been notified." : " was updated.") } });
+    if (ok) { await load(); edit(id); } else save.disabled = false;
   });
   /* disciplinary history */
   const dh = arr(r.discipline).map(x => typeof x === "object" ? x : { description: String(x) }).sort((a, b) => tm(b.date) - tm(a.date));
@@ -120,14 +121,14 @@ function edit(id) {
   dgo.addEventListener("click", async () => {
     if (!dx.value.trim()) { dout.textContent = " Describe the action."; return; }
     const entry = { date: new Date(dd.value + "T12:00:00").toISOString(), action: da.value.toLowerCase(), description: dx.value.trim().slice(0, 400), recordedBy: String(ctx.id.pin) }; if (dc.value.trim()) entry.caseNumber = dc.value.trim();
-    dgo.disabled = true; dout.textContent = " Saving...";
-    try {
-      const up = { discipline: arrayUnion(entry), updatedBy: ctx.id.pin, updatedAt: serverTimestamp() }; if (sugg.value) up.status = sugg.value;
+    dgo.disabled = true; dout.textContent = "";
+    const up = { discipline: arrayUnion(entry), updatedBy: ctx.id.pin, updatedAt: serverTimestamp() }; if (sugg.value) up.status = sugg.value;
+    const ok = await submit({ working: "Recording the action", reload: false, work: async () => {
       await updateDoc(ref, up);
       await audit(ctx, "pro.discipline", r.pin, (KT[k] || "License") + ": " + da.value + (dc.value.trim() ? " (" + dc.value.trim() + ")" : "") + (sugg.value ? ", status " + sugg.value : ""));
-      await logActivity(r.pin, "license.discipline", (KT[k] || "Professional license") + ": " + da.value + " recorded" + (sugg.value ? ". Status is now " + sugg.value : ""), AGENCY);
-      dout.textContent = " Recorded."; await load(); edit(id);
-    } catch (e) { console.error(e); dout.textContent = " Could not save. Check the Firestore rules."; dgo.disabled = false; }
+      await logActivity(r.pin, "license.discipline", (KT[k] || "Professional license") + ": " + da.value + " recorded" + (sugg.value ? ". Status is now " + sugg.value : ""), AGENCY); },
+      done: { title: "Action recorded", body: da.value + " was added to " + r._name + "'s record" + (sugg.value ? " and the status is now " + sugg.value : "") + "." } });
+    if (ok) { await load(); edit(id); } else dgo.disabled = false;
   });
   const fld = (l, c) => el("div", { class: "fld" }, el("label", { text: l }), c);
   $("ed").replaceChildren(el("div", { class: "pc detail" }, el("h2", { text: r._name + ": " + (KT[k] || "Professional license") }), el("p", { class: "sub", text: "PIN " + r.pin }),
@@ -151,7 +152,7 @@ $("n-go").addEventListener("click", async () => {
     m.textContent = " Issued as " + num + "."; await load(); edit(id);
   } catch (er) { console.error(er); m.textContent = " Could not issue it. Check the Firestore rules."; }
 });
-const dflt = new Date(); $("n-issue").value = iso(dflt); dflt.setFullYear(dflt.getFullYear() + 2); $("n-exp").value = iso(dflt);
+const dflt = new Date(); $("n-issue").value = iso(dflt); dflt.setFullYear(dflt.getFullYear() + 1); $("n-exp").value = iso(dflt);
 await load();
 </script>
 </body>

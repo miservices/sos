@@ -76,6 +76,7 @@ details.dh summary{cursor:pointer;font-weight:700;font-size:14.5px}
 </div>
 <script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
 <script type="module">
+import { submit } from "https://migovt.org/sos/eservices/assets/feedback.js";
 import { boot, el, $, cap, when, money, myCases, logActivity } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { getDocs, getDoc, doc, addDoc, collection, query, where, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 import { db } from "https://migovt.org/sos/eservices/assets/shared.js";
@@ -236,11 +237,13 @@ if (mayFile.length) {
       if (type === "professional.renewal" && ["suspended", "revoked"].includes(String(held2.status || "").toLowerCase())) { msg.textContent = " A " + String(held2.status).toLowerCase() + " license cannot be renewed."; return; }
       const label = type === "professional.renewal" ? "Renewal" : "Application", note = $("e-note").value.trim().slice(0, 500);
       const detail = { kind: x.k, license: x.t, endorsedBy: String(ctx.id.pin), endorsedByName: ctx.id.name || "" }; if (note) detail.notes = note; if (held2 && held2.number) detail.number = held2.number;
-      await addDoc(collection(db, "cases"), { pin: target.pin, name: target.name, type, title: label + ": " + x.t, status: "open", bureau: "lara", createdBy: String(ctx.id.pin), detail, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-      await logActivity(target.pin, "case.opened", label + " filed: " + x.t, { pin: ctx.id.pin, name: ctx.id.name, kind: ctx.isStaff ? "agency" : "person" });
-      msg.textContent = " Filed for " + target.name + ". The Department will review it.";
-      $("e-note").value = ""; await drawMyFiled();
-    } catch (e) { console.error(e); msg.textContent = " Could not file it. You may not have permission for this license."; }
+      msg.textContent = "";
+      const ok = await submit({ working: "Filing for " + target.name,
+        work: async () => { const ref = await addDoc(collection(db, "cases"), { pin: target.pin, name: target.name, type, title: label + ": " + x.t, status: "open", bureau: "lara", createdBy: String(ctx.id.pin), detail, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+          await logActivity(target.pin, "case.opened", label + " filed: " + x.t, { pin: ctx.id.pin, name: ctx.id.name, kind: ctx.isStaff ? "agency" : "person" }); return ref; },
+        done: r => ({ title: label + " filed", body: x.t + " for " + target.name + " is with the Department.", ref: r && r.id, next: ["The Department reviews it.", target.name + " is notified when it is decided.", "It also shows under Filed by you."] }) });
+      if (ok) $("e-note").value = "";
+    } catch (e) { console.error(e); msg.textContent = " Could not check this request. Try again."; }
     $("e-go").disabled = false;
   });
   await drawMyFiled();

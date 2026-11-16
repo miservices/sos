@@ -49,6 +49,7 @@
 </div>
 <script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
 <script type="module">
+import { submit } from "https://migovt.org/sos/eservices/assets/feedback.js";
 import { boot, el, $, cap, when, fileCase, myCases, getRecord, statusOf, db } from "https://migovt.org/sos/eservices/assets/shared.js";
 import { cycle, fmtDay, LEVELS, OFFICES, officeOf } from "https://migovt.org/sos/eservices/assets/elections.js";
 import { getDocs, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
@@ -77,12 +78,11 @@ else {
     const o = officeOf(sel.value), m = $("f-msg"), mate = $("f-mate").value.trim(), stmt = $("f-stmt").value.trim().slice(0, 500);
     if (taken.has(o.k)) { m.textContent = " You already have a filing for this office."; return; }
     if (o.k === "governor" && !/^\d{4,20}$/.test(mate)) { m.textContent = " Enter your running mate's PIN."; return; }
-    $("f-go").disabled = true; m.textContent = " Filing...";
-    try {
-      const d = { officeKey: o.k, office: o.t, level: o.level, termYear: C.termYear }; if (mate && o.k === "governor") d.runningMate = mate; if (stmt) d.statement = stmt;
-      await fileCase(ctx, "candidate.filing", "Candidate filing: " + o.t + " (" + C.termYear + ")", d, "elections");
-      m.textContent = " Filed. The Bureau of Elections will review it."; setTimeout(() => location.reload(), 900);
-    } catch (e) { console.error(e); m.textContent = " Could not file."; $("f-go").disabled = false; }
+    const d = { officeKey: o.k, office: o.t, level: o.level, termYear: C.termYear }; if (mate && o.k === "governor") d.runningMate = mate; if (stmt) d.statement = stmt;
+    m.textContent = ""; $("f-go").disabled = true;
+    const ok = await submit({ working: "Filing to run for " + o.t, work: () => fileCase(ctx, "candidate.filing", "Candidate filing: " + o.t + " (" + C.termYear + ")", d, "elections"),
+      done: r => ({ title: "Your filing was submitted", body: "You filed to run for " + o.t + " in the " + C.termYear + " term.", ref: r && r.id, next: ["The Bureau of Elections reviews it.", "If it is approved you are certified and listed under Certified candidates.", "Follow it under Your filings and reports."] }) });
+    if (!ok) $("f-go").disabled = false;
   });
 }
 
@@ -104,9 +104,10 @@ else {
   go.addEventListener("click", async () => {
     const a = parseFloat(raised.value.replace(/[^0-9.]/g, "")), b = parseFloat(spent.value.replace(/[^0-9.]/g, ""));
     if (!(a >= 0) || !(b >= 0)) { out.textContent = " Enter amounts raised and spent."; return; }
-    go.disabled = true; out.textContent = " Submitting...";
-    try { const o = officeOf(off.value); await fileCase(ctx, "finance.report", per.value + ": " + (o ? o.t : off.value), { officeKey: off.value, office: o ? o.t : off.value, period: per.value, raised: a.toFixed(2), spent: b.toFixed(2), notes: notes.value.trim().slice(0, 400), termYear: C.termYear }, "elections");
-      out.textContent = " Submitted."; setTimeout(() => location.reload(), 900); } catch (e) { console.error(e); out.textContent = " Could not submit."; go.disabled = false; }
+    const o = officeOf(off.value); out.textContent = ""; go.disabled = true;
+    const ok = await submit({ working: "Submitting your campaign finance report", work: () => fileCase(ctx, "finance.report", per.value + ": " + (o ? o.t : off.value), { officeKey: off.value, office: o ? o.t : off.value, period: per.value, raised: a.toFixed(2), spent: b.toFixed(2), notes: notes.value.trim().slice(0, 400), termYear: C.termYear }, "elections"),
+      done: r => ({ title: "Report submitted", body: per.value + " for " + (o ? o.t : off.value) + ": $" + a.toFixed(2) + " raised, $" + b.toFixed(2) + " spent.", ref: r && r.id, next: ["The Bureau of Elections reviews it.", "Once approved it appears on the public campaign finance page."] }) });
+    if (!ok) go.disabled = false;
   });
   const f = (l, c) => el("div", { class: "fld" }, el("label", { text: l }), c);
   fb.append(el("div", { class: "two" }, f("Campaign", off), f("Report", per)), el("div", { class: "two" }, f("Total raised ($)", raised), f("Total spent ($)", spent)), f("Notes", notes), go, out);

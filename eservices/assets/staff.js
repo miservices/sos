@@ -17,6 +17,7 @@
                   Public portal pages create these (status "open"); staff work them here.
      audit/{id}   { actorPin, actorName, role, bureau, action, target, detail, at } */
 import { boot, db, E, $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, logActivity, logAccess, charge, list, money, getRecord, setRecordStatus, applyNameToRecord, applyNameToMiGOVT, applyNameToCourts, statusOf, STATUSES, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { submit } from "https://migovt.org/sos/eservices/assets/feedback.js";
 import { TYPES as BIZ_TYPES, plusYear, bizNumber } from "https://migovt.org/sos/eservices/assets/business.js";
 import { doc, getDoc, getDocs, addDoc, updateDoc, setDoc, collection, query, where, limit, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 export { $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, E, db, list, money, getRecord, setRecordStatus, applyNameToRecord, applyNameToMiGOVT, applyNameToCourts, statusOf, STATUSES, recordDate };
@@ -400,9 +401,11 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
       const msg = el("div", { class: "empty" });
       const run = async (label, v, btn) => {
         if (v.ok && !confirm(label + " this case for " + (r.name || "PIN " + r.pin) + "?")) return;
-        box.querySelectorAll("button").forEach(b => b.disabled = true); msg.textContent = "Saving...";
-        try { await act(r, { ...v, note: note.value }); draw(); detail(r); }
-        catch (e) { console.error(e); msg.textContent = "Could not save. Check the Firestore rules."; box.querySelectorAll("button").forEach(b => b.disabled = false); }
+        box.querySelectorAll("button").forEach(b => b.disabled = true); msg.textContent = "";
+        const who = r.name || "PIN " + r.pin, verb = { Approve: "approved", Deny: "denied", Uphold: "upheld", Overturn: "overturned", Dismiss: "dismissed" }[label];
+        const ok = await submit({ working: "Saving", reload: false, work: () => act(r, { ...v, note: note.value }),
+          done: () => ({ title: verb ? "Case " + verb : "Case updated", body: r._warn || (verb ? typeLabel(r.type) + " for " + who + " was " + verb + ". They have been notified." : "Your change was saved and " + who + " has been notified of any status change.") }) });
+        if (ok) { draw(); detail(r); } else box.querySelectorAll("button").forEach(b => b.disabled = false);
       };
       const qa = el("div", { class: "bar" });
       actionsFor(r).forEach(([label, v]) => { const b = el("button", { class: "btn2" + (v.ok ? "" : " s"), type: "button", text: label }); b.addEventListener("click", () => run(label, v, b)); qa.append(b); });
