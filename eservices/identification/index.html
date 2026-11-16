@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Identification | SOS e-Services | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/eservices/assets/shared.css">
+<style>
+.lock{display:inline-block;margin-left:8px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:#eceff1;color:#4c6168;border-radius:999px;padding:2px 9px}
+.opt2{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:16px 0;border-top:1px solid var(--line)}
+.opt2:first-of-type{border-top:0;padding-top:4px}
+.opt2 b{display:block;font-size:15.5px}
+.opt2 span.d{display:block;color:var(--muted);font-size:14px;margin-top:2px;max-width:520px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:14px;margin:12px 0}
+.chk input{margin-top:4px}
+@media(max-width:700px){.three{grid-template-columns:1fr}.opt2{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="header"></script>
+<div class="shell">
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="nav" data-page="identification"></script>
+<main class="pmain">
+<div id="p-load" class="pload">Loading your information...</div>
+<div id="p-body" hidden>
+  <div class="ph"><div class="eb">Identity and Licensing</div><h1>Identification</h1><p>Your information on file, name changes, ID cards, and your vital records.</p></div>
+
+  <div class="pc" id="info"><h2>Your information</h2><div class="kv2" id="kv"></div>
+    <p class="mt sub">Your name and date of birth come from your vital record. Contact details come from your MiGOVT account, which you manage at <a href="https://migovt.org/account/" style="text-decoration:underline">migovt.org/account</a>.</p></div>
+
+  <div class="pc mt" id="name-change"><h2>Change your name</h2>
+    <p class="sub">A name change is reviewed by the Department and applied to your record when approved. It carries a fee. Your <b>date of birth can never be changed</b>.</p>
+    <div id="nc-pending"></div>
+    <div id="nc-form">
+      <div class="three">
+        <div class="fld"><label for="nf">First name</label><input id="nf" maxlength="40" autocomplete="off"></div>
+        <div class="fld"><label for="nm">Middle name (optional)</label><input id="nm" maxlength="40" autocomplete="off"></div>
+        <div class="fld"><label for="nl">Last name</label><input id="nl" maxlength="40" autocomplete="off"></div>
+      </div>
+      <div class="fld"><label for="nr">Reason</label><select id="nr"><option>Marriage</option><option>Divorce</option><option>Court order</option><option>Correcting an error</option><option>Other</option></select></div>
+      <label class="chk"><input type="checkbox" id="nk"><span>I understand the <b id="nfee"></b> fee is charged when I submit, and that my date of birth cannot be changed.</span></label>
+      <button class="btn2" id="nsub" type="button">Submit name change</button> <span class="empty" id="nmsg"></span>
+    </div>
+  </div>
+
+  <div class="pc mt" id="cards"><h2>Identification cards</h2>
+    <div class="opt2"><div><b>Personal ID card</b><span class="d">A state ID if you do not hold a driver's license. Fee: <span id="pifee"></span>.</span></div><div id="pi-act"></div></div>
+    <div class="opt2"><div><b>REAL ID</b><span class="d">Lets you enter military buildings. Citizens only. Additional fee: <span id="rifee"></span>.</span></div><div id="ri-act"></div></div>
+    <p class="mt sub">Looking for a driver's license? Go to <a href="https://migovt.org/sos/eservices/licenses/" style="text-decoration:underline">Driver Licensing</a>. Read more about <a href="https://migovt.org/sos/licenses/id/" style="text-decoration:underline">personal IDs and REAL ID</a>.</p>
+  </div>
+
+  <div class="pc mt" id="vital-records"><h2>Vital records</h2>
+    <div class="opt2"><div><b>Birth certificate</b><span class="d" id="bc-d"></span></div><div id="bc-act"></div></div>
+    <div class="opt2"><div><b>Citizenship and resident status</b><span class="d" id="cs-d"></span></div><div id="cs-act"></div></div>
+  </div>
+
+  <div class="pc mt"><h2>Your requests</h2><div class="rows" id="reqs"></div></div>
+</div>
+</main>
+</div>
+<script src="https://migovt.org/sos/eservices/assets/partials.js" data-part="footer"></script>
+<script type="module">
+import { boot, el, $, cap, when, money, longDate, fileCase, myCases, charge, CITIZENSHIP } from "https://migovt.org/sos/eservices/assets/shared.js";
+
+/* Fees. The name change fee is a placeholder until the Department sets it. */
+const FEES = { nameChange: 25, personalId: 15, realId: 15 };
+
+const ctx = await boot({ page: "identification" });
+const { id, acct } = ctx;
+const citizenship = acct.citizenship || "";
+$("nfee").textContent = money(FEES.nameChange);
+$("pifee").textContent = money(FEES.personalId);
+$("rifee").textContent = money(FEES.realId);
+
+const STATUS = { open: "Submitted", "in-review": "In review", approved: "Approved", denied: "Denied", closed: "Closed" };
+const pillFor = s => el("span", { class: "pill " + (s === "approved" ? "g" : s === "denied" || s === "closed" ? "n" : "o"), text: STATUS[s] || cap(s) });
+let cases = [];
+const tag = c => c.detail && (c.detail.card || c.detail.record);
+const pending = (type, card) => cases.find(c => c.type === type && ["open", "in-review"].includes(c.status) && (!card || tag(c) === card));
+const done = (type, card) => cases.find(c => c.type === type && c.status === "approved" && (!card || tag(c) === card));
+
+/* ---- your information ---- */
+function drawInfo() {
+  const kv = $("kv"); kv.replaceChildren();
+  const row = (k, v) => kv.append(el("div", {}, el("span", { text: k }), el("b", {}, v)));
+  row("Name", id.name || "Not on file");
+  row("Date of birth", el("span", {}, longDate(id.dob), el("span", { class: "lock", text: "Cannot be changed" })));
+  row("PIN", id.pin);
+  row("Status", citizenship ? el("span", { class: "pill g", text: CITIZENSHIP[citizenship] || cap(citizenship) }) : "Not on file");
+  row("Email", id.email || "Not on file");
+  row("Roblox", id.roblox || "Not linked");
+  row("Discord", id.discord || "Not linked");
+}
+
+/* ---- name change ---- */
+function drawName() {
+  const p = pending("name.change");
+  $("nc-pending").replaceChildren(p ? el("div", { class: "alert" }, el("b", { text: "A name change is in review" }), "You asked to change your name to " + ((p.detail && p.detail.to) || "a new name") + ". You will get a notice when it is decided.") : "");
+  $("nc-form").classList.toggle("hide", !!p);
+}
+const clean = s => s.trim().replace(/\s+/g, " ");
+const okName = s => /^[A-Za-z][A-Za-z'’\- ]{0,39}$/.test(s);
+$("nsub").addEventListener("click", async () => {
+  const msg = $("nmsg"), f = clean($("nf").value), m = clean($("nm").value), l = clean($("nl").value);
+  if (!okName(f) || !okName(l) || (m && !okName(m))) { msg.textContent = " Use letters, spaces, hyphens, and apostrophes only."; return; }
+  const to = [f, m, l].filter(Boolean).join(" ");
+  if (to.toLowerCase() === String(id.name || "").toLowerCase()) { msg.textContent = " That is already your name."; return; }
+  if (!$("nk").checked) { msg.textContent = " Check the box to confirm."; return; }
+  $("nsub").disabled = true; msg.textContent = " Submitting...";
+  try {
+    await fileCase(ctx, "name.change", "Change name to " + to, { from: id.name || "", to, first: f, middle: m, last: l, reason: $("nr").value, fee: money(FEES.nameChange) });
+    await charge(id.pin, "Name change", FEES.nameChange);
+    msg.textContent = " Submitted."; ["nf", "nm", "nl"].forEach(k => $(k).value = ""); $("nk").checked = false;
+    await refresh();
+  } catch (e) { console.error(e); msg.textContent = " Could not submit. Try again."; }
+  $("nsub").disabled = false;
+});
+
+/* ---- ID cards ---- */
+function applyButton(type, card, label, fee, extra) {
+  const wrap = el("span", {});
+  const p = pending(type, card), d = done(type, card);
+  if (d) return pillFor("approved");
+  if (p) return pillFor(p.status);
+  const b = el("button", { class: "btn2", type: "button", text: label + " (" + money(fee) + ")" });
+  b.addEventListener("click", async () => {
+    if (!confirm("Apply for a " + card + "? A fee of " + money(fee) + " is charged now.")) return;
+    b.disabled = true;
+    try { await fileCase(ctx, type, card + " application", { card, ...extra, fee: money(fee) }); await charge(id.pin, card + " application", fee); await refresh(); }
+    catch (e) { console.error(e); b.disabled = false; alert("We could not submit the application. Try again."); }
+  });
+  return b;
+}
+function drawCards() {
+  $("pi-act").replaceChildren(applyButton("id.application", "Personal ID card", "Apply", FEES.personalId));
+  const ri = $("ri-act"); ri.replaceChildren();
+  if (citizenship !== "citizen") ri.append(el("span", { class: "pill n", text: citizenship ? "Citizens only" : "Citizenship not on file" }));
+  else ri.append(applyButton("id.application", "REAL ID", "Apply", FEES.realId));
+}
+
+/* ---- vital records ---- */
+function requestButton(type, title, detail, label) {
+  const p = pending(type, detail.record);
+  if (p) return pillFor(p.status);
+  const b = el("button", { class: "btn2 s", type: "button", text: label });
+  b.addEventListener("click", async () => {
+    b.disabled = true;
+    try { await fileCase(ctx, type, title, detail); await refresh(); } catch (e) { console.error(e); b.disabled = false; alert("We could not submit the request. Try again."); }
+  });
+  return b;
+}
+function drawVital() {
+  $("bc-d").textContent = "Certificate of Live Birth for " + (id.name || "you") + ", born " + longDate(id.dob) + ". Request a certified copy from the Department.";
+  $("bc-act").replaceChildren(requestButton("vital.request", "Certified copy of birth certificate", { record: "Birth certificate" }, "Request a certified copy"));
+  $("cs-d").textContent = citizenship ? "Your status on file: " + (CITIZENSHIP[citizenship] || cap(citizenship)) + "." : "No citizenship or resident status is on file for you yet. The Department records it from your vital record.";
+  $("cs-act").replaceChildren(requestButton("vital.request", "Certified citizenship and resident status record", { record: "Citizenship and resident status" }, "Request a certified record"));
+}
+
+/* ---- your requests ---- */
+function drawReqs() {
+  const box = $("reqs"); box.replaceChildren();
+  const mine = cases.filter(c => ["name.change", "id.application", "vital.request"].includes(c.type)).slice(0, 10);
+  if (!mine.length) { box.append(el("div", { class: "empty", text: "No requests yet." })); return; }
+  mine.forEach(c => box.append(el("div", {}, el("div", {}, el("b", { text: c.title }), el("small", { text: "Updated " + when(c.updatedAt) })), el("div", { class: "r" }, pillFor(c.status)))));
+}
+
+async function refresh() {
+  try { cases = await myCases(id.pin); } catch (e) { console.error(e); cases = []; }
+  /* An approved name change shows in the SOS record right away on the next load. */
+  drawInfo(); drawName(); drawCards(); drawVital(); drawReqs();
+}
+await refresh();
+if (location.hash) { const t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }
+</script>
+</body>
+</html>

@@ -171,6 +171,11 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
           const nt = note.value.trim(); const nn = nt ? { by: ctx.id.pin, name: ctx.id.name || "Staff", text: nt.slice(0, 600), at: Date.now() } : null;
           if (nn) up.notes = arrayUnion(nn);
           await updateDoc(doc(db, "cases", r.id), up);
+          /* An approved name change is applied to the person's account. */
+          if (st.value === "approved" && r.type === "name.change" && r.detail && r.detail.first && r.detail.last) {
+            await updateDoc(doc(db, "accounts", r.pin), { name: r.detail.to || [r.detail.first, r.detail.middle, r.detail.last].filter(Boolean).join(" "), firstName: r.detail.first, middleName: r.detail.middle || "", lastName: r.detail.last, updatedBy: ctx.id.pin, updatedAt: serverTimestamp() });
+            await logActivity(r.pin, "account.name", "Your name was changed to " + (r.detail.to || ""), AGENCY);
+          }
           if (st.value !== r.status) { await audit(ctx, "case.status", r.pin, typeLabel(r.type) + ": " + (STATUS[r.status] || r.status) + " to " + STATUS[st.value]); await logActivity(r.pin, "case.status", typeLabel(r.type) + ": " + STATUS[st.value], AGENCY); }
           else if (nn) await audit(ctx, "case.note", r.pin, typeLabel(r.type));
           Object.assign(r, { status: st.value, assignee: up.assignee ?? r.assignee, assigneeName: up.assigneeName ?? r.assigneeName, notes: nn ? [...notes, nn] : notes, updatedAt: Date.now() });

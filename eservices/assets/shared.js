@@ -11,7 +11,8 @@
    boot() signs the person in (or sends them to MiGOVT Login and back to the same page), then swaps them.
 
    Firestore (project misos-f7956):
-     accounts/{pin}      { pin, role, specialPermissions[], createdAt, lastLoginAt, loginCount, bureau?, division? }   role: "basic" (default) or a staff role (see ROLE_LABELS)
+     accounts/{pin}      { pin, role, specialPermissions[], createdAt, lastLoginAt, loginCount, bureau?, division?,
+                        name, firstName, middleName, lastName, dateOfBirth, email, robloxUsername, discordUsername (copied from MiGOVT at sign-in), identitySyncedAt, citizenship ("citizen", "resident", "other"; set by staff) }   role: "basic" (default) or a staff role (see ROLE_LABELS)
      activity/{id}       { pin, type, summary, actorPin?, actorName?, actorKind?, hidden, at }       what happened to or by the person with this pin
      transactions/{id}   { pin, desc, amount, status, at }                                           fees
      notices/{id}        { pin ("*" = everyone), title, body, level, at, read }                      official notices (created by staff in the console) */
@@ -33,6 +34,7 @@ export const ROLE_LABELS = {
 };
 /* Every role except "basic" is Department of State staff and can open the staff portal at /sos/eservices/staff/home/. */
 export const STAFF_ROLES = Object.keys(ROLE_LABELS).filter(r => r !== "basic");
+export const CITIZENSHIP = { citizen: "Citizen", resident: "Resident", other: "Neither a citizen nor a resident" };
 export const PERM_LABELS = { dealer: "Licensed dealer", insurer: "Licensed insurer", "records-access": "Records access" };
 
 /* ---------- small helpers ---------- */
@@ -73,16 +75,31 @@ function identityFromReturn() {
   return { pin, name: g("name"), first: g("first"), middle: g("middle"), last: g("last"), dob: g("dob"), roblox: g("user"), email: g("email"), discord: g("discord") };
 }
 
-/* ---------- account: created the first time, "basic" with no special permissions ---------- */
-async function ensureAccount(pin) {
-  const ref = doc(db, "accounts", pin), snap = await getDoc(ref);
+/* ---------- account: created the first time, "basic" with no special permissions ----------
+   The MiGOVT details that sign-in hands us are copied onto the SOS account, so SOS reads its own database from then on. */
+const IDENT = id => {
+  const m = { name: id.name, firstName: id.first, middleName: id.middle, lastName: id.last, dateOfBirth: id.dob, email: id.email, robloxUsername: id.roblox, discordUsername: id.discord }, o = {};
+  for (const k in m) if (m[k]) o[k] = String(m[k]).slice(0, 120);
+  return o;
+};
+async function ensureAccount(id) {
+  const pin = id.pin, ref = doc(db, "accounts", pin), snap = await getDoc(ref);
   if (!snap.exists()) {
-    await setDoc(ref, { pin, role: "basic", specialPermissions: [], createdAt: serverTimestamp(), lastLoginAt: serverTimestamp(), loginCount: 1 });
+    await setDoc(ref, { pin, role: "basic", specialPermissions: [], ...IDENT(id), identitySyncedAt: serverTimestamp(), createdAt: serverTimestamp(), lastLoginAt: serverTimestamp(), loginCount: 1 });
     ss.set("sos_counted", pin);
     return { data: (await getDoc(ref)).data(), created: true };
   }
+  const cur = snap.data(); let changed = false;
   if (ss.get("sos_counted") !== pin) { ss.set("sos_counted", pin); await updateDoc(ref, { lastLoginAt: serverTimestamp(), loginCount: increment(1) }).catch(() => {}); }
-  return { data: snap.data(), created: false };
+  /* Accounts made before this copy existed get their MiGOVT details once. */
+  if (!cur.identitySyncedAt) { try { await updateDoc(ref, { ...IDENT(id), identitySyncedAt: serverTimestamp() }); changed = true; } catch (e) { console.warn("Could not copy MiGOVT details", e); } }
+  else {
+    /* Contact details can change at MiGOVT, so keep those current. Name and date of birth stay as the SOS record has them. */
+    const up = {}, ident = IDENT(id);
+    ["email", "robloxUsername", "discordUsername"].forEach(k => { if (ident[k] && ident[k] !== cur[k]) up[k] = ident[k]; });
+    if (Object.keys(up).length) { try { await updateDoc(ref, up); changed = true; } catch (e) { console.warn("Could not refresh contact details", e); } }
+  }
+  return { data: changed ? (await getDoc(ref)).data() : cur, created: false };
 }
 
 /* ---------- data: history, fees, notices ---------- */
@@ -113,6 +130,19 @@ export function logAccess(subjectPin, kind, actor) {
 /* A fee was charged. */
 export function charge(pin, desc, amount, status = "paid") {
   return addDoc(collection(db, "transactions"), { pin: String(pin), desc: String(desc).slice(0, 120), amount: Number(amount), status, at: serverTimestamp() }).catch(e => console.warn("Could not record fee", e));
+}
+/* A person files a request with the Department (name change, ID application, record request...). Staff work it from the Work Queue. */
+export async function fileCase(ctx, type, title, detail, bureau = "lara") {
+  const d = { pin: ctx.id.pin, type, title: String(title).slice(0, 140), status: "open", bureau, createdBy: ctx.id.pin, createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
+  if (ctx.id.name) d.name = ctx.id.name; if (detail) d.detail = detail;
+  const ref = await addDoc(collection(db, "cases"), d);
+  await logActivity(ctx.id.pin, "case.opened", String(title).slice(0, 140), { pin: ctx.id.pin, name: ctx.id.name, kind: "self" });
+  return ref;
+}
+/* The person's own requests, newest first. */
+export async function myCases(pin, n = 50) {
+  const q = await getDocs(query(collection(db, "cases"), where("pin", "==", String(pin)), limit(100)));
+  return q.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => ms(b.updatedAt) - ms(a.updatedAt)).slice(0, n);
 }
 export const visible = rows => rows.filter(r => !r.hidden);
 export const accessLog = rows => visible(rows).filter(r => /^(access|search)\./.test(r.type));
@@ -145,7 +175,9 @@ export async function boot(opts = {}) {
   if (id) saveSession(id); else id = loadSession();
   if (!id) { location.replace(loginUrl()); return new Promise(() => {}); }
   try {
-    const { data, created } = await ensureAccount(id.pin);
+    const { data, created } = await ensureAccount(id);
+    /* From here on the SOS record is the source for who this person is. */
+    id = { ...id, name: data.name || id.name, first: data.firstName || id.first, middle: data.middleName || id.middle, last: data.lastName || id.last, dob: data.dateOfBirth || id.dob, email: data.email || id.email, roblox: data.robloxUsername || id.roblox, discord: data.discordUsername || id.discord };
     const role = String(data.role || "basic").toLowerCase();
     const perms = Array.isArray(data.specialPermissions) ? data.specialPermissions.map(String) : [];
     const ctx = { id, acct: data, role, perms, created, has: p => perms.includes(p), isStaff: STAFF_ROLES.includes(role), page: opts.page || "" };

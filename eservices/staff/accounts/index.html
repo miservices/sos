@@ -37,6 +37,7 @@ async function load(pin) {
     if (!a) return msg("No SOS e-Services account for that PIN. The person has to sign in once to create it.");
     const role = el("select", { id: "role" }, ["basic", ...STAFF_ROLES].map(r => el("option", { value: r, text: ROLE_LABELS[r] || cap(r) }))); role.value = a.role || "basic"; role.disabled = !ctx.can("accounts.roles");
     const bur = el("select", { id: "bur" }, [["", "None"], ...Object.entries(BUREAUS)].map(([v, t]) => el("option", { value: v, text: t }))); bur.value = a.bureau || "";
+    const cit = el("select", { id: "cit" }, [["", "Not on file"], ["citizen", "Citizen"], ["resident", "Resident"], ["other", "Neither a citizen nor a resident"]].map(([v, t]) => el("option", { value: v, text: t }))); cit.value = a.citizenship || "";
     const div = el("input", { id: "div", type: "text", value: a.division || "", maxlength: "80", placeholder: "Division (optional)" });
     const known = new Set(PERMS), extra = (a.specialPermissions || []).filter(x => !known.has(x));
     const checks = el("div", { class: "checks" }, [...PERMS, ...extra].map(k => { const c = el("input", { type: "checkbox", value: k }); c.checked = (a.specialPermissions || []).includes(k); return el("label", {}, c, PERM_LABELS[k] || cap(k)); }));
@@ -44,14 +45,14 @@ async function load(pin) {
     const out = el("span", { class: "empty" }), save = el("button", { class: "btn2", type: "button", text: "Save changes" });
     save.addEventListener("click", async () => {
       const perms = [...checks.querySelectorAll("input:checked")].map(c => c.value); const np = newp.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, ""); if (np && !perms.includes(np)) perms.push(np);
-      const f = { bureau: role.value === "basic" ? "" : bur.value, division: role.value === "basic" ? "" : div.value.trim(), specialPermissions: perms };
+      const f = { citizenship: cit.value, bureau: role.value === "basic" ? "" : bur.value, division: role.value === "basic" ? "" : div.value.trim(), specialPermissions: perms };
       if (ctx.can("accounts.roles")) f.role = role.value;
       save.disabled = true; out.textContent = " Saving...";
       try { await saveAccount(ctx, pin, f); out.textContent = " Saved."; loadStaff(); } catch (er) { console.error(er); out.textContent = " Could not save. Check the Firestore rules."; }
       save.disabled = false;
     });
     $("ed").replaceChildren(el("div", { class: "pc detail" }, el("h2", { text: (p && p.name) || "PIN " + pin }), el("p", { class: "sub", text: "PIN " + pin + (ctx.can("accounts.roles") ? "" : " | Only a System Administrator can change roles") }),
-      el("div", { class: "fld" }, el("label", { for: "role", text: "Role" }), role), el("div", { class: "fld" }, el("label", { for: "bur", text: "Bureau" }), bur), el("div", { class: "fld" }, el("label", { for: "div", text: "Division" }), div),
+      el("div", { class: "fld" }, el("label", { for: "cit", text: "Citizenship status" }), cit), el("div", { class: "fld" }, el("label", { for: "role", text: "Role" }), role), el("div", { class: "fld" }, el("label", { for: "bur", text: "Bureau" }), bur), el("div", { class: "fld" }, el("label", { for: "div", text: "Division" }), div),
       el("div", { class: "fld" }, el("label", { text: "Special permissions" }), checks, newp), save, out));
   } catch (e) { console.error(e); msg("The account could not be loaded."); }
 }
