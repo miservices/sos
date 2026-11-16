@@ -11,7 +11,7 @@
    boot() signs the person in (or sends them to MiGOVT Login and back to the same page), then swaps them.
 
    Firestore (project misos-f7956):
-     accounts/{pin}      { pin, role, specialPermissions[], createdAt, lastLoginAt, loginCount }   role: "basic" (default), "staff", ...
+     accounts/{pin}      { pin, role, specialPermissions[], createdAt, lastLoginAt, loginCount, bureau?, division? }   role: "basic" (default) or a staff role (see ROLE_LABELS)
      activity/{id}       { pin, type, summary, actorPin?, actorName?, actorKind?, hidden, at }       what happened to or by the person with this pin
      transactions/{id}   { pin, desc, amount, status, at }                                           fees
      notices/{id}        { pin ("*" = everyone), title, body, level, at, read }                      official notices (created by staff in the console) */
@@ -24,7 +24,15 @@ const FB = { apiKey: "AIzaSyCzMDtySiPOXM5J15ePmjyUZRn_Zcyz2w0", authDomain: "mis
 export const db = getFirestore(initializeApp(FB));
 
 /* ---------- labels: add new roles and special permissions here ---------- */
-export const ROLE_LABELS = { basic: "Basic", staff: "Staff" };
+export const ROLE_LABELS = {
+  basic: "Basic",
+  "system-administrator": "System Administrator", "secretary-of-state": "Secretary of State", "deputy-secretary-of-state": "Deputy Secretary of State",
+  "bureau-director": "Bureau Director", "deputy-bureau-director": "Deputy Bureau Director",
+  "division-director": "Division Director", "deputy-division-director": "Deputy Division Director",
+  "licensing-officer": "Licensing Officer", "records-officer": "Records Officer", "elections-officer": "Elections Officer", "hearing-officer": "Hearing Officer"
+};
+/* Every role except "basic" is Department of State staff and can open the staff portal at /sos/eservices/staff/home/. */
+export const STAFF_ROLES = Object.keys(ROLE_LABELS).filter(r => r !== "basic");
 export const PERM_LABELS = { dealer: "Licensed dealer", insurer: "Licensed insurer", "records-access": "Records access" };
 
 /* ---------- small helpers ---------- */
@@ -112,6 +120,7 @@ export const accessLog = rows => visible(rows).filter(r => /^(access|search)\./.
 /* ---------- page chrome ---------- */
 function initials(s) { const w = String(s || "?").trim().split(/\s+/).filter(Boolean); return ((w[0] || "?")[0] + (w.length > 1 ? w[w.length - 1][0] : "")).toUpperCase(); }
 function paintChrome(ctx) {
+  if (ctx.isStaff) { const nv = document.querySelector(".pnav nav"); if (nv && !nv.querySelector("[data-staff-link]")) nv.insertAdjacentHTML("beforeend", '<h4>Staff</h4><a data-staff-link href="' + E + 'staff/home/"><span>Staff Portal</span></a>'); }
   document.querySelectorAll("[data-puser]").forEach(u => u.hidden = false);
   document.querySelectorAll("[data-name]").forEach(n => n.textContent = ctx.id.name || "Account");
   document.querySelectorAll("[data-av]").forEach(box => {
@@ -139,7 +148,7 @@ export async function boot(opts = {}) {
     const { data, created } = await ensureAccount(id.pin);
     const role = String(data.role || "basic").toLowerCase();
     const perms = Array.isArray(data.specialPermissions) ? data.specialPermissions.map(String) : [];
-    const ctx = { id, acct: data, role, perms, created, has: p => perms.includes(p), isStaff: role === "staff", page: opts.page || "" };
+    const ctx = { id, acct: data, role, perms, created, has: p => perms.includes(p), isStaff: STAFF_ROLES.includes(role), page: opts.page || "" };
     if (created) await logActivity(id.pin, "account.created", "SOS e-Services account created", { pin: id.pin, name: id.name, kind: "self" });
     if (ss.get("sos_signin_logged") !== id.pin) { ss.set("sos_signin_logged", id.pin); if (!created) await logActivity(id.pin, "account.signin", "Signed in to SOS e-Services", { pin: id.pin, name: id.name, kind: "self" }); }
     paintChrome(ctx);

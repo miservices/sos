@@ -137,3 +137,21 @@ ul,ol{padding-left:20px}
   .g2,.g3{grid-template-columns:1fr}
   .ph h1{font-size:27px}
 }
+
+/* staff portal and tables */
+.tw{overflow-x:auto}
+.tbl tr.row{cursor:pointer}
+.tbl tr.row:hover td{background:#f3fafb}
+.pill.n{background:#eceff1;color:#4c6168}
+.bar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.bar select,.bar input{border:1px solid var(--line);border-radius:12px;padding:10px 14px;font:inherit;background:#fff}
+.bar input{flex:1;min-width:200px}
+.bar select:focus,.bar input:focus,textarea:focus{outline:2px solid var(--teal);border-color:var(--teal)}
+textarea{border:1px solid var(--line);border-radius:12px;padding:11px 14px;font:inherit;width:100%;resize:vertical}
+.detail{border-left:4px solid var(--teal)}
+body.staff .pbrand{color:var(--accent)}
+body.staff .pbar{border-bottom:3px solid var(--accent)}
+.checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.checks label{display:flex;gap:8px;align-items:center;font-weight:600;font-size:14px;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:#fff}
+.person{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.person:first-child{border-top:0}

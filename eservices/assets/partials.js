@@ -54,6 +54,32 @@
   PAGES.forEach(function (g) { g.items.forEach(function (i) { i.url = E + i.u; i.group = g.g; FLAT.push(i); }); });
   window.SOS_PAGES = PAGES; window.SOS_FLAT = FLAT;
 
+  /* ---------- the map of the staff portal (/sos/eservices/staff/) ---------- */
+  var STAFF = [
+    { g: "Overview", items: [
+      { k: "home", t: "Staff Home", u: "home/", d: "Your role, your assigned cases, and your recent actions." },
+      { k: "queue", t: "Work Queue", u: "queue/", d: "Every case in your scope, across desks." }
+    ] },
+    { g: "Bureau Desks", items: [
+      { k: "licensing", t: "Licensing Desk", u: "licensing/", d: "License, ID, dealer, insurer, and professional license requests.", bureau: "lara" },
+      { k: "records", t: "Records Desk", u: "records/", d: "Certified record requests and vital record requests.", bureau: "lara" },
+      { k: "elections", t: "Elections Desk", u: "elections/", d: "Voter registrations, candidate filings, finance reports, business and notary filings.", bureau: "elections" },
+      { k: "hearings", t: "Hearings Desk", u: "hearings/", d: "The docket of administrative appeals.", bureau: "hearings" }
+    ] },
+    { g: "Tools", items: [
+      { k: "lookup", t: "Person Lookup", u: "lookup/", d: "Search for a person and open their file. Every lookup is recorded." },
+      { k: "notices", t: "Send Notices", u: "notices/", d: "Send an official notice to one person or to everyone." }
+    ] },
+    { g: "Administration", items: [
+      { k: "directory", t: "Staff Directory", u: "directory/", d: "Everyone on staff, by role and bureau." },
+      { k: "accounts", t: "Account Administration", u: "accounts/", d: "Assign roles, bureaus, and special permissions." },
+      { k: "audit", t: "Audit Log", u: "audit/", d: "A record of staff actions." }
+    ] }
+  ];
+  var SFLAT = [];
+  STAFF.forEach(function (g) { g.items.forEach(function (i) { i.url = E + "staff/" + i.u; i.group = g.g; SFLAT.push(i); }); });
+  window.SOS_STAFF = STAFF; window.SOS_STAFF_FLAT = SFLAT;
+
   var LOGO = '<a class="logo" href="' + B + '" aria-label="Michigan Secretary of State"><svg viewBox="0 0 430 100" role="img" aria-label="Michigan Secretary of State"><g font-family="\'Plus Jakarta Sans\',\'Segoe UI\',Arial,sans-serif"><text x="4" y="30" font-size="13" font-weight="700" fill="#0e7c86" letter-spacing="5">MICHIGAN</text><text x="2" y="70" font-size="44" font-weight="800" fill="#0f2327" letter-spacing="-1">Secretary of State</text></g><rect x="4" y="82" width="365" height="5" rx="2.5" fill="#0e7c86"/><path d="M388 80l10 10 20-22" fill="none" stroke="#ff7a3d" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
 
   function nav(current) {
@@ -68,15 +94,27 @@
     return h + '</nav></aside>';
   }
 
+  function staffnav(current) {
+    var h = '<aside class="pnav" aria-label="Staff portal"><nav>';
+    STAFF.forEach(function (g) {
+      h += '<h4>' + g.g + '</h4>';
+      g.items.forEach(function (i) { h += '<a href="' + i.url + '"' + (i.k === current ? ' class="on" aria-current="page"' : '') + '><span>' + i.t + '</span></a>'; });
+    });
+    h += '<h4>More</h4><a href="' + E + 'home/"><span>Back to e-Services</span></a><a href="' + B + '"><span>Secretary of State home</span></a>';
+    return h + '</nav></aside>';
+  }
+
   var parts = {
-    header: function () {
+    header: function (_c, staff) {
+      if (staff) document.body.classList.add('staff');
       return '<div class="sim">This is not an official government website. This site is a simulated government interface and does not represent any real government body or authority.</div>' +
         '<header class="pbar"><button class="pmenu" type="button" data-pmenu aria-expanded="false" aria-label="Open the menu">Menu</button>' + LOGO +
-        '<a class="pbrand" href="' + E + 'home/">e-Services</a>' +
+        '<a class="pbrand" href="' + E + (staff ? 'staff/home/">Staff Portal' : 'home/">e-Services') + '</a>' +
         '<div class="puser" data-puser hidden><span class="av" data-av></span><span class="pn" data-name></span><button class="psignout" type="button" data-signout>Sign out</button></div>' +
         '<a class="psignin" data-signin href="' + E + '">Sign in</a></header>';
     },
     nav: nav,
+    staffnav: staffnav,
     footer: function () {
       return '<footer class="pfoot"><div><a href="' + B + 'about/">About</a><a href="' + B + 'directory/">Office directory</a><a href="' + B + 'accessibility/">Accessibility</a><a href="' + B + '">Secretary of State home</a></div>' +
         '<p>Michigan Department of State. A simulated government website for a fictional Michigan.</p></footer>';
@@ -86,7 +124,7 @@
   var el = document.currentScript;
   if (!el) return;
   var fn = parts[el.getAttribute('data-part')];
-  if (fn) el.insertAdjacentHTML('beforebegin', fn(el.getAttribute('data-page')));
+  if (fn) el.insertAdjacentHTML('beforebegin', fn(el.getAttribute('data-page'), el.hasAttribute('data-staff')));
 
   /* mobile menu button (added once) */
   if (!window.__sosMenu) {
