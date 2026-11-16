@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Office Directory | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/shared.css">
+<style>
+.dir{display:grid;grid-template-columns:1fr;gap:12px;margin:12px 0 26px}
+.dr{border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:#fff;display:grid;grid-template-columns:1fr auto;gap:6px 18px;align-items:center}
+.dr b{font-size:16px}.dr span{display:block;color:var(--muted);font-size:14.5px;margin-top:3px}
+.dr a.go{white-space:nowrap}
+#f{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit;margin:6px 0 18px}
+#f:focus{outline:2px solid var(--teal);border-color:var(--teal)}
+.hide{display:none!important}
+@media(max-width:700px){.dr{grid-template-columns:1fr}}
+</style></head>
+<body>
+<script src="https://migovt.org/sos/partials.js" data-part="header"></script>
+<section class="phead"><div class="in"><div class="crumbs"><a href="https://migovt.org/sos/">Home</a><span>/</span><b>Office directory</b></div><h1>Office directory</h1><p>Find the division or office that handles your request.</p><div class="acts"><a class="btn2 " href="https://migovt.org/sos/eservices/">SOS e-Services</a></div></div></section>
+<div class="pg"><div class="prose">
+<p>Find the right part of the Department of State. Most requests can be completed online without visiting an office.</p>
+<input id="f" type="search" placeholder="Filter by name or topic" aria-label="Filter the directory">
+<div id="list"><div class="grp"><h2>Licensing and Regulatory Affairs</h2><div class="dir"><div class="dr" data-s="division of driver licensing and records driver's, motorcycle, chauffeur, and commercial licenses, personal id cards, suspensions, and driving records. licensing and regulatory affairs"><div><b>Division of Driver Licensing and Records</b><span>Driver's, motorcycle, chauffeur, and commercial licenses, personal ID cards, suspensions, and driving records.</span></div><a class="btn2 s go" href="https://migovt.org/sos/licenses/">Visit page</a></div><div class="dr" data-s="division of vital records and citizenship birth certificates, citizenship records, and name changes. licensing and regulatory affairs"><div><b>Division of Vital Records and Citizenship</b><span>Birth certificates, citizenship records, and name changes.</span></div><a class="btn2 s go" href="https://migovt.org/sos/vital-records/">Visit page</a></div><div class="dr" data-s="division of professional licensing licenses for medical and other regulated professionals. licensing and regulatory affairs"><div><b>Division of Professional Licensing</b><span>Licenses for medical and other regulated professionals.</span></div><a class="btn2 s go" href="https://migovt.org/sos/professional-licensing/">Visit page</a></div></div></div><div class="grp"><h2>Elections</h2><div class="dir"><div class="dr" data-s="elections state and local elections, voter registration, campaign finance reporting, and election law compliance. elections"><div><b>Elections</b><span>State and local elections, voter registration, campaign finance reporting, and election law compliance.</span></div><a class="btn2 s go" href="https://migovt.org/sos/elections/">Visit page</a></div><div class="dr" data-s="office of the great seal official repository of public records, notary commissions, and authentication of official documents. elections"><div><b>Office of the Great Seal</b><span>Official repository of public records, notary commissions, and authentication of official documents.</span></div><a class="btn2 s go" href="https://migovt.org/sos/great-seal/">Visit page</a></div></div></div><div class="grp"><h2>Administrative Hearings and Appeals</h2><div class="dir"><div class="dr" data-s="administrative law judges impartial hearings and appeals of decisions by state agencies, counties, and municipalities. administrative hearings and appeals"><div><b>Administrative Law Judges</b><span>Impartial hearings and appeals of decisions by state agencies, counties, and municipalities.</span></div><a class="btn2 s go" href="https://migovt.org/sos/hearings/">Visit page</a></div></div></div></div>
+<p id="none" class="hide">No offices match that search.</p>
+<h2>Services by topic</h2>
+<div class="kv">
+<div><a href="https://migovt.org/sos/licenses/driver/">Driver's licenses</a></div><div><a href="https://migovt.org/sos/licenses/testing/">Online testing</a></div><div><a href="https://migovt.org/sos/licenses/id/">Personal ID and REAL ID</a></div><div><a href="https://migovt.org/sos/licenses/suspensions/">Suspensions and revocations</a></div><div><a href="https://migovt.org/sos/licenses/records/">Driving records</a></div><div><a href="https://migovt.org/sos/vital-records/">Vital records</a></div><div><a href="https://migovt.org/sos/business/">Business information</a></div></div>
+<script>
+(function(){var f=document.getElementById("f"),rows=[].slice.call(document.querySelectorAll(".dr")),g=[].slice.call(document.querySelectorAll(".grp")),n=document.getElementById("none");
+f.addEventListener("input",function(){var q=f.value.trim().toLowerCase(),any=false;
+rows.forEach(function(r){var m=!q||r.dataset.s.indexOf(q)>-1;r.classList.toggle("hide",!m);if(m)any=true});
+g.forEach(function(x){x.classList.toggle("hide",!x.querySelector(".dr:not(.hide)"))});n.classList.toggle("hide",any)})})();
+</script>
+</div><aside class="side"><div class="card cta"><h3>Skip the trip</h3><p>Most services are online with a MiGOVT account.</p><a class="btn2 " href="https://migovt.org/sos/eservices/">SOS e-Services</a></div><div class="card"><h3>Also useful</h3><div class="kv"><div><a href="https://migovt.org/sos/about/">About the Department</a></div><div><a href="https://migovt.org/sos/accessibility/">Accessibility</a></div><div><a href="https://migovt.org/sos/hearings/">Hearings &amp; Appeals</a></div></div></div></aside></div>
+<script src="https://migovt.org/sos/partials.js" data-part="footer"></script>
+</body>
+</html>
