@@ -17,7 +17,7 @@
                   Public portal pages create these (status "open"); staff work them here.
      audit/{id}   { actorPin, actorName, role, bureau, action, target, detail, at } */
 import { boot, db, E, $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, logActivity, logAccess, charge, list, money, getRecord, setRecordStatus, applyNameToRecord, applyNameToMiGOVT, applyNameToCourts, statusOf, STATUSES, recordDate } from "https://migovt.org/sos/eservices/assets/shared.js";
-import { doc, getDoc, getDocs, addDoc, updateDoc, collection, query, where, limit, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { doc, getDoc, getDocs, addDoc, updateDoc, setDoc, collection, query, where, limit, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 export { $, el, cap, ms, when, ROLE_LABELS, STAFF_ROLES, PERM_LABELS, E, db, list, money, getRecord, setRecordStatus, applyNameToRecord, applyNameToMiGOVT, applyNameToCourts, statusOf, STATUSES, recordDate };
 
 /* ---------- bureaus and roles ---------- */
@@ -142,6 +142,33 @@ async function applyLicenseCase(ctx, r) {
   return "";
 }
 
+/* Approving a professional license application creates the license record; approving a renewal extends it. */
+const PRO_PREFIX = { "medical-physician": "MD", "medical-paramedic": "PM", "medical-aemt": "AE", "medical-emt": "EM", "bail-bond": "BB" };
+async function applyProfessionalCase(ctx, r) {
+  const k = r.detail && r.detail.kind; if (!PRO_PREFIX[k]) return "This request has no license type, so no license record was created.";
+  const ref = doc(db, "professionalLicenses", String(r.pin) + "_" + k), snap = await getDoc(ref), now = new Date();
+  const tm = v => v && v.toMillis ? v.toMillis() : typeof v === "string" ? (Date.parse(v) || 0) : (+v || 0);
+  if (r.type === "professional.renewal") {
+    if (!snap.exists()) return "No license record exists for this person, so there was nothing to renew. Approve a new application instead.";
+    const from = new Date(Math.max(tm(snap.data().expiresAt), now.getTime())); from.setFullYear(from.getFullYear() + 2);
+    const up = { expiresAt: from.toISOString(), renewedAt: now.toISOString(), updatedBy: ctx.id.pin, updatedAt: serverTimestamp() };
+    if (["expired", "inactive"].includes(String(snap.data().status || "").toLowerCase())) up.status = "active";
+    await updateDoc(ref, up);
+  } else {
+    if (snap.exists() && !["expired", "inactive"].includes(String(snap.data().status || "").toLowerCase())) return "This person already holds this license, so no new record was created.";
+    const exp = new Date(now); exp.setFullYear(exp.getFullYear() + 2);
+    const num = snap.exists() && snap.data().number ? snap.data().number : PRO_PREFIX[k] + "-" + String(Math.floor(100000 + Math.random() * 900000));
+    const med = k.startsWith("medical-");
+    await setDoc(ref, { pin: String(r.pin), name: r.name || "", type: med ? "medical" : k, ...(med ? { classification: k.replace("medical-", "") } : {}), number: num, status: "active",
+      issuedAt: now.toISOString(), expiresAt: exp.toISOString(), restrictions: snap.exists() ? (snap.data().restrictions || []) : [], conditions: snap.exists() ? (snap.data().conditions || []) : [],
+      discipline: snap.exists() ? (snap.data().discipline || []) : [], updatedBy: ctx.id.pin, updatedAt: serverTimestamp() });
+  }
+  const what = r.detail.license || k;
+  await audit(ctx, r.type === "professional.renewal" ? "pro.renew" : "pro.issue", r.pin, what);
+  await logActivity(r.pin, r.type === "professional.renewal" ? "license.renewed" : "license.issued", (r.type === "professional.renewal" ? "Renewed: " : "Issued: ") + what, AGENCY);
+  return "";
+}
+
 /* Open a case for a person (staff). */
 export async function openCase(ctx, { pin, name, type, title, detail }) {
   const bureau = (CASE_TYPES[type] || [])[1] || ctx.bureau || "lara";
@@ -218,7 +245,7 @@ export function renderQueue(root, ctx, rows, { emptyText } = {}) {
       try { const w = await applyLicenseCase(ctx, r); if (w) warns.push(w); } catch (e) { console.error(e); warns.push("The license could not be updated. Check the Firestore rules for licenses."); }
     }
     if (result === "approved" && r.result !== "approved" && (r.type === "professional.license" || r.type === "professional.renewal")) {
-      warns.push("Approved. Create or update this person's record in professionalLicenses (number, issue and expiration dates, status) so it shows on their page.");
+      try { const w = await applyProfessionalCase(ctx, r); if (w) warns.push(w); } catch (e) { console.error(e); warns.push("The license record could not be saved. Check the Firestore rules for professionalLicenses."); }
     }
     const before = stateText(r), after = stateText({ status, result });
     if (before !== after) { await audit(ctx, "case.status", r.pin, typeLabel(r.type) + ": " + before + " to " + after); await logActivity(r.pin, "case.status", typeLabel(r.type) + ": " + after, AGENCY); }
