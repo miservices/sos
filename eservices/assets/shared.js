@@ -239,7 +239,7 @@ const dobText = v => { const t = String(v || ""), m = /^(\d{4})-(\d\d)-(\d\d)/.e
 const side = r => /defendant|respondent|appellee/i.test(r || "") ? 1 : /plaintiff|petitioner|prosecut|appellant|applicant|complainant|claimant/i.test(r || "") ? 0 : null;
 /* The MC 53 (Notice of Legal Name Change) as a saved form (.md), in the same format the court's Document Drafting uses. */
 function mc53Md(c, caseId, o) {
-  const ps = Array.isArray(c.parties) ? c.parties.filter(p => p && p.name) : [], nm = p => { const a = (Array.isArray(p.aliases) ? p.aliases : []).filter(Boolean); return a.length ? p.name + ", a/k/a " + a.join(", a/k/a ") : p.name; };
+  const ps = Array.isArray(c.parties) ? c.parties.filter(p => p && p.name) : [], nm = p => p.name;
   const pl = ps.filter(p => side(p.role) === 0), df = ps.filter(p => side(p.role) === 1);
   const cap = (pl[0] && df[0]) ? pl[0].name + " v. " + df[0].name : (pl[0] || df[0] || {}).name || "";
   const L = (k, v) => "- " + k + ": " + String(v == null ? "" : v).replace(/\n/g, " ");
