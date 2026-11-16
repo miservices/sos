@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campaign finance | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/shared.css">
+<style>
+.k3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:14px 0}
+.k3>div{border:1px solid #dbe7e9;border-radius:14px;padding:14px 16px;background:#fff}.k3 span{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#5b6f74}.k3 b{display:block;font-size:18px;margin-top:4px}
+.fm{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:560px}.fm label{display:block;font-weight:700;font-size:.9rem;margin-bottom:4px}.fm input{width:100%;border:1px solid #cfdfe2;border-radius:12px;padding:11px 14px;font:inherit}.fm .full{grid-column:1/-1}
+@media(max-width:600px){.fm{grid-template-columns:1fr}}
+.res{margin-top:16px;border-radius:14px;padding:16px 20px;border:1px solid #cfe9ec;background:#e6f5f6}.res.ok{background:#e3f4ea;border-color:#c9ead5}.res.warn{background:#fff1e8;border-color:#ffd9c2}.res b{display:block;font-size:1.05rem}
+.pp{border:1px solid #dbe7e9;border-radius:14px;padding:14px 18px;margin-top:10px;background:#fff}.pp h3{margin:0 0 4px!important}
+.win{font-weight:800;color:#1c6b3a}
+</style>
+</head>
+<body>
+<script src="https://migovt.org/sos/partials.js" data-part="header"></script>
+<section class="phead"><div class="in"><div class="crumbs"><a href="https://migovt.org/sos/">Home</a><span>/</span><a href="https://migovt.org/sos/elections/">Elections</a><span>/</span><b>Candidate filing</b></div><h1>Candidate filing</h1><p>File to run for state, county, or city office.</p><div class="acts"><a class="btn2" href="https://migovt.org/sos/eservices/candidate-services/">File as a candidate</a></div></div></section>
+<div class="pg"><div class="prose">
+<h2>Who can run</h2>
+<p>You can file to run for office if you are a Michigan citizen or a resident. Citizens and residents are <a class="l" href="https://migovt.org/sos/elections/register/">registered to vote automatically</a>, and that same status makes you eligible to file.</p>
+<div class="k3"><div><span>Filing for the term beginning</span><b id="k-term"></b></div><div><span>Election Day</span><b id="k-eday"></b></div><div><span>Online voting</span><b id="k-online"></b></div></div>
+<h2>How to file</h2>
+<ol class="steps"><li><b><a class="l" href="https://migovt.org/sos/eservices/candidate-services/">Sign in to Candidate Services</a></b>Use your MiGOVT account in SOS e-Services.</li>
+<li><b>Choose your office</b>Pick the state, county, or city office you are running for. Candidates for Governor also name a Lieutenant Governor running mate, since the two are elected as one ticket.</li>
+<li><b>Add a statement</b>You can add a short candidate statement. It is optional.</li>
+<li><b>Submit your filing</b>The Bureau of Elections reviews it. When it is approved you are certified as a candidate and listed on this page.</li>
+<li><b>Report your campaign finances</b>Submit finance reports in Candidate Services. Approved reports are published on the <a class="l" href="https://migovt.org/sos/elections/campaign-finance/">campaign finance</a> page.</li></ol>
+<h2>Offices you can file for</h2>
+<table class="tbl"><tr><th>Level</th><th>Office</th><th>Seats</th></tr>
+<tr><td>State</td><td>Governor and Lieutenant Governor (one ticket)</td><td>1</td></tr><tr><td>State</td><td>Legislator</td><td>12</td></tr><tr><td>State</td><td>Justice</td><td>7</td></tr>
+<tr><td>Genesee County</td><td>Commissioner</td><td>5</td></tr><tr><td>Genesee County</td><td>County Clerk</td><td>1</td></tr><tr><td>Genesee County</td><td>County Treasurer</td><td>1</td></tr><tr><td>Genesee County</td><td>Sheriff</td><td>1</td></tr><tr><td>Genesee County</td><td>County Prosecutor</td><td>1</td></tr>
+<tr><td>City of Flint</td><td>Mayor</td><td>1</td></tr><tr><td>City of Flint</td><td>Council Member</td><td>3</td></tr></table>
+<p>Legislator, Justice, Commissioner and Council Member are filled by <a class="l" href="https://migovt.org/sos/elections/">ranked preference voting</a>. Every office serves a one year term.</p>
+<h2>Certified candidates</h2>
+<div id="cc"><p>Loading candidates...</p></div>
+</div><aside class="side"><div class="card cta"><h3>File to run</h3><p>Open Candidate Services to file for office.</p><a class="btn2" href="https://migovt.org/sos/eservices/candidate-services/">Candidate Services</a></div><div class="card"><h3>Elections</h3><div class="kv"><div><a class="l" href="https://migovt.org/sos/elections/">Election information</a></div><div><a class="l" href="https://migovt.org/sos/elections/register/">Voter registration</a></div><div><a class="l" href="https://migovt.org/sos/elections/status/">Check registration status</a></div><div><a class="l" href="https://migovt.org/sos/elections/absentee/">Absentee voting</a></div><div><a class="l" href="https://migovt.org/sos/elections/polling-places/">Polling places</a></div><div><a class="l" href="https://migovt.org/sos/elections/results/">Election results</a></div></div></aside></div>
+<script src="https://migovt.org/sos/partials.js" data-part="footer"></script>
+<script type="module">
+import { cycle, fmtDay, fmtShort, OFFICES, LEVELS } from "https://migovt.org/sos/eservices/assets/elections.js";
+import { db } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { getDocs, collection, query, where, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+const C = cycle(), $ = id => document.getElementById(id), e = (t, tx) => { const x = document.createElement(t); if (tx != null) x.textContent = tx; return x; };
+$("k-term").textContent = fmtDay(C.termStart); $("k-eday").textContent = fmtDay(C.electionDay); $("k-online").textContent = fmtShort(C.onlineOpen) + " to " + fmtShort(C.onlineClose);
+const box = $("cc");
+try {
+  const rows = (await getDocs(query(collection(db, "candidates"), where("termYear", "==", C.termYear), limit(300)))).docs.map(d => d.data()).filter(c => c.status === "certified");
+  box.replaceChildren();
+  if (!rows.length) box.append(e("p", "No candidates have been certified yet for the term beginning " + fmtDay(C.termStart) + "."));
+  OFFICES.forEach(o => { const l = rows.filter(c => c.officeKey === o.k).sort((a, b) => String(a.name).localeCompare(String(b.name))); if (!l.length) return;
+    box.append(e("h3", o.t + " (" + LEVELS[o.level] + ")")); const ul = e("ul"); l.forEach(c => ul.append(e("li", c.name || "PIN " + c.pin))); box.append(ul); });
+} catch (er) { console.error(er); box.replaceChildren(e("p", "Candidates could not be loaded right now.")); }
+</script>
+</body>
+</html>
