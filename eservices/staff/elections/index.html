@@ -19,7 +19,7 @@
   <div class="stats" id="stats"></div>
   <div class="g2 mt">
     <div class="pc"><h2>Election calendar</h2><div class="rows" id="cal"></div><p class="sub mt">Every general election runs on this calendar: one year terms, Election Day 21 days before the term begins, and online voting from 30 to 10 days before it.</p></div>
-    <div class="pc"><h2>What this desk handles</h2><ul><li>Voters. Citizens and residents are registered automatically from their vital record, so there is nothing to approve.</li><li>Candidate filings. Approving one certifies the candidate for that office and lists them on Candidate Services.</li><li>Campaign finance reports</li><li>Business registrations (Office of the Great Seal)</li><li>Notary commissions (Office of the Great Seal)</li></ul></div>
+    <div class="pc"><h2>What this desk handles</h2><ul><li>Voters. Citizens and residents are registered automatically from their vital record, so there is nothing to approve.</li><li>Candidate filings. Approving one certifies the candidate for that office and lists them on Candidate Services.</li><li>Campaign finance reports</li><li>Notary commissions (Office of the Great Seal)</li></ul></div>
   </div>
   <div class="pc mt"><h2>Certified candidates</h2><p class="sub" id="cand-sub"></p><div class="tw" id="cand"></div></div>
   <div class="g2 mt">
@@ -58,7 +58,7 @@ let voters = "?";
 try { voters = String((await getDocs(query(collection(recDb(), "persons"), where("status", "in", ["Citizen", "Resident"]), limit(2000)))).size); } catch (e) { console.warn(e); }
 let cands = [];
 try {
-  const rows = await loadCases(ctx, { bureau: "elections", prefixes: ["voter.", "candidate.", "finance.", "business.", "notary."] });
+  const rows = await loadCases(ctx, { bureau: "elections", prefixes: ["voter.", "candidate.", "finance.", "notary."] });
   const st = caseStats(rows);
   $("stats").append(stat("Open", String(st.open)), stat("In review", String(st.review)), stat("Closed", String(st.done)), stat("Registered voters", voters));
   renderQueue($("q"), ctx, rows, { emptyText: "No cases at this desk yet." });

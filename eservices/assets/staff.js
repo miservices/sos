@@ -83,7 +83,7 @@ export const CASE_TYPES = {
   "insurer.license": ["Insurance license", "lara"], "professional.license": ["Professional license application", "lara"], "professional.renewal": ["Professional license renewal", "lara"],
   "record.copy": ["Certified record request", "lara"], "vital.request": ["Vital record request", "lara"],
   "voter.registration": ["Voter registration", "elections"], "candidate.filing": ["Candidate filing", "elections"], "finance.report": ["Campaign finance report", "elections"],
-  "business.registration": ["Business registration", "elections"], "notary.commission": ["Notary commission", "elections"],
+  "business.registration": ["Business registration", "lara"], "notary.commission": ["Notary commission", "elections"],
   "appeal": ["Administrative appeal", "hearings"]
 };
 export const typeLabel = t => (CASE_TYPES[t] || [cap(String(t).replace(/\./g, " "))])[0];

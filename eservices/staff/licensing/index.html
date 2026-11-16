@@ -17,7 +17,7 @@
 <div id="p-body" hidden>
   <div class="ph"><div class="eb">Bureau desk</div><h1>Licensing Desk</h1><p>Licenses, IDs, and professional credentials. Part of the Bureau of Licensing and Regulatory Affairs.</p></div>
   <div class="stats" id="stats"></div>
-  <div class="g2 mt"><div class="pc"><h2>What this desk handles</h2><ul><li>Driver, motorcycle, chauffeur, and commercial license applications</li><li>Reinstatement requests and contested points</li><li>Personal ID and REAL ID applications</li><li>Name changes</li><li>Dealership, insurance, and professional license applications</li></ul></div><div class="pc"><h2>Desk tools</h2><div class="stack"><a class="btn2 s" href="https://migovt.org/sos/eservices/staff/lookup/">Person Lookup</a><a class="btn2 s" href="https://migovt.org/sos/eservices/staff/notices/">Send a notice</a></div></div></div>
+  <div class="g2 mt"><div class="pc"><h2>What this desk handles</h2><ul><li>Driver, motorcycle, chauffeur, and commercial license applications</li><li>Reinstatement requests and contested points</li><li>Personal ID and REAL ID applications</li><li>Name changes</li><li>Dealership, insurance, and professional license applications</li><li>Business registrations and annual reports (Division of Business and Occupational Licensing)</li></ul></div><div class="pc"><h2>Desk tools</h2><div class="stack"><a class="btn2 s" href="https://migovt.org/sos/eservices/staff/lookup/">Person Lookup</a><a class="btn2 s" href="https://migovt.org/sos/eservices/staff/notices/">Send a notice</a></div></div></div>
   <div class="pc mt"><h2>Cases</h2><div id="q"></div></div>
 </div>
 </main>
@@ -27,7 +27,7 @@
 import { bootStaff, $, el, cap, when, BUREAUS, ROLE_LABELS, loadCases, caseStats, renderQueue } from "https://migovt.org/sos/eservices/assets/staff.js";
 const ctx = await bootStaff({ page: "licensing", desk: "lara" });
 try {
-  const rows = await loadCases(ctx, { bureau: "lara", prefixes: ["license.", "id.", "name.", "dealer.", "insurer.", "professional."] });
+  const rows = await loadCases(ctx, { bureau: "lara", prefixes: ["license.", "id.", "name.", "dealer.", "insurer.", "professional.", "business."] });
   const st = caseStats(rows);
   $("stats").append(
     el("div", { class: "stat" }, el("span", { text: "Open" }), el("b", { text: String(st.open) })),
