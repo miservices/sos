@@ -42,7 +42,7 @@
     ] },
     { g: "Business and Legal", items: [
       { k: "business", t: "Business Services", u: "business/", d: "Register a business and file reports." },
-      { k: "notary", t: "Notarial Services", u: "notary/", d: "Apply for and manage a notary commission." },
+      { k: "notary", t: "Notarial Services", u: "notary/", d: "The notary program is inactive (2026 PA 17). See or resign a commission." },
       { k: "appeals", t: "Appeals and Contests", u: "appeals/", d: "Contest points, and appeal decisions to an Administrative Law Judge." }
     ] },
     { g: "Industry Services", items: [
@@ -69,6 +69,7 @@
     { g: "Tools", items: [
       { k: "lookup", t: "Person Lookup", u: "lookup/", d: "Search for a person and open their file. Every lookup is recorded." },
       { k: "professional-licenses", t: "Professional Licenses", u: "professional-licenses/", d: "Issue medical and bail bond licenses, change status, and record discipline." },
+      { k: "citizenship", t: "Citizenship", u: "citizenship/", d: "The citizenship exam blacklist and recent exam results." },
       { k: "notices", t: "Send Notices", u: "notices/", d: "Send an official notice to one person or to everyone." }
     ] },
     { g: "Administration", items: [

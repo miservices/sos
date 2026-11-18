@@ -34,11 +34,10 @@
 <main class="pmain">
 <div id="p-load" class="pload">Loading notarial services...</div>
 <div id="p-body" hidden>
-  <div class="ph"><div class="eb">Business and Legal</div><h1>Notarial Services</h1><p>Apply for a notary commission, renew it, or resign. Filings are reviewed by the Office of the Great Seal.</p></div>
+  <div class="ph"><div class="eb">Business and Legal</div><h1>Notarial Services</h1><p>The notary program is inactive. See your commission or resign it.</p></div>
+  <div class="alert warn" style="margin-top:12px"><b>The notary program is inactive.</b> Michigan law, specifically 2026 PA 17, says notaries are not needed. New applications and renewals are closed. <a href="https://migovt.org/sos/great-seal/notary/">Read more</a></div>
   <div class="stats" id="stats"></div>
   <div class="pc mt"><h2>Your commission</h2><div id="mine"></div></div>
-  <div class="pc mt" id="apply-box" hidden><h2>Apply for a notary commission</h2>
-    <p class="sub" id="apply-sub"></p><div id="apply"></div></div>
   <div class="pc mt"><h2>Your filings</h2><div class="rows" id="filings"></div></div>
 </div>
 </main>
@@ -120,7 +119,7 @@ function form(mode) {
 
 /* ---- your commission ---- */
 const box = $("mine");
-if (!n) box.append(el("div", { class: "empty", text: "You do not have a notary commission." }));
+if (!n) box.append(el("div", { class: "empty", text: "You do not have a notary commission. The notary program is inactive, so you cannot apply for one." }));
 else {
   const card = el("div", { class: "nt" }), acts = el("div", { class: "nt-ft" });
   const left = st.left;
@@ -128,12 +127,11 @@ else {
     el("div", { class: "nt-id" }, ...[["Commission no.", n.number, ""], ["Issued", shortDay(n.issuedAt), ""], ["Expires", st.code === "resigned" ? "Not applicable" : shortDay(n.expiresAt), st.code === "active" ? left + " days left" : st.code === "expired" ? Math.abs(left) + " days ago" : ""], ["County", (n.county || "Not set") + " County", ""]]
       .map(([k, v, s]) => el("div", {}, el("small", { text: k }), el("b", { text: v }), s ? el("span", { text: s }) : ""))));
   if (st.code === "suspended") card.append(el("div", { class: "alert warn" }, el("b", { text: "Your commission is suspended. " }), "You cannot notarize until the Office lifts the suspension."));
-  if (st.code === "revoked") card.append(el("div", { class: "alert warn" }, el("b", { text: "Your commission was revoked. " }), "You can apply for a new commission once the Office allows it."));
+  if (st.code === "revoked") card.append(el("div", { class: "alert warn" }, el("b", { text: "Your commission was revoked. " }), "The notary program is inactive, so no new commissions are issued."));
   if (st.code === "expired") card.append(el("div", { class: "alert warn" }, el("b", { text: "Your commission has expired. " }), "You cannot notarize. Apply for a new commission below."));
   if (pend) card.append(el("div", { class: "alert" }, "A filing is already under review: " + pend.title + "."));
   const addBtn = (label, primary, fn) => { const x = el("button", { class: primary ? "btn2" : "btn2 s", type: "button", text: label }); x.addEventListener("click", fn); acts.append(x); };
   if (!pend && ["active", "suspended"].includes(st.code)) {
-    if (st.code === "active" && left <= RENEW_DAYS) addBtn("Renew commission", true, () => { card.querySelectorAll(".fx").forEach(x => x.remove()); card.append(form("renew")); });
     addBtn("Resign commission", false, () => {
       card.querySelectorAll(".fx").forEach(x => x.remove());
       const sure = el("input", { type: "checkbox" }), go = el("button", { class: "btn2", type: "button", text: "Request resignation" }), msg = el("span", { class: "empty" });
@@ -146,17 +144,6 @@ else {
   }
   if (acts.children.length) card.append(acts);
   box.append(card);
-}
-
-/* ---- apply ---- */
-const canApply = !pend && (!n || ["expired", "resigned"].includes(st.code));
-if (canApply) {
-  $("apply-box").hidden = false;
-  const dob = isoDob((rec && rec.dob) || ctx.id.dob), citizen = ["Citizen", "Resident"].includes(statusOf(rec));
-  $("apply-sub").textContent = "You have to be at least 18 and a citizen or resident of Michigan. The fee is $" + FEE.toFixed(2) + ", charged only if you are approved. A commission lasts " + TERM_YEARS + " years.";
-  if (!citizen) $("apply").append(el("div", { class: "alert warn" }, el("b", { text: "You are not eligible yet. " }), "Only citizens and residents can be notaries. See ", el("a", { href: "../identification/", text: "Identification" }), " for your status."));
-  else if (dob && ageOn(dob) < 18) $("apply").append(el("div", { class: "alert warn" }, el("b", { text: "You are not eligible yet. " }), "A notary has to be at least 18 years old."));
-  else $("apply").append(form("apply"));
 }
 
 /* ---- filings ---- */

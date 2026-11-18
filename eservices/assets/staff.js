@@ -37,6 +37,7 @@ const CAPS = {
   "notices.global": ["system-administrator", "secretary-of-state", "deputy-secretary-of-state", "bureau-director"], // notice to everyone
   "accounts.manage": ALL_BUREAUS.slice(),          // open the account administration page, edit bureau, division, special permissions
   "accounts.roles": ["system-administrator"],      // change a role
+  "citizenship.manage": [...ALL_BUREAUS, "bureau-director", "deputy-bureau-director", "records-officer"], // citizenship blacklist and exam results
   "audit.view": [...ALL_BUREAUS, "bureau-director", "deputy-bureau-director"]
 };
 
@@ -217,6 +218,7 @@ function detailGroups(r) {
 
 /* Approving a notary filing creates or updates the commission at notaries/{pin}. */
 async function applyNotaryCase(ctx, r) {
+  if (r.type !== "notary.resignation") return "The notary program is inactive under 2026 PA 17, so this filing cannot be approved. Deny or close it instead.";
   const d = r.detail || {}, now = new Date().toISOString(), day = now.slice(0, 10), by = { updatedBy: ctx.id.pin, updatedAt: serverTimestamp() }, pin = String(r.pin);
   const ref = doc(db, "notaries", pin), snap = await getDoc(ref), cur = snap.exists() ? snap.data() : null;
   const fee = parseFloat(String(d.fee || "").replace(/[^0-9.]/g, ""));
