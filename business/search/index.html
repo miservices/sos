@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Business Entity Search | Michigan Secretary of State</title>
+<link rel="icon" href="https://migovt.org/sos/images/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://migovt.org/sos/shared.css">
+<style>
+.fm{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.fm .w{grid-column:1/-1}.fm label{display:block;font-weight:700;font-size:.9rem;margin-bottom:4px}
+.fm input,.fm select{width:100%;font:inherit;border:1px solid #cfdfe2;border-radius:10px;padding:10px 12px;background:#fff}@media(max-width:600px){.fm{grid-template-columns:1fr}}
+.cnt{margin:18px 0 6px;font-weight:700;color:#5b6f74}
+.sr{display:flex;justify-content:space-between;gap:14px;align-items:center;border:1px solid #dbe7e9;border-radius:14px;padding:14px 18px;margin-top:10px;background:#fff}.sr b{font-size:1.05rem}.sr small{display:block;color:#5b6f74;margin-top:2px}
+.sr .r{text-align:right;white-space:nowrap}.id{font:600 .95rem 'IBM Plex Mono',ui-monospace,monospace;color:#07474e}
+.pill{display:inline-block;border-radius:999px;padding:3px 12px;font-size:.8rem;font-weight:800}.pill.g{background:#e3f4ea;color:#15602f}.pill.o{background:#ffe9dc;color:#b8501d}.pill.n{background:#eceff1;color:#4c6168}
+.bz{border:1px solid #cfe9ec;border-radius:20px;background:#fff;overflow:hidden;margin-top:16px}
+.bz-hd{background:linear-gradient(135deg,#07474e,#0e7c86 75%,#13919b);color:#fff;padding:22px 26px}.bz-hd small{display:block;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;font-weight:800;opacity:.85}.bz-hd h2{margin:6px 0 4px!important;color:#fff;font-size:1.7rem}.bz-hd p{margin:0;color:#fff!important;opacity:.92}
+.bz-id{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #dbe7e9}@media(max-width:800px){.bz-id{grid-template-columns:1fr 1fr}}
+.bz-id>div{padding:14px 20px;border-left:1px solid #dbe7e9}.bz-id>div:first-child{border-left:0;background:#e6f5f6}.bz-id small{display:block;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:#5b6f74;margin-bottom:4px}.bz-id b{font-size:1.05rem}
+.bz-body{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:20px 22px}@media(max-width:700px){.bz-body{grid-template-columns:1fr}}
+.bz-body .bx{border:1px solid #dbe7e9;border-radius:14px;padding:14px 18px}.bz-body .w{grid-column:1/-1}.bz-body h3{margin:0 0 8px!important;font-size:.8rem!important;letter-spacing:.1em;text-transform:uppercase;color:#07474e}
+.bz-body p{margin:0 0 4px}.own{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid #eef3f4}.own:first-of-type{border-top:0}
+.warn2{margin:0 22px 18px;border-radius:12px;padding:12px 16px;background:#fff1e8;border:1px solid #ffd9c2;color:#8a3b12}
+</style>
+</head>
+<body>
+<script src="https://migovt.org/sos/partials.js" data-part="header"></script>
+<section class="phead"><div class="in"><div class="crumbs"><a href="https://migovt.org/sos/">Home</a><span>/</span><a href="https://migovt.org/sos/business/">Business</a><span>/</span><b>Entity search</b></div><h1>Business entity search</h1><p>Find any business registered in Michigan and check its standing.</p></div></section>
+<div class="pg"><div class="prose">
+<div id="list">
+<h2>Search the registry</h2>
+<p>Search by business name, trade name, or Business ID. Every box you fill in has to match. Leave the rest blank.</p>
+<form id="f"><div class="fm">
+<div class="w"><label for="q">Business name, trade name, or Business ID</label><input id="q" autocomplete="off" placeholder="For example BWD Services or 48-1234567"></div>
+<div><label for="who">Owner or registered agent</label><input id="who" autocomplete="off" placeholder="Full or partial name"></div>
+<div><label for="city">City</label><input id="city" autocomplete="off"></div>
+<div><label for="type">Business type</label><select id="type"><option value="">Any type</option></select></div>
+<div><label for="stat">Standing</label><select id="stat"><option value="">Any standing</option><option value="active">Active</option><option value="past-due">Past due</option><option value="admin-dissolved">Administratively dissolved</option><option value="dissolved">Dissolved</option></select></div>
+</div><div style="margin-top:14px"><button class="btn2" type="submit">Search</button> <button class="btn2 s" type="button" id="clr">Clear</button></div></form>
+<div id="out"></div>
+</div>
+<div id="one" hidden></div>
+</div><aside class="side"><div class="card cta"><h3>Register a business</h3><p>Start a new business in SOS e-Services.</p><a class="btn2" href="https://migovt.org/sos/business/register/">How to register</a></div>
+<div class="card"><h3>About standing</h3><div class="kv"><div><span>Active</span><b>In good standing</b></div><div><span>Past due</span><b>Report late, 30 days to file</b></div><div><span>Admin. dissolved</span><b>Report over 30 days late</b></div><div><span>Dissolved</span><b>Closed by the owners</b></div></div></div>
+<div class="card"><h3>Business</h3><div class="kv"><div><a class="l" href="https://migovt.org/sos/business/">Business information</a></div><div><a class="l" href="https://migovt.org/sos/business/register/">Business registration</a></div><div><a class="l" href="https://migovt.org/sos/business/annual-reports/">Annual reports</a></div></div></div></aside></div>
+<script src="https://migovt.org/sos/partials.js" data-part="footer"></script>
+<script type="module">
+import { db, el, $ } from "https://migovt.org/sos/eservices/assets/shared.js";
+import { TYPES, standing } from "https://migovt.org/sos/eservices/assets/business.js";
+import { getDocs, collection, query, limit } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+const norm = s => String(s || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim(), digits = s => String(s || "").replace(/\D/g, "");
+const day = v => { if (!v) return "Not set"; const d = v && v.toDate ? v.toDate() : new Date(v); return isNaN(d) ? "Not set" : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }); };
+const addr = a => a ? [a.street, a.city, "MI", a.zip].filter(Boolean).join(", ") : "Not listed";
+let all = null;
+Object.entries(TYPES).forEach(([k, t]) => $("type").append(el("option", { value: k, text: t.t })));
+async function load() { if (all) return all; const s = await getDocs(query(collection(db, "businesses"), limit(3000))); return all = s.docs.map(d => ({ id: d.id, ...d.data() })); }
+const people = b => [...(b.ownerDetails || []).map(o => o.name), b.agent && b.agent.name].filter(Boolean);
+function match(b) {
+  const q = norm($("q").value), qd = digits($("q").value), who = norm($("who").value), city = norm($("city").value), type = $("type").value, stat = $("stat").value;
+  if (q) { const hay = norm(b.name) + " | " + norm(b.tradeName); if (!(hay.includes(q) || (qd.length >= 3 && digits(b.businessNumber).includes(qd) && /\d/.test(q) && !/[a-z]/i.test($("q").value)))) return false; }
+  if (who && !people(b).some(n => norm(n).includes(who))) return false;
+  if (city && !norm(b.address && b.address.city).includes(city)) return false;
+  if (type && b.type !== type) return false;
+  if (stat && standing(b).code !== stat) return false;
+  return true;
+}
+async function search(e) {
+  if (e) e.preventDefault(); const out = $("out"); out.replaceChildren(el("p", { class: "cnt", text: "Searching..." }));
+  let rows; try { rows = (await load()).filter(match); } catch (x) { console.error(x); out.replaceChildren(el("div", { class: "pp" }, "We could not search the registry right now. Try again in a moment.")); return; }
+  rows.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  out.replaceChildren(el("div", { class: "cnt", text: rows.length + (rows.length === 1 ? " business found" : " businesses found") }));
+  if (!rows.length) out.append(el("div", { class: "sr" }, el("div", {}, el("b", { text: "No business matches" }), el("small", { text: "Check the spelling or clear a box. Searching a part of the name works." }))));
+  rows.slice(0, 100).forEach(b => { const s = standing(b), open = el("a", { class: "btn2 s", href: "#" + b.businessNumber, text: "View details" });
+    out.append(el("div", { class: "sr" }, el("div", {}, el("b", { text: b.name }), el("small", { text: [b.tradeName ? "DBA " + b.tradeName : "", b.typeLabel || (TYPES[b.type] || {}).t, b.address && b.address.city].filter(Boolean).join(" \u00b7 ") }), el("small", { class: "id", text: b.businessNumber })), el("div", { class: "r" }, el("span", { class: "pill " + s.cls, text: s.label }), el("div", { style: "margin-top:8px" }, open)))); });
+  if (rows.length > 100) out.append(el("p", { class: "cnt", text: "Showing the first 100. Narrow your search to see more." }));
+}
+function detail(b) {
+  const s = standing(b), T = TYPES[b.type] || {}, box = (t, ...k) => el("div", { class: "bx" }, el("h3", { text: t }), ...k), row = (a, c) => el("p", {}, el("b", { text: a + ": " }), c || "Not listed");
+  const site = b.website ? el("a", { class: "l", href: b.website, target: "_blank", rel: "noopener", text: b.website }) : "Not listed";
+  const root = el("div", { class: "bz" }, el("div", { class: "bz-hd" }, el("small", { text: "Michigan business entity" }), el("h2", { text: b.name }), el("p", { text: b.tradeName ? "Doing business as " + b.tradeName : (b.typeLabel || T.t || "") }), el("span", { class: "pill " + s.cls, text: s.label, style: "margin-top:12px" })),
+    el("div", { class: "bz-id" }, ...[["Business ID", b.businessNumber], ["Type", b.typeLabel || T.t], ["Registered", day(b.registeredAt || b.approvedAt)], [T.report ? "Report due" : "Renewal", T.report ? day(b.dueDate) : "Not required"]].map(([k, v]) => el("div", {}, el("small", { text: k }), el("b", { text: v || "Not listed" })))));
+  if (s.code === "past-due") root.append(el("div", { class: "warn2", style: "margin-top:16px", text: "This business's annual report is " + s.late + " day" + (s.late === 1 ? "" : "s") + " late. It will be administratively dissolved if it is not filed in time." }));
+  if (s.code === "admin-dissolved") root.append(el("div", { class: "warn2", style: "margin-top:16px", text: "This business was administratively dissolved for not filing its annual report. It can be reinstated by its owners." }));
+  root.append(el("div", { class: "bz-body" }, box("Business", row("Name", b.name), row("Trade name", b.tradeName), row("Industry", b.industry), row("Last report filed", b.lastReportAt ? day(b.lastReportAt) : "None yet")),
+    box("Address and contact", row("Principal address", addr(b.address)), row("Website", site), row("Discord", b.discord)),
+    box("Owners", ...((b.ownerDetails || []).length ? b.ownerDetails.map(o => el("div", { class: "own" }, el("span", { text: o.name }), el("b", { text: o.percent ? o.percent + "%" : "" }))) : [el("p", { text: "Not listed" })])),
+    box("Registered agent", row("Name", b.agent && b.agent.name)),
+    b.description ? el("div", { class: "bx w" }, el("h3", { text: "Description" }), el("p", { text: b.description })) : ""));
+  return root;
+}
+async function route() {
+  const id = decodeURIComponent(location.hash.slice(1)), one = $("one"), list = $("list");
+  if (!id) { one.hidden = true; list.hidden = false; return; }
+  list.hidden = true; one.hidden = false; one.replaceChildren(el("p", { class: "cnt", text: "Loading..." }));
+  let rows; try { rows = await load(); } catch (x) { console.error(x); one.replaceChildren(el("div", { class: "pp" }, "We could not load this business right now.")); return; }
+  const b = rows.find(x => x.businessNumber === id);
+  const back = el("a", { class: "btn2 s", href: location.pathname + location.search, text: "Back to search" }); back.addEventListener("click", ev => { ev.preventDefault(); history.pushState("", "", location.pathname + location.search); route(); });
+  one.replaceChildren(el("div", {}, back), b ? detail(b) : el("div", { class: "sr", style: "margin-top:14px" }, el("div", {}, el("b", { text: "No business has the ID " + id }), el("small", { text: "Check the number and search again." }))));
+  window.scrollTo({ top: 0 });
+}
+$("f").addEventListener("submit", search);
+$("clr").addEventListener("click", () => { $("f").reset(); $("out").replaceChildren(); });
+window.addEventListener("hashchange", route);
+route();
+</script>
+</body>
+</html>
