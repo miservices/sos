@@ -85,7 +85,7 @@ function detail(b) {
   root.append(el("div", { class: "bz-body" }, box("Business", row("Name", b.name), row("Trade name", b.tradeName), row("Industry", b.industry), row("Last report filed", b.lastReportAt ? day(b.lastReportAt) : "None yet")),
     box("Address and contact", row("Principal address", addr(b.address)), row("Website", site), row("Discord", b.discord)),
     box("Owners", ...((b.ownerDetails || []).length ? b.ownerDetails.map(o => el("div", { class: "own" }, el("span", { text: o.name }), el("b", { text: o.percent ? o.percent + "%" : "" }))) : [el("p", { text: "Not listed" })])),
-    box("Registered agent", row("Name", b.agent && b.agent.name)),
+    box("Registered agent", row("Name", b.agent && b.agent.name), row("PIN", b.agent && b.agent.pin)),
     b.description ? el("div", { class: "bx w" }, el("h3", { text: "Description" }), el("p", { text: b.description })) : ""));
   return root;
 }
